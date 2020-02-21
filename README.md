@@ -40,6 +40,20 @@ print(keyphrases_)
 Use this ``eval/sifrank_eval.py`` to evaluate SIFRank on ``Inspec``, ``SemEval2017`` and ``DUC2001 datasets``
 We also have evaluation codes for other baseline models. We will organize and upload them later, so stay tuned.
 
+| Models       | Inspec       | SemEval2017   | DUC2001      |
+| :-----       | :----:       | :----:        |:----:        |
+| TFIDF        | 11.28        | 12.70         |  9.21        |
+| YAKE         | 15.73        | 11.84         | 10.61        |
+| TextRank     | 24.39        | 16.43         | 13.94        |
+| SingleRank   | 24.69        | 18.23         | 21.56        |
+| TopicRank    | 22.76        | 17.10         | 20.37        |
+| PositionRan  | 25.19        | 18.23         | 24.95        |
+| Multipartite | 23.05        | 17.39         | 21.86        |
+| RVA          | 21.91        | 19.59         | 20.32        |
+| EmbedRank d2v| 27.20        | 20.21         | 21.74        |
+| SIFRank      | **29.11**        | **22.59**         | 24.27        |
+| SIFRank+     | 28.49        | 21.53         | **30.88**        |
+
 ## Cite
 If you use this code, please cite this paper
 ```
