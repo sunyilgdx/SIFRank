@@ -37,7 +37,7 @@ print(keyphrases)
 print(keyphrases_)
 ```
 ## Evaluate the model
-Use this ``eval/sifrank_eval.py`` to evaluate SIFRank on Inspec, SemEval2017 and DUC2001 datasets
+Use this ``eval/sifrank_eval.py`` to evaluate SIFRank on ``Inspec``, ``SemEval2017`` and ``DUC2001 datasets``
 We also have evaluation codes for other baseline models. We will organize and upload them later, so stay tuned.
 
 ## Cite
