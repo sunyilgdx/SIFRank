@@ -1,5 +1,5 @@
 # SIFRank
-The code of our paper "SIFRank: A New Baseline for Unsupervised Keyphrase Extraction Based on Pre-trained Language Model"
+The code of our paper [SIFRank: A New Baseline for Unsupervised Keyphrase Extraction Based on Pre-trained Language Model](https://ieeexplore.ieee.org/document/8954611)
 
 ## Environment
 ```
