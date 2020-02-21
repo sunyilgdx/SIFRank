@@ -36,7 +36,7 @@ keyphrases_ = SIFRank_plus(text, SIF, en_model, N=15, elmo_layers_weight=elmo_la
 print(keyphrases)
 print(keyphrases_)
 ```
-** Evaluate the model
+## Evaluate the model
 Use this ``eval/sifrank_eval.py`` to evaluate SIFRank on Inspec, SemEval2017 and DUC2001 datasets
 We also have evaluation codes for other baseline models. We will organize and upload them later, so stay tuned.
 
