@@ -1,0 +1,1518 @@
+Efficient retrieval of similar shapes
+Abstract
+We propose an indexing technique for the fast retrieval
+of objects in 2D images basedon similarity between
+their boundary shapes. Our technique is robust in the presence
+of noise andsupports several important notions of similarity
+including optimal matches irrespective of variations in
+orientation and/or position. Our method can also handle size-invariant
+matches using a normalization technique, although
+optimality is not guaranteedhere. We implementedour method
+and performed experiments on real (hand-written digits) data.
+Our experimental results showedthe superiority of our method
+comparedto search basedon sequential scanning, which is the
+only obvious competitor. The performance gain of our method
+increases with any increase in the number or the size of shapes.
+Introduction
+There is an increasing interest in storing andretrieving non-textual
+objects in databases. For example, this kind of data can
+be storedin the form of extenders in DB2, DataBlades in In-formix
+, and cartridges in Oracle. Non-textual objects are frequently
+in the form of images or shapes. In cases where the key
+information for description or classification of an object can be
+found in its boundary, it is natural to store only the boundary
+anddo retrieval basedon that. Among the areas of applications
+for boundary shape matching are industrial inspection,
+object recognition in satellite images, character recognition,
+classification of chromosomes, andtarget recognition.
+For example, consider the following query:
+Query 1
+Findall shapes similar to a given shape.
+A basic question here is how we judge whether two shapes
+(for example the two shown in Fig. 1) are similar. There is a
+large body of work in the area of pattern recognition and computer
+vision on extracting boundary features of a shape and
+doing shape matching based on those features. The boundary
+of an object can be described in terms of simple descriptors
+such as length, diameter, and curvature ([MM86]), chain
+Fig. 1.
+Two shape boundaries both representing character `9'
+codes ([BG80,Bri81]), Fourier descriptors ([PF77,ZR72]) or
+moments ([BSA91]). Among these features, we use Fourier
+descriptors as our shape features. Theoretical andexperimen-tal
+evidence in favor of Fourier descriptors can be found in the
+literature [PF77,KSP95].
+Similar shapes often have differences in size and orientation
+. For example, consider the two shapes shown in Fig. 1. The
+Euclidean distance between their Fourier descriptors is 22.88.
+If we rotate the shape on the right by
+30
+
+in the clockwise
+(cw) direction, the Euclidean distance between their Fourier
+descriptors drops to zero. A simple approach to remove differences
+due to shifting, scaling, and rotation is to normalize
+Fourier descriptors before storing them in a database. However
+, there are still two problems with normalization. First,
+normalization is not guaranteedto minimize the distance between
+two arbitrary shapes. Second, normalization is not always
+desirable; for example, the shapes `9' and`6' shouldnot
+be treatedas similar if we are doing character recognition. A
+solution is to rewrite the query as follows:
+Query 2
+Findall shapes that become similar to a given shape
+after being rotatedby
+[-30
+
+, 30
+
+].
+If our shape collection includes, for example, shapes of airplanes
+, we may write our query insteadas follows:
+Query 3
+Findall shapes similar to a given shape irrespective
+of rotation.
+In this paper, we study the issue of efficiently processing
+these queries. We show how to organize Fourier descriptors in
+a multidimensional index, and how to efficiently use the index
+18
+D. Rafiei, A.O. Mendelzon: Efficient retrieval of similar shapes
+in processing a broadrange of similarity queries. Our goal is
+to develop an access method that can handle shapes of various
+sizes andorientations, is much faster than sequential scanning,
+and does not miss any qualifying data objects in the answers
+(false positives are acceptable if they can be eliminatedin a
+post-processing step without much performance degradation).
+The organization of the rest of the paper is as follows.
+Section 2 provides some backgroundmaterial on relatedwork,
+shape representation using Fourier descriptors and shape matching
+. In Sect. 3, we propose our technique for indexing shapes
+andprocessing similarity queries. Section 4 presents experimental
+results. We conclude in Sect. 5.
+Background
+2.1 Related work
+The following relevant methods for multidimensional indexing
+andsearch have been proposed:
+Jagadish [Jag91] proposes a technique for storing and retrieving
+shape descriptions in a multidimensional index. He
+maps shapes into their constituent rectangles, keeps a few
+larger rectangles in a multidimensional index, and uses the
+area difference between the constituent rectangles of shapes
+as a measure of similarity. Due to a normalization process, the
+shape description is invariant under translation and scaling. A
+problem with this approach is that a shape can be normally
+coveredby multiple sets of rectangles. This can leadto ambiguity
+or storing multiple representations of the same shape.
+Furthermore, it is not possible to do matching in the presence
+of rotation; for example, two identical shapes may not match
+if one is rotatedby
+45
+
+.
+Mehrotra andGary [MG93] decompose a shape into several
+components anduse fixed-sizedsegments of each component
+as the shape features. Basedon a normalization process,
+the shape description is made invariant under translation, scaling
+, androtation. A problem with this approach is that since
+a shape is broken down into pieces, the overall shape of the
+boundary is lost. In addition, each shape is described in terms
+of multiple feature vectors, andthis introduces extra overhead
+during insertions and retrievals.
+Berchtoldet al. [BKK97] study the issue of storing polygons
+so that they can be retrievedbasedon partial similarity
+matches. They extract almost all possible boundary segments
+of polygons, transform each segment into a sequence of slope
+changes, andmap the resulting sequences into their first few
+Fourier coefficients. Thus, each polygon is representedusing
+a set of feature points, andthe minimum bounding rectangle
+of these points for each polygon is storedin a multidimensional
+index. Due to a normalization, the shape representation
+is invariant to translation, scaling, androtation, but it is not invariant
+to the starting point. This problem is handled by storing
+multiple descriptions of a polygon, each associated to a
+starting point. Again, representing a polygon in terms of multiple
+points introduces extra overhead during insertions and
+retrievals.
+The QBIC (Query By Image Content) system [FBF
++
+94]
+contains a component for approximate shape matching. The
+system keeps a 20-D feature vector to describe the shape of
+x x
+y ,  y
+1
+1
+y
+imaginary axis
+x
+real axis
+0
+0
+Fig. 2.
+A boundary and its representation as a complex sequence
+every object identified in an image. Features, for example, include
+the area and the circularity, i.e., whether the object is circular
+or not. To allow fast retrieval, it is suggestedto transform
+feature vectors using the Karhunen Loeve (KL) transform and
+keep a few important features (those associatedwith the few
+largest eigenvalues) in a multidimensional index. However, the
+choice of proper features andtheir weighting for each application
+is not an easy task. Some features are abstract quantities
+which may not easily fit in a distance function computation.
+In addition, the use of the KL transform makes the multidimensional
+index rather static.
+The aforementionedmethods are less general than ours because
+the notion of similarity is fixedbefore query evaluation;
+this notion cannot be changedunless a new index structure
+is created. Our method, instead, provides a set of transformations
+to express the notion of similarity in a query; yet, the
+resulting queries are evaluatedusing the same index, without
+prior knowledge of the specific transformations used. Therefore
+we have not comparedthe performance of our method
+with theirs, but with sequential scanning instead.
+Related work on time series data includes the work of
+Agrawal et al. [AFS93] on using the discrete Fourier transform
+for retrieving similar time series andextensions andimprove-ments
+over this approach [GK95,RM97,RM00]. Similar to
+our framework, Goldin and Kanellakis [GK95] show that the
+similarity retrieval will be roughly invariant to simple translations
+andscales if sequences are normalizedbefore being
+stored in the index. The authors store in the index both the
+translation and the scale factors, in addition to normalized sequences
+, andalso allow those factors to be queriedusing range
+predicates (see Goldin's Ph.D. thesis [Gol97] for implementation
+details).
+A general framework for composing similarity queries is
+proposed by Jagadish, Mendelzon, and Milo [JMM95]. Our
+work here can be seen as a special case of this framework over
+shapes. Our shape matching can also be incorporatedwithin a
+multimedia query language such as MOQL [L ¨
+OSO97] where
+multiple features of images are simultaneously queried.
+2.2 Shape representation using Fourier descriptors
+Given the figure of an object in the complex plane, its boundary
+can be tracedproducing a 1-D complex function
+b
+t
+of
+time. For example, a point moving along the boundary shown
+in Fig. 2 generates the complex function
+b
+t
+= x
+t
++ jy
+t
+for
+D. Rafiei, A.O. Mendelzon: Efficient retrieval of similar shapes
+19
+t = 0, . . . , N - 1 which is periodic with period N. That is, the
+x-axis of the figure is treatedas the real axis andthe y-axis as
+the imaginary axis of a sequence of complex numbers. Further
+information on tracing the boundary of a shape and possible
+alternatives in representing it can be foundin any image processing
+textbook such as Gonzalez andWoods [GW92].
+It shouldbe notedthat the description is solely basedon
+the shape of the boundary; objects can still have holes in them,
+but this is not reflected in the description. Given a boundary
+function
+b
+t
+, its Fourier transform can be written as
+B
+f
+= 1
+N
+N-1
+t=0
+b
+t
+e
+-j2tf
+N
+(1)
+where
+f  { (N - 1)/2 , . . . , 0, . . . , (N - 1)/2 } and
+j = -1 is the imaginary unit. The coefficients B
+0
+, B
+±1
+, . . .,
+called Fourier descriptors, describe the shape of the object in
+the frequency domain. The transformation is loss-less since
+the energy in the frequency domain is the same as the energy
+in the spatial domain (due to Parseval's theorem) and also the
+inverse Fourier transform gives the original boundary function
+.
+2.3 Shape matching using Fourier descriptors
+Consider two boundary functions
+b
+t
+= x
+t
++ jy
+t
+and
+b
+t
+=
+x
+t
++jy
+t
+(for
+t = 0, . . . , N -1).A typical measure of similarity
+between the two boundaries is the Euclidean distance, which
+corresponds to mean-square error and which is also directly
+relatedto the cross-correlation [Raf98].
+D
+2
+(b, b ) =
+N-1
+t=0
+|b
+t
+- b
+t
+|
+2
+(2)
+However, the distance computation becomes ambiguous if the
+two boundaries have different numbers of samples. A solution
+to avoidthis problem is to findthe Fourier descriptors
+B and
+B , respectively, for b and b anduse a fixednumber of lower
+frequency descriptors (say,
+2M +1) to compute the Euclidean
+distance, i.e.,
+D
+2
+(B, B ) =
+M
+f=-M
+|B
+f
+- B
+f
+|
+2
+.
+(3)
+Our proposal
+The general overview of the proposedmethodis as follows:
+1. Obtain the Fourier descriptors of every shape boundary in
+the database.
+2. Compute a fingerprint for every shape, as discussed in
+Sect. 3.1, andbuilda multidimensional index using the
+fingerprints. Each fingerprint is storedas a point in the
+multidimensional index.
+3. For basic similarity queries (proximity, nearest neighbours
+and all-pairs), use the index to retrieve candidate shapes.
+The qualifying shapes are identified after retrieving their
+full database records and examining them.
+4. For queries that use transformations in their expressions
+of similarities, if necessary, apply the transformations to
+the index, as discussed in Sect. 3.4, and retrieve candidate
+shapes. The full database record of every candidate shape
+is examinedto findout if it qualifies.
+We use Fourier descriptors as our shape features. Given a
+set of shape boundaries, for each boundary
+b we findits Fourier
+transform andretain only a fixednumber of lower frequency
+descriptors. This number, which we denote by
+2M + 1, can
+be chosen, for example to be the average length of a boundary
+in the spatial domain. If the number of Fourier descriptors
+happens to be less than
+2M + 1, we store zero for higher
+frequency descriptors.
+3.1 Computing a fingerprint
+To aidin the retrievals that we intendto perform, we apply a
+few transformations to the descriptors, rather than storing them
+directly. First, we set
+B
+0
+to
+0. B
+0
+is the only descriptor that
+carries information about the shape location. This setting minimizes
+the distance function (Eq. 3) with respect to translation.
+Next, the scale normalization is achieved by dividing every
+coefficient
+B
+f
+by the amplitude of
+B
+1
+, often calledthe fundamental
+frequency.
+|B
+1
+| turns out to be the largest amplitude
+when the boundary is traced in the counter-clockwise (ccw)
+direction and the boundary does not cross itself [WW80]. After
+the normalization,
+B
+0
+is
+0, so we do not need to store it.
+Instead, we store the original value of
+B
+0
+before the normalization
+. It shouldbe notedthat the real andthe imaginary parts of
+the initial value of
+B
+0
+represent the shift factors, respectively,
+along the X and the Y coordinates; the amplitude of the initial
+value of
+B
+1
+represents the scale factor. To totally get ridof
+B
+1
+, which already has an amplitude of
+1 for all shapes, we do
+an additional normalization. We shift the starting point such
+that the phase of
+B
+1
+becomes zero.
+Definition 3.1. Given the Fourier descriptors
+B
+-M
+, . . . , B
+M
+of a shape, denote the real part of
+B
+0
+by
+sh
+x
+, the imaginary
+part of
+B
+0
+by
+sh
+y
+, the amplitude of
+B
+1
+by
+sc, and the phase
+of
+B
+1
+by
+p. The shape description is defined as the sequence
+(sh
+x
+, sh
+y
+, sc, S
+-1
+, S
+2
+, S
+-2
+, S
+3
+, S
+-3
+, . . . , S
+M
+, S
+-M
+).
+(4)
+where
+S
+i
+= ((B
+i
+- (sh
+x
++ sh
+y
+j))/sc)  e
+-ipj
+(a complex
+number) for
+i = -1, ±2, ±3, . . ..
+The Euclidean distance between two shape descriptions, irrespective
+of variations in location andsize, can be computedas
+follows:
+D
+2
+(S, S ) =
+M
+f=-M,f=0,1
+|S
+f
+- S
+f
+|
+2
+.
+(5)
+Such a description is still sensitive to changes in orientation
+andstarting point of the tracing. We can assume that every
+data or query shape has a fixed starting point, if we encode its
+boundary using the same tracing algorithm and perform the
+same normalization. For example, a tracing algorithm may
+always start from the top right corner of a shape andtrace it
+in the ccw direction. In this way, the starting point for two
+identical shapes will always be the same. Two similar shapes
+20
+D. Rafiei, A.O. Mendelzon: Efficient retrieval of similar shapes
+may still have small variations in their starting points, but those
+variations can be easily resolvedby allowing some variations
+in starting points. This is discussed in Sect. 3.4.3.
+There are sophisticatedtechniques to do phase normalization
+[PF77,WW80]. For example, Wallace et al. [WW80]
+suggest making the phases of the two coefficients of largest
+amplitude equal to zero. This is believed to shift the starting
+point over the axis of symmetry andalso rotate the axis of
+symmetry such that it coincides with the real axis. However,
+it shouldbe notedthat none of these techniques are perfect in
+the sense that a shape can have two or more different phase
+normalizations, each as goodas the others; or equivalently,
+two fairly similar shapes may have descriptors which are far
+from each other.
+For the purpose of indexing, important features of the description
+needto be identifiedandplacedin the fingerprint.
+First, changing the orientation or the starting point of a boundary
+only affects the phases of descriptors. To insulate the index
+from such changes, the information about the phases of
+descriptors is not stored in a fingerprint. Second, as is shown
+in Fig. 3, the lower frequency descriptors contain information
+about the general shape, andthe higher frequency descriptors
+contain information about smaller details. There are strong
+reasons to believe that for a large class of boundary functions,
+the lower frequency descriptors contain most of the energy.
+For example, for continuous piece-wise smooth functions, the
+amplitude spectrum
+|S
+f
+| decreases at a rate proportional to
+f
+-2
+[RH74, Page 373]. Thus, we can define a fingerprint of a
+shape as follows:
+Definition 3.2. Given a shape description
+(sh
+x
+, sh
+y
+, sc, S
+-1
+,
+S
+2
+, S
+-2
+, . . . , S
+M
+, S
+-M
+), the fingerprint of the shape is defined
+as
+(sh
+x
+, sh
+y
+, sc, |S
+-1
+|, |S
+2
+|, |S
+-2
+|, . . . , |S
+k
+|, |S
+-k
+|) where
+k ( M) is the cut-off frequency.
+Next we show the completeness of the feature extraction.
+3.2 Using fingerprints for indexing
+The completeness of the indexing methodis basedon the following
+lemma:
+Lemma 3.3. The use of a fingerprint, in place of a full shape
+description for shape matching always returns a superset of
+the answer set.
+Proof: For every pair of boundaries
+S and S of length
+2M + 1 andfor every k  M, we have
+M
+f=-M,f=0,1
+|S
+f
+- S
+f
+|
+2
+
+k
+f=-k,f=0,1
+||S
+f
+| - |S
+f
+||
+2
+(6)
+This is due to the fact that for every term
+||S
+f
+| - |S
+f
+|| in
+the right side of the inequality, there is a term
+|S
+f
+- S
+f
+| in the
+left side and
+|S
+f
+- S
+f
+|  ||S
+f
+| - |S
+f
+||.
+Thus, storing the fingerprints of shapes in the index does
+not affect the correctness since the index returns a superset of
+the answer set. Furthermore, the distance function on the right
+side of Eq. 6 is invariant to changes in the starting point of the
+boundary and rotation.
+However, the index will not be effective if the choice of
+k results in a large number of false hits or high index dimensionality
+(the curse of dimensionality). Our experiments in
+Sect. 4.2 show that the value of
+k can be chosen as low as 2
+which results in storing 5 Fourier amplitudes in the index.
+There are a large number of multidimensional data structures
+which can be used for indexing (see the survey by Gaede
+andG¨unther [GG98] for details). We use the R*-tree as it is
+expectedto work well for up to 20 dimensions andthe length
+of a fingerprint is expectedto be less than 20.
+3.3 Basic similarity queries
+Within this section, we assume that the shapes being com-paredhave
+the correct sizes, positions, andorientations. Such a
+match can also be useful, for example before insertions, to prevent
+storing two replicas of the same image. We consider the
+three basic similarity queries over a shape database: (a) proximity
+query
+1
+; (b) all-pairs query; and(c) nearest-neighbours
+query.
+In a proximity query, we are given a query shape anda
+threshold , andwe wouldlike to findall database shapes
+that are within distance
+of the query shape. To perform a
+proximity query, both the shape description and its fingerprint
+are computedas describedin Sect. 3.1, in the same way as each
+data shape has been. The fingerprint is then used as a search
+key into the shape index, to retrieve all data shapes that are
+locatedin its proximity. Note that the index retrieves a superset
+of the answer set since it only keeps the fingerprints of shape
+descriptions. The actual result is obtained in an additional step
+where the Euclidean distance between the full database record
+of every matching shape andthe query shape is computed.
+In an all-pairs query, we are given two data sets and a
+threshold , andwe want to findall pairs of shapes such that
+one shape is within distance of the other. To perform an all-pairs
+query, we do a spatial join between the corresponding
+indices of the two data sets. This is followed by an additional
+step where the Euclidean distance between the full database
+records of matching shapes are computed.
+In a nearest-neighbours query, we are given a query shape,
+andwe wish to finddata shapes which are the closest to
+the query shape in distance. To perform a nearest-neighbours
+query, both the shape description and its fingerprint are computed
+(as discussedin Sect. 3.1), andthe fingerprint is usedas
+a search key over the index. Since the index employs the distance
+between fingerprints for its pruning andthis distance is
+an underestimate of the real distance between descriptions, a
+nearest neighbour identified through searching the index may
+not be the real nearest neighbour. For example, of the two
+shapes a and b, a couldbe the closest to the query shape based
+on the distance between full descriptions, but the index will
+return b if b is the closest basedon the distance between fingerprints
+.
+To fix the problem, we pick the nearest neighbour(s) iden-tifiedthrough
+the index andcompute the distances between
+full descriptions of the retrievedshapes andthe query shape.
+If we denote the minimum distance over all retrieved shapes
+with , the distance from the real nearest neighbours cannot
+1
+This is often referredto as a range query as well [AFS93,LJF94].
+D. Rafiei, A.O. Mendelzon: Efficient retrieval of similar shapes
+21
+orginal, N=34
+4 descriptors are used
+6 descriptors are used
+8 descriptors are used
+10 descriptors are used
+12 descriptors are used
+Fig. 3.
+Example of reconstructions from Fourier descriptors
+be greater than ; otherwise the shapes identified through the
+index are the nearest neighbours. The full algorithm is as follows
+:
+Algorithm 1:
+1. Using a nearest-neighbours search algorithm (such as
+[RKV95]), retrieve the nearest neighbour(s) from the index
+.
+2. For every candidate returned in step 1, retrieve its full
+database recordandcompute its real distance from the
+query shape. Let NN be the set of all data shapes at the
+minimum real distances from the query shape; let be this
+minimum distance.
+3. Using
+as an initial threshold, pose an incremental proximity
+query to the index (results are returned one at a time
+andthe threshold can be tightenedduring the process).
+4. Get the next data shape within distance
+of the query
+shape. If the distance between the data shape and the query
+shape is less than , then set NN to be the new data shape
+and
+to be the new distance; if the distance between the
+new data shape and the query shape is , then add the new
+data shape to NN. Repeat this step until there are no more
+qualifying data shapes.
+Algorithm 1 is a refinement of the nearest-neighbours algorithm
+given by Korn et al. [KSF
++
+96]. The refinement is in
+the form of tightening the proximity query thresholdin Step 4
+as more data shapes are retrieved. There is another incremental
+refinement of the same algorithm, proposedby Seidl and
+Kriegel [SK98], which can also be used.
+3.4 Queries with transformations
+A natural way of doing shape matching is to remove certain
+differences before running a comparison. We can think of this
+process as applying certain transformations to images before
+doing a matching. We consider the following four kinds of
+transformations:
+1. Shifting andscaling.
+2. Rotation.
+3. Change of starting point.
+4. Smoothing.
+In this section, we center our discussion on proximity queries,
+but the same techniques are applicable to nearest-neighbours
+andall-pairs queries.
+Transformations 1 to 3 can be supportedin a multidimensional
+index by providing a function that computes the distance
+between a data shape and a query shape; transformations can
+be applied to shape descriptions inside the function. Transformation
+4 can be supported by registering an additional function
+that checks if an index entry overlaps with a query entry. The
+transformation can then be appliedto either the index entry or
+the query entry (or both) before checking for an overlap. Most
+multidimensional index structures allow users to define such
+a function.
+The next four subsections respectively discuss the eval-uations
+of queries that use individual transformations 1 to 4
+in their expressions of similarities. More details on evaluating
+queries that use a combination of transformations in their
+expressions of similarities can be foundelsewhere [RM00].
+3.4.1 Match with shifting or scaling
+In many cases we do not care about the position of a shape
+within a coordinate system or about its size for matching purposes
+.
+To match with shifting or scaling, a fingerprint is com-putedfor
+the query shape, as describedin Sect. 3.1, andthis
+fingerprint is usedas a search key for the index. If we are interested
+in a match invariant under shifting, we simply discard
+the shift factor of the query point andpermit any value for the
+shift factor. Similarly, for scaling-invariant matching, we dis-cardthe
+scale factor of the query point andpermit any value
+for the scale factor.
+22
+D. Rafiei, A.O. Mendelzon: Efficient retrieval of similar shapes
+3.4.2 Match with rotation
+We often wish to match shapes irrespective of small variations
+in orientation. For example, the two shapes shown in Fig. 1
+make a perfect match, if one shape is rotatedby
+30
+
+. To achieve
+this, we state in our query the range of the rotation we wish to
+perform before doing a shape matching. Query 2, for instance,
+retrieves all database shapes that match a given query shape
+after one shape is being rotatedby
+[-30
+
+, 30
+
+].
+Sometimes, we wouldlike to do matching totally invariant
+to rotation. For example, we may not care about the orientation
+at all if we are doing airplane recognition. This can be accom-plishedby
+simply allowing a rotation of
+[-180
+
+, 180
+
+]
+before matching.
+To perform a match with rotation, a fingerprint is computed
+for the query shape andis usedas a search key to the index. The
+search key is used to retrieve all candidates from the index.
+These candidates include all data points that match the query
+point irrespective of rotation factor. They also include false
+positives, i.e., data points that are not in the proximity of the
+query point for any rotation factor. To discard false positives,
+we need to retrieve the full database record of every candidate
+andcheck whether it actually falls in the proximity (say within
+distance ) of the query shape after being rotatedby some
+[
+1
+,
+2
+]. On the other hand, rotating a shape boundary by
+is equivalent to multiplying every descriptor S
+f
+by
+e
+j
+. We
+can thus rewrite Eq. 5 to make it reflect the rotation.
+D
+2
+(S, S ) =
+M
+f=-M,f=0,1
+|S
+f
+- e
+j
+.S
+f
+|
+2
+(7)
+Lemma 3.4. The minimum and the maximum of Eq. 7 take
+place at
+= arctan(-X/Y ) + c. where c is an integer,
+X =
+
+f
+sin
+f
+,
+Y =
+
+f
+cos
+f
+and
+S
+
+f
+.S
+f
+=
+f
+e
+j
+f
+(
+
+denotes the complex conjugation
+2
+).
+Since we are interestedin the minimum of Eq. 7 when
+[
+1
+,
+2
+] and 1
+,
+2
+, the minimum must take
+place either at an endpoint (i.e.,
+
+1
+or
+
+2
+) or any point
+
+{arctan(-A/B) - , arctan(-A/B) + , arctan(-A/B)}
+which is inside the region. It is straightforward to compute
+the distance function for these values andfindout the optimal
+rotation factor that results in the minimum distance.
+3.4.3 Match with changing starting point
+When we compare two boundaries, we do not care about their
+starting points. If we use the same tracing algorithm for every
+boundary, there cannot be large variations in the starting point
+(though small variations are still possible). However, we may
+not have much control over the tracing algorithm, andas a
+result two similar shapes may have different starting points;
+or even if we use the same tracing algorithm for all boundaries,
+we may want to remove small variations (if any) before doing
+a comparison.
+Shifting the starting point of a boundary by
+
+3
+is equivalent
+to multiplying every descriptor
+S
+f
+by
+e
+jf
+. This operation
+, similar to rotation, only affects the phases of Fourier
+2
+The complex conjugate of
+z = x+yj is defined as z
+
+= x-yj.
+3
+For example,
+= 2s
+0
+/N for a boundary of length N means
+shifting its starting point by
+s
+0
+points in ccw direction.
+descriptors. Thus, we can still use the index to retrieve all
+candidates. To discard false positives, we need to retrieve the
+full database record of every candidate and check whether it
+still qualifies after the starting point is being shiftedby some
+[
+1
+,
+2
+]. We can again rewrite Eq. 5 to make it reflect the
+shift in starting point.
+D
+2
+(S, S ) =
+M
+f=-M,f=0,1
+|S
+f
+- e
+jf
+.S
+f
+|
+2
+(8)
+The optimal value for
+can be obtainedby equating the derivative
+of the above equation to zero andfinding the roots. This
+can be done using numerical techniques up to the machine
+precision [PTVF92].
+3.4.4 Match with smoothing
+Occasionally, we wish to do matching based on overall shape,
+irrespective of small variations in details and noise. In such
+cases, we wouldlike to smooth out sharp edges andsmall variations
+before doing the comparison. To achieve this, we can
+apply a moving average transformation to shape boundaries.
+When an l-point moving average is appliedto a boundary,
+every point is replacedwith the average of its l surrounding
+points. On the other hand, applying a moving average to a
+boundary in the spatial domain corresponds to a vector multiplication
+in the frequency domain. For example, to apply a
+2-point moving average to a boundary with 10 points, we can
+equivalently multiply its Fourier descriptors by the Fourier
+transform of vector
+m
+2
+= (
+1
+2
+,
+1
+2
+, 0, 0, 0, 0, 0, 0, 0, 0). This
+gives us the Fourier descriptors of the smoothed boundary.
+A distinguishing feature of smoothing, compared to other
+transformations discussed in this paper, is that its effect on
+a shape depends on the characteristics of the shape. This is
+unlike rotation, for instance, where the effect of rotating a
+data shape by
+before a comparison is the same as that of
+rotating the query shape by
+-.
+Given a query shape anda desiredmoving average for
+smoothing, the matching can be performedas follows:
+1. Findthe Fourier transform of the desiredmoving average
+(as demonstrated for 2-point moving average); let us
+denote this by
+M.
+2. Transforming the query shape: Apply the transformation to
+the query shape description
+(sh
+x
+, sh
+y
+, sc, Q) by replacing
+Q with Q where Q
+i
+= Q
+i
+M
+i
+for
+i = -1, -2, 2, . . . ,
+-k, k.
+3. Construct a search key by computing the fingerprint of the
+new shape description.
+4. Transforming the index: Apply
+M to data entries stored in
+the index before checking for an overlap between a data
+entry and the search key; this is done inside the function
+that checks if a data entry from the index overlaps the
+search key.
+5. For every candidate, retrieve its full database record, apply
+M to it andcheck if the resulting shape falls in the
+proximity of
+Q .
+The transformation can be appliedto the index on the fly as
+the index is being traversed. The issue of on-the-fly applying
+single or multiple transformations to an index is studied
+in the domain of time series data [RM97,RM00]. The same
+techniques can be appliedto the domain of shapes.
+D. Rafiei, A.O. Mendelzon: Efficient retrieval of similar shapes
+23
+a
+D=0
+b
+D=0.05
+c
+D=0.10
+d
+D=0.15
+e
+D=0.20
+f
+D=0.25
+g
+D=0.30
+i
+D=0.10
+h
+D=0.40
+j
+D=0.20
+Fig. 4.
+Query shapes, shown in the top two rows, andtheir nearest neighbours, shown in the bottom two rows
+Experiments
+To determine the effectiveness of our proposed technique, we
+implementedour methodandran experiments on a dataset
+of 11,000 real hand-written digits. The data was obtained
+from the CEDAR CDROM dataset, which was gathered from
+scannedZIP codes at the Buffalo Post Office [Hul94]. For
+every digit, the dataset held 1,100 images. Each image was
+originally in the form of a 16
+×16 gray-scale image which
+was convertedinto a binary image (by thresholding) andwas
+traced to identify a shape boundary. Then, the boundary was
+encoded using 30 lower Fourier descriptors. For boundaries
+with length less than 30, zero was padded at the end. For each
+shape, both its description and its fingerprint are computed,
+as outlinedin Sect. 3.1, andusedfor the purpose of indexing.
+As our index, we used Norbert Beckmann's implementation
+of the R*-tree [BKSS90]. For the nearest-neighbours search,
+we implementedthe algorithm developedby Roussopoulos et
+al. [RKV95] as part of Algorithm 1 over R*-tree. We stored
+10,000 shapes (1,000 samples of each digit) in the index and
+usedthe 1,000 remaining samples as queries. We ran each
+query 10 times andaveragedthe execution times from these
+runs. All our experiments were conducted on a 168 MHz Ul-trasparc
+station.
+We investigatedthe following questions:
+· How effective andpractical is our technique in classifying
+shapes in a real data domain?
+· How many Fourier coefficients shouldwe store in the index
+? Storing larger number of coefficients reduces the
+number of false positives but increases the index dimensionality
+, andas a result the search time.
+· How does our technique compare to sequential scanning?
+4.1 Shape classification
+To verify the effectiveness of our proposedtechnique in classifying
+shapes, we triedto classify all 1,000 query shapes by
+assigning every query shape to the class of its nearest neighbours
+. When there was more than one nearest neighbours for
+a shape, we pickedone randomly. The result was interesting:
+96.4% of shapes were classifiedcorrectly. Some of those query
+shapes are shown, in their gray scale andbinary representation
+, in the two top rows of Fig. 4 along with their nearest
+neighbours shown in the two bottom rows of the same figure.
+Table 1.
+Various ranges of rotations andtheir effects in correctly
+classifying the shapes of hand-written digits
+Rotation factor
+Fraction of query shapes
+
+classifiedcorrectly (%)
+[0, 0]
+96.4%
+[-10, 10]
+96.5%
+[-20, 20]
+96.4%
+[-30, 30]
+96.4%
+[-40, 40]
+96.3%
+[-50, 50]
+96.3%
+As is shown, query shapes shown in Figs. 4a to 4h are classified
+correctly with their Euclidean distances from their nearest
+neighbours varying from 0 to 0.40. The query shape shown in
+Fig. 4i is not classifiedcorrectly, but its binary representation
+looks quite similar to that of its nearest neighbour. The
+query shape shown in Fig. 4j looks different from its nearest
+neighbour, though their boundaries still look similar.
+In another experiment, we usedQuery 2 andtriedto identify
+for each query shape its nearest neighbour irrespective
+of a rotation factor
+[-30
+
+, 30
+
+]. This did not change the
+overall classification rate, i.e., only 96.4% of shapes were classifiedcorrectly
+. However, allowing a rotation factor in general
+did retrieve better matches. Figure 5 shows six query shapes
+(in the top two rows), their original nearest neighbours (in
+the middle two rows) and their optimal nearest neighbours (in
+the bottom two rows) when the rotation factor variedfrom
+-30
+
+to
+30
+
+. As is shown, for example rotating the data shape
+shown at the bottom of Fig. 5a by
+11
+
+in the ccw direction
+reduces its Euclidean distance from the query shape to 0.30;
+this is less than the Euclidean distance between the same query
+shape andits original nearest neighbour. Table 1 summarizes
+the effect of various rotations in correctly classifying shapes.
+As is shown, applying a small rotation (
+[-10, 10]) to d ata
+shapes before matches slightly improves the classification rate
+of hand-written digits; larger rotations, on the other hand, either
+have no effect or deteriorate the rate of correct classifications
+. This is because the digit data is generally sensitive
+to orientations andallowing larger rotations can potentially
+retrieve more non-identical digits.
+We later picked1,000 shapes among those storedin the
+database, applied to each shape a random rotation in the range
+[-, ] andusedit as a query shape. We only specifiedthe
+24
+D. Rafiei, A.O. Mendelzon: Efficient retrieval of similar shapes
+a
+D=0.34
+R=11,D=0.30
+b
+D=0.25
+R=-11,D=0.22
+c
+D=0.36
+R=9,D=0.35
+d
+D=0.60
+R=15,D=0.57
+e
+D=0.45
+R=27,D=0.35
+f
+D=0.48
+R=-12,D=0.41
+Fig. 5.
+Query shapes (the top two rows), their original nearest neighbours
+(the middle two rows) and their optimal nearest neighbours
+(the bottom two rows) varying the rotation factor in
+[-30
+
+, 30
+
+]
+2
+4
+6
+8
+10
+0.3
+0.4
+0.5
+0.6
+0.7
+0.8
+Number of Fourier amplitudes
+Fraction of shapes classified correctly
+Fig. 6.
+The fraction of query shapes classifiedcorrectly, varying the
+number of Fourier amplitudes used for classification
+rotation interval in our query. As expected, for each query
+shape, only the shape itself was retrievedfrom the database.
+4.2 Varying the cut-off frequency
+The effectiveness of the index mainly depends on the concentration
+of the key shape information within a few descriptors
+of fingerprints. To measure this effectiveness, we ran some
+experiments varying the number of Fourier descriptors stored
+in a fingerprint. Figure 6 shows the ratio of query shapes that
+are classifiedcorrectly (according to the criteria outlinedin
+Sect. 4.1) to all query shapes varying the number of Fourier
+amplitudes used for classification. As the number of amplitudes
+increases up to 6, the ratio of shapes that are classified
+correctly increases accordingly up to 0.778. This ratio remains
+the same despite increasing the number of Fourier amplitudes
+from 6 to 10. Comparedto a full shape description which consists
+of both the amplitudes and the phases of 30 lower Fourier
+coefficients, classifying 96.4% of the shapes correctly, a fingerprint
+does a pretty good job using only 6 amplitudes which
+make up only 10% of a full shape description and still classifying
+0.778% of the shapes correctly.
+Figure 7a shows the average execution time of Algorithm 1
+for 1,000 nearest-neighbours queries, broken into: (1) search
+time in Step 1 to identify the initial approximate nearest neighbours
+; and(2) search time in Step 3 to findthe real nearest
+neighbours. Figure 7b shows the fraction of index nodes accessed
+, averaged over 1,000 nearest-neighbours queries, again
+broken into the fractions accessedin Step 1 andStep 3.
+As the number of Fourier amplitudes increases, the index
+selectivity improves, i.e., the index gives fewer false hits. The
+number of false hits, as is depicted in Fig. 8 for a proximity
+query, mainly depends on the number of Fourier amplitudes
+usedin fingerprints andthe output size of the query. Due to
+the high similarity between different shapes of the same digit,
+a large fraction of our false hits (for example, 62% when the
+output size was 11 andthe number of Fourier amplitudes was
+6) were other shapes of the same digit depicted by the query
+shape which were not within the specifieddistance of the query
+shape.
+The reduction in false hits reduces the search time since
+less time is needed to remove those false hits. However, increasing
+the number of Fourier amplitudes after some point,
+often calledthe cut-off frequency, either does not reduce the
+number of false hits or reduces it only slightly. This is because
+higher frequency amplitudes carry less of the energy
+than lower frequency ones. On the other hand, the search time
+increases with the index dimensionality, because the tree becomes
+deeper. Furthermore, the pruning becomes harder, as
+is shown in Fig. 7 with the ratio of index nodes that are accessed
+, because the probability of an arbitrary data bounding
+rectangle being close to the query point increases with the
+dimensionality.
+Given the trade-off between the tree search time and the
+time spent for removing false hits, it is natural to expect that
+there is an optimal cut-off frequency. Basedon our experiments
+, as illustratedin Figs. 6 and7, the optimal cut-off frequency
+occurs for as few as 6 Fourier amplitudes.
+4.3 Comparison to sequential scanning
+Figure 9 shows the average execution time of our proposed
+methodcomparedto sequential scanning for 1,000 nearest-neighbours
+queries. To get its best performance, we used
+bufferedinput for sequential scanning, in a system with buffer
+size of 8,192 bytes. For the experiment shown in Fig. 9a, the
+border length was fixed to 30 while the database size variedfrom
+10,000 to 30,000 shapes. Since the size of dataset
+was limited, we doubled or tripled the size by adding one or
+two randomly rotated copies of each shape to the database.
+This doubling did not affect the performance of sequential
+scanning, which was linear in the input size, but we expected
+the doubling to deteriorate the performance of our method
+since high similarity among database shapes would increase
+the number of false hits. For the experiment shown in Fig. 9b,
+the number of shapes was fixedat 10,000 while the number of
+Fourier descriptors used to represent a boundary varied from
+D. Rafiei, A.O. Mendelzon: Efficient retrieval of similar shapes
+25
+2
+4
+6
+8
+10
+0
+200
+400
+600
+800
+1000
+1200
+Number of Fourier amplitudes
+Execution time (msec)
+: initial NN query
+: proximity query
+: Total
+a
+2
+4
+6
+8
+10
+0
+0.2
+0.4
+0.6
+0.8
+Number of Fourier amplitudes
+Fraction of index nodes accessed
+b
+: initial NN query
+: proximity query
+: Total
+Fig. 7.
+Break up of a the execution time and b the fraction of index nodes accessed, for nearest-neighbours queries, varying the number of
+Fourier amplitudes
+2
+3
+4
+5
+6
+10
+20
+30
+40
+50
+60
+70
+Number of Fourier amplitudes
+# of false hits per every qualifying shape
+a
+0
+200
+400
+600
+800
+1000
+6
+8
+10
+12
+14
+16
+18
+20
+Output size
+# of false hits per every qualifying shape
+b
+Fig. 8.
+The average number of false positives for every qualifying shape a varying the number of Fourier amplitudes and fixing the average
+output size of the query to 11, and b varying the average output size andfixing the number of Fourier amplitudes to 6
+1
+1.5
+2
+2.5
+3
+x 10
+4
+0
+1000
+2000
+3000
+4000
+5000
+6000
+Number of shapes
+Execution time (msec)
+: Seq
+: Index
+a
+20
+30
+40
+50
+0
+500
+1000
+1500
+2000
+2500
+3000
+Border Length
+Execution time (msec)
+: Seq
+: Index
+b
+Fig. 9. a
+Time per query varying the number of shapes, for nearest-neighbours queries. b Time per query varying the border length, for
+nearest-neighbours queries
+26
+D. Rafiei, A.O. Mendelzon: Efficient retrieval of similar shapes
+20 to 50. As shown in the figure, increasing either the number
+of shapes or the border length increases the relative advantage
+of our method, making it more attractive for large databases.
+Conclusions
+We have proposedan indexing technique that can efficiently
+retrieve images of objects basedon similarity between their
+boundary shapes. We have used Fourier descriptors as our
+shape features andhave developedan index organization such
+that similar shapes can be easily retrievedirrespective of their
+differences in size, position and orientation. The highlight of
+our contribution is an index structure that helps find optimal
+matches between shapes irrespective of various differences between
+them. Our technique has the following desirable properties
+:
+· It uses a shape matching mechanism which is well-studied
+in the area of pattern recognition.
+· It exploits the fact that important features of a large class
+of shapes are concentratedwithin only a few Fourier descriptors
+.
+· It can handle shapes of various sizes.
+· It guarantees efficient retrieval of all qualifying shapes.
+Furthermore, we have presenteda refinement of an earlier
+nearest-neighbours search algorithm for feature vectors that
+are truncated, due to the significance of some features over
+others, before being storedin a R-tree index.
+Acknowledgement. We thank the Natural Sciences andEngineering
+Research Council of Canada andthe Institute for Robotics andIntel-ligent
+Systems for their support of this work.
+References
+[AFS93] Agrawal R, Faloutsos C, Swami A (1993) Efficient similarity
+search in sequence databases. In: Proc. 4th International
+Conference on Foundations of Data Organizations
+andAlgorithms (FODO '93), pp 69­84, Chicago
+[BG80]
+Bribiesca E, Guzman A (1980) How to describe pure form
+andhow to measure differences in shape using shape numbers
+. Pattern Recognition 12(2):101­112
+[BKK97] BerchtoldS, Keim DA, Kriegel HP (1997) Using extended
+feature objects for partial similarity retrieval. VLDB J
+6(4):333­348
+[BKSS90] Beckmann N, Kriegel HP, Schneider R, Seeger B (1990)
+The R* tree: an efficient androbust index methodfor points
+andrectangles. In: Proc. ACM SIGMOD International
+Conference on Management of Data, pp 322­331, Atlantic
+City
+[Bri81]
+Bribiesca E (1981) Arithmetic operations among shapes
+using shape numbers. Pattern Recognition 13(2):123­138
+[BSA91] Belkasim SO, Shridhar M, Ahmadi M (1991) Pattern
+recognition with invariants: a comprehensive study and
+new results. Pattern Recognition 24:1117­1138
+[FBF
++
+94] Faloutsos C, Barber R, Flickner M, Niblack W, Petkovic
+D, Equitz W (1994) Efficient andeffective querying by
+image content. J Intell Inf Syst 3(3/4):231­262
+[GG98]
+Gaede V, G¨unther O (1998) Multidimensional access
+methods. ACM Comput Surv 30(2):170­231
+[GK95]
+Goldin DQ, Kanellakis PC (1995) On similarity queries
+for time-series data: constraint specification and implementation
+. In: 1st Int. Conference on the Principles and
+Practice of Constraint Programming, Lecture Notes in
+Computer Science, vol. 976. Springer, Berlin Heidelberg
+New York, pp. 137­153
+[Gol97]
+Goldin
+DQ
+(1997)
+Constraint
+query
+algebras
+.
+PhD
+thesis,
+Brown
+University,
+www.cs.brown.edu/people/dgk/Papers/thesis.ps
+[GW92]
+Gonzalez RC, Woods RE (1992) Digital image processing.
+Addison-Wesley, Reading, Mass., USA
+[Hul94]
+Hull JJ (1994) A database for handwritten text recognition
+research. IEEE Trans Pattern Anal Mache Intell
+16(5):550­554
+[Jag91]
+Jagadish HV (1991) A retrieval technique for similar
+shapes. In: Proc. ACM SIGMOD International Conference
+on Management of Data, pp 208­217, Denver, Colo.,
+USA
+[JMM95] Jagadish HV, Mendelzon AO, Milo T (1995) Similarity-basedqueries
+. In: Proc. 14th ACM SIGACT-SIGMOD-SIGART
+Symposium on Principles of Database Systems,
+pp 36­45, San Jose, Calif., USA
+[KSF
++
+96] Korn F, Sidiropoulos N, Faloutsos C, Siegel E, Protopa-pas
+Z (1996) Fast nearest neighbor search in medical image
+databases. In: Proc. 22nd International Conference on
+Very Large Data Bases, pp 215­226, Mumbai, India
+[KSP95] Kauppinen H, Seppanen T, Pietikainen M (1995) An
+experimental comparison of autoregressive andFourier-baseddescriptors
+in 2D shape classification. IEEE Trans
+Pattern Anal Mach Intell 17(2):201­207
+[LJF94]
+Lin KI, Jagadish HV, Faloutsos C (1994) The TV-tree
+- an index structure for high-dimensional data. VLDB J
+3(4):517­542
+[L ¨
+OSO97] Li JZ, ¨
+Ozsu MT, Szafron D, Oria V (1997) MOQL: a
+multimedia object query language. In: Proc. 3rd International
+Workshop on Multimedia Information Systems, pp
+19­28
+[MG93]
+Mehrotra R, Gary JE (1993) Feature-basedretrieval of
+similar shapes. In: Proc. 9th International Conference on
+Data Engineering, pp 108­115, Vienna, Austria
+[MM86] Mokhtarian F, MackworthA (1986) A scale-baseddescrip-tion
+andrecognition of planar curves andtwo dimensional
+shapes. IEEE Trans Pattern Anal Mach Intell 8(1):34­43
+[PF77]
+Persoon E, Fu KS (1977)
+Shape discrimination using
+Fourier descriptors. IEEE Trans Syst Man Cybern
+7(2):170­179
+[PTVF92] Press WH, Teukolsky SA, Vetterling WT, Flannery BP
+(1992) Numerical recipes in C. Cambridge University,
+Cambridge, UK
+[Raf98]
+Rafiei D (1998) Fourier-transform basedtechniques in
+efficient retrieval of similar time sequences. PhD thesis,
+University of Toronto
+[RH74]
+RichardCW, Hemami H (1974) Identification of three-dimensional
+objects using Fourier descriptors of the
+boundary curve. IEEE Trans Syst Man Cybern 4:371­378
+[RKV95] Roussopoulos N, Kelley S, Vincent F (1995) Nearest
+neighbor queries. In: Proc. ACM SIGMOD International
+Conference on Management of Data, pp 71­79, San Jose,
+Calif., USA
+[RM97]
+Rafiei D, Mendelzon AO (1997) Similarity-based queries
+for time series data. In: Proc. ACM SIGMOD International
+Conference on Management of Data, pp 13­24, Tucson,
+Ariz., USA
+D. Rafiei, A.O. Mendelzon: Efficient retrieval of similar shapes
+27
+[RM00]
+Rafiei D, Mendelzon AO (2000) Querying time series
+data based on similarity. IEEE Trans Knowl Data Eng
+12(5):675­693
+[SK98]
+Seidl T, Kriegel HP (1998) Optimal multi-step nearest
+neighbour search. In: Proc. ACM SIGMOD International
+Conference on Management of Data, pp 154­165, Seattle,
+Wash., USA
+[WW80] Wallace TP, Wintz PA (1980)
+An efficient three-dimensional
+aircraft recognition algorithm using normal-izedfourier
+descriptors. Comput Graph Image Process
+13:99­126
+[ZR72]
+Zahn CT, Roskies RZ (1972) Fourier descriptors for plane
+closedcurves. IEEE Trans Comput 21(3):269­281

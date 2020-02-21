@@ -1,0 +1,3485 @@
+Minimizing Average Flow Time on Related Machines
+ABSTRACT
+We give the first on-line poly-logarithmic competitve algorithm
+for minimizing average flow time with preemption
+on related machines, i.e., when machines can have different
+speeds. This also yields the first poly-logarithmic polynomial
+time approximation algorithm for this problem.
+More specifically, we give an O(log
+2
+P · log S)-competitive
+algorithm, where P is the ratio of the biggest and the smallest
+processing time of a job, and S is the ratio of the highest
+and the smallest speed of a machine. Our algorithm also has
+the nice property that it is non-migratory. The scheduling
+algorithm is based on the concept of making jobs wait for a
+long enough time before scheduling them on slow machines.
+Categories and Subject Descriptors
+F.2.2 [Analysis of Algorithms and Problem Complexity
+]: Nonnumerical Algorithms and Problems--Sequencing
+and Scheduling
+General Terms
+Algorithms
+
+INTRODUCTION
+We consider the problem of scheduling jobs that arrive
+over time in multiprocessor environments. This is a fundamental
+scheduling problem and has many applications, e.g.,
+servicing requests in web servers. The goal of a scheduling
+Work done as part of the "Approximation Algorithms"
+partner group of MPI-Informatik, Germany.
+Supported by an IBM faculty development award and a
+travel grant from the Max Plank Society.
+Permission to make digital or hard copies of all or part of this work for
+personal or classroom use is granted without fee provided that copies are
+not made or distributed for profit or commercial advantage and that copies
+bear this notice and the full citation on the first page. To copy otherwise, to
+republish, to post on servers or to redistribute to lists, requires prior specific
+permission and/or a fee.
+STOC'06, May
+21­23, 2006, Seattle, Washington, USA.
+Copyright 2006 ACM 1-59593-134-1/06/0005 ...
+$
+5.00.
+algorithm is to process jobs on the machines so that some
+measure of performance is optimized. Perhaps the most natural
+measure is the average flow time of the jobs. Flow time
+of a job is defined as the difference of its completion time
+and its release time, i.e., the time it spends in the system.
+This problem has received considerable attention in the
+recent past [1, 2, 10]. All of these works make the assumption
+that the machines are identical, i.e., they have the same
+speed. But it is very natural to expect that in a heterogenous
+processing environment different machines will have different
+processing power, and hence different speeds. In this paper
+, we consider the problem of scheduling jobs on machines
+with different speeds, which is also referred to as related machines
+in the scheduling literature. We allow for jobs to be
+preempted. Indeed, the problem turns out to be intractable
+if we do not allow preemption. Kellerer et. al. [9] showed
+that the problem of minimizing average flow time without
+preemption has no online algorithm with o(n) competitive
+ratio even on a single machine. They also showed that it
+is hard to get a polynomial time O(n
+1/2
+)-approximation
+algorithm for this problem. So preemption is a standard,
+and much needed, assumption when minimizing flow time.
+In the standard notation of Graham et. al. [7], we consider
+the problem Q|r
+j
+, pmtn| P
+j
+F
+j
+. We give the first poly-logarithmic
+competitive algorithm for minimizing average
+flow time on related machines. More specifically, we give an
+O(log
+2
+P · log S)-competitive algorithm, where P is the ratio
+of the biggest and the smallest processing time of a job, and
+S is the ratio of the highest and the smallest speed of a machine
+. This is also the first polynomial time poly-logarithmic
+approximation algorithm for this problem. Despite its similarity
+to the special case when machines are identical, this
+problem is more difficult since we also have to worry about
+the processing times of jobs.
+Our algorithm is also non-migratory
+, i.e., it processes a job on only one machine. This
+is a desirable feature in many applications because moving
+jobs across machines may have many overheads.
+Related Work The problem of minimizing average flow
+time (with preemption) on identical parallel machines has
+received much attention in the past few years.
+Leonardi
+and Raz [10] showed that the Shortest Remaining Processing
+Time (SRPT) algorithm has a competitive ratio of
+O(log(min(
+n
+m
+, P ))), where n is the number of jobs, and m
+is the number of machines. A matching lower bound on the
+competitive ratio of any on-line (randomized) algorithm for
+this problem was also shown by the same authors. Awerbuch
+et. al. [2] gave a non-migratory version of SRPT with
+competitive ratio of O(log(min(n, P ))). Chekuri et. al.[5]
+730
+gave a non-migratory algorithm with competitive ratio of
+O(log(min(
+n
+m
+, P ))). One of the merits of their algorithm
+was a much simpler analysis of the competitive ratio. Instead
+of preferring jobs according to their remaining processing
+times, their algorithm divides jobs into classes when they
+arrive. A job goes to class k if its processing time is between
+2
+k-1
+and 2
+k
+. The scheduling algorithm now prefers jobs of
+smaller class irrespective of the remaining processing time.
+We also use this notion of classes of jobs in our algorithm.
+Azar and Avrahami[1] gave a non-migratory algorithm with
+immediate dispatch, i.e., a job is sent to a machine as soon as
+it arrives. Their algorithm tries to balance the load assigned
+to each machine for each class of jobs. Their algorithm also
+has the competitive ratio of O(log(min(
+n
+m
+, P ))). It is also
+interesting to note that these are also the best known results
+in the off-line setting of this problem.
+Kalyanasundaram and Pruhs[8] introduced the resource
+augmentation model where the algorithm is allowed extra resources
+when compared with the optimal off-line algorithm.
+These extra resources can be either extra machines or extra
+speed. For minimizing average flow time on identical
+parallel machines, Phillips et. al. [11] showed that we can
+get an optimal algorithm if we are given twice the speed
+as compared to the optimal algorithm. In the case of single
+machine scheduling, Bechheti et. al.[4] showed that we
+can get O(1/)-competitive algorithms if we are give (1 + )
+times more resources. Bansal and Pruhs[3] extended this
+result to a variety of natural scheduling algorithms and to
+L
+p
+norms of flow times of jobs as well. In case of identical
+parallel machines, Chekuri et. al.[6] gave simple scheduling
+algorithms which are O(1/
+3
+)-competitive with (1 + )
+resource augmentation.
+Our Techniques A natural algorithm to try here would
+be SRPT. We feel that it will be very difficult to analyze
+this algorithm in case of related machines. Further SRPT is
+migratory. Non-migratory versions of SRPT can be shown
+to have bad competitive ratios. To illustrate the ideas involved
+, consider the following example. There is one fast
+machine, and plenty of slow machines. Suppose many jobs
+arrive at the same time. If we distribute these jobs to all the
+available machines, then their processing times will be very
+high. So at each time step, we need to be selective about
+which machines we shall use for processing.
+Ideas based
+on distributing jobs in proportion to speeds of machines as
+used by Azar and Avrahami[1] can also be shown to have
+problems.
+Our idea of selecting machines is the following. A job is
+assigned to a machine only if it has waited for time which
+is proportional to its processing time on this machine. The
+intuition should be clear ­ if a job is going to a slow machine,
+then it can afford to wait longer before it is sent to the
+machine. Hopefully in this waiting period, a faster machine
+might become free in which case we shall be able to process
+it in smaller time. We also use the notion of class of jobs as
+introduced by Chekuri et. al.[5] which allows machines to
+have a preference ordering over jobs. We feel that this idea
+of delaying jobs even if a machine is available is new.
+As mentioned earlier, the first challenge is to bound the
+processing time of our algorithm. In fact a bulk of our paper
+is about this. The basic idea used is the following ­ if a
+job is sent to a very slow machine, then it must have waited
+long. But then most of this time, our algorithm would have
+kept the fast machines busy. Since we are keeping fast machines
+busy, the optimum also can not do much better. But
+converting this idea into a proof requires several technical
+steps.
+The second step is of course to bound the flow time of
+the jobs. It is easy to see that the total flow time of the
+jobs in a schedule is same as the sum over all time t of
+the number of waiting jobs at time t in the schedule. So it
+would be enough if we show that for any time t, the number
+of jobs which are waiting in our schedule is close to that
+in the optimal schedule. Chekuri et. al. [5] argue this in
+the following manner. Consider a time t. They show that
+there is a time t &lt; t such that the number of waiting jobs
+of a certain class k or less in both the optimal and their
+schedule is about the same (this is not completely accurate,
+but captures the main idea). Further they show that t is
+such that all machines are busy processing jobs of class k or
+less during (t , t). So it follows that the number of waiting
+jobs of this class or less at time t are about the same in both
+the schedules. We can not use this idea because we would
+never be able to keep all machines busy (some machines can
+be very slow). So we have to define a sequence of time steps
+like t for each time and make clever use of geometric scaling
+to show that the flow time is bounded.
+PRELIMINARIES
+We consider the on-line problem of minimizing total flow
+time for related machines. Each job j has a processing requirement
+of p
+j
+and a release date of r
+j
+. There are m machines
+, numbered from 1 to m. The machines can have
+different speeds, and the processing time of a job j on a
+machine is p
+j
+divided by the speed of the machine. The
+slowness of machine is the reciprocal of its speed. It will be
+easier to deal with slowness, and so we shall use slowness
+instead of speed in the foregoing discussion. Let s
+i
+denote
+the slowness of machine i. So the time taken by job j to
+process on machine i is p
+j
+· s
+i
+. Assume that the machines
+have been numbered so that s
+1
+s
+2
+· · ·  s
+m
+. We shall
+assume without loss of generality that processing time, release
+dates, and slowness are integers. We shall use the term
+volume of a set of jobs for denoting their processing time on
+a unit speed machine.
+Let
+A be a scheduling algorithm. The completion time
+of a job j in A is denoted by C
+A
+j
+. The flow time of j in A
+is defined as F
+A
+j
+= C
+A
+j
+- r
+j
+. Our goal is to find an on-line
+scheduling algorithm which minimizes the total flow time of
+jobs. Let
+O denote the optimal off-line scheduling algorithm.
+We now develop some notations. Let P denote the ratio of
+the largest to the smallest processing times of the jobs, and
+S be the ratio of the largest to the smallest slowness of the
+machines. For ease of notation, we assume that the smallest
+processing requirement of any job is 1, and the smallest slowness
+of a machine is 1. Let  and  be suitable chosen large
+enough constants. We divide the jobs and the machines into
+classes. A job j is said to be in class k if p
+j
+[
+k-1
+,
+k
+)
+and a machine i is said to be in class l if s
+i
+[
+l-1
+,
+l
+).
+Note that there are O(log P ) classes for jobs and O(log S)
+classes for machines. Given a schedule
+A, we say that a job
+j is active at time t in A if r
+j
+t but j has not finished
+processing by time t in A.
+SCHEDULING ALGORITHM
+We now describe the scheduling algorithm. The under-731
+lying idea of the algorithm is the following -- if we send a
+job j to machine i, we make sure that it waits for at least
+p
+j
+· s
+i
+units of time (which is its processing time on machine
+i). Intuitively, the extra waiting time can be charged to its
+processing time. Of course, we still need to make sure that
+the processing time does not blow up in this process.
+The algorithm maintains a central pool of jobs. When a
+new job gets released, it first goes to the central pool and
+waits there to get assigned to a machine. Let W (t) denote
+the set of jobs in the central pool at time t. Our algorithm
+will assign each job to a unique machine -- if a job j gets
+assigned to a machine i, then j will get processed by machine
+i only. Let A
+i
+(t) be the set of active jobs at time t which
+have been assigned to machine i. We shall maintain the
+invariant that A
+i
+(t) contains at most one job of each class.
+So
+|A
+i
+(t)|  log P .
+We say that a job j  W (t) of class k is mature for a
+machine i of class l at time t, if it has waited for at least
+k
+·
+l
+time in the central pool, i.e., t - r
+j
+
+k
+·
+l
+. For
+any time t, we define a total order  on the jobs in W (t)
+as follows ­ j  j if either (i) class(j) &lt; class(j ), or (ii)
+class(j) = class(j ) and r
+j
+&gt; r
+j
+(in case class(j) = class(j )
+and r
+j
+= r
+j
+we can order them arbitrarily).
+Now we describe the actual details of the algorithm. Initially
+, at time 0, A
+i
+(0) is empty for each machine.
+At
+each time t, the algorithm considers machines in the order
+1, 2, . . . , m (recall that the machines have been arranged in
+the ascending order of their slowness). Let us describe the
+algorithm when it considers machine i. Let M
+i
+(t) be the
+jobs in W (t) which are mature for machine i at time t. Let
+j  M
+i
+(t) be the smallest job according to the total order
+. If class(j) &lt; class(j ) for all jobs j  A
+i
+(t), then we
+assign j to machine i (i.e., we delete j from W (t) and add
+it to A
+i
+(t)).
+Once the algorithm has considered all the machines at
+time t, each machine i processes the job of smallest class
+in A
+i
+(t) at time t. This completes the description of our
+algorithm. It is also easy to see that the machines need to
+perform the above steps for only a polynomial number of
+time steps t (i.e., when a job finishes or matures for a class
+of machines).
+We remark that both the conditions in the definition of
+
+are necessary. The condition (i) is clear because it prefers
+smaller jobs. Condition (ii) makes sure that we make old
+jobs wait longer so that they can mature for slower machines.
+It is easy to construct examples where if we do not obey
+condition (ii) then slow machines will never get used and so
+we will incur very high flow time.
+ANALYSIS
+We now show that the flow time incurred by our algorithm
+is within poly-logarithmic factor of that of the optimal algorithm
+. The outline of the proof is as follows. We first
+argue that the total processing time incurred by our algorithm
+is not too large. Once we have shown this, we can
+charge the waiting time of all the jobs in A
+i
+(t) for all machines
+i and time t to the total processing time. After this,
+we show that the total waiting time of the jobs in the central
+pool is also bounded by poly-logarithmic factor times
+the optimum's flow time.
+Let
+A denote our algorithm. For a job j, define the dispatch
+time d
+A
+j
+of j in A as the time at which it is assigned to
+a machine. For a job j and class l of machines, let t
+M
+(j, l)
+denote the time at which j matures for machines of class l,
+i.e., t
+M
+(j, l) = r
+j
++
+k
+
+l
+, where k is the class of job j. Let
+F
+A
+denote the total flow time of our algorithm. For a job j
+let P
+A
+j
+denote the time it takes to process job j in A (i.e.,
+the processing time of j in A). Similarly, for a set of jobs
+J define P
+A
+J
+as the total processing time incurred by
+A on
+these jobs. Let P
+A
+denote the sum P
+j
+P
+A
+j
+, i.e., the total
+processing time incurred by
+A. Define F
+O
+, P
+O
+j
+, P
+O
+J
+and P
+O
+similarly. Let m
+l
+denote the number of machines of class l.
+4.1
+Bounding the Processing Time
+We shall now compare P
+A
+with F
+O
+. For each value of
+class k of jobs and class l of machines, let J(k, l) be the jobs
+of class k which get processed by A on machines of class
+l. For each value of k and l, we shall bound the processing
+time incurred by
+A on J(k, l). So fix a class k of jobs and
+class l of machines.
+The idea of the proof is as follows. We shall divide the
+time line into intervals I
+1
+= (t
+1
+b
+, t
+1
+e
+), I
+2
+= (t
+2
+b
+, t
+2
+e
+), . . . so that
+each interval I
+q
+satisfies the following property ­
+A is almost
+busy in I
+q
+processing jobs of class at most k on machines
+of class l - 1 or less. Further these jobs have release time
+at least t
+q
+b
+. We shall denote these jobs by H
+q
+. Now, if
+O
+schedules jobs in J(k, l) on machines of class l or more, we
+have nothing to prove since
+O would incur at least as much
+processing time as we do for these jobs. If
+O schedules some
+jobs in J(k, l) on machines of class l - 1 or less during the
+interval I
+q
+, then one of these two cases must happen ­ (i)
+some jobs in H
+q
+need to be processed on machines of class
+l or more, or (ii) some jobs in H
+q
+get processed after time
+t
+q
+e
+. We shall show that both of these cases are good for us
+and we can charge the processing times of jobs in J(k, l) to
+the flow time of jobs in H
+q
+in
+O.
+Let us formalize these ideas (see Figure 1). The starting
+points of the intervals I
+1
+, I
+2
+, . . . will be in decreasing order,
+i.e., t
+1
+b
+&gt; t
+2
+b
+&gt; · · · (so we shall work backwards in time while
+defining these intervals). Suppose we have defined intervals
+I
+1
+, . . . , I
+q-1
+so far. Let J
+q
+(k, l) denote the set of jobs in
+J(k, l) which get released before interval I
+q-1
+begins, i.e.,
+before t
+q-1
+b
+(J
+1
+(k, l) is defined as J(k, l)).
+Now we define I
+q
+. Let j
+q
+0
+J
+q
+(k, l) be the job with the
+highest dispatch time. Let r
+q
+0
+denote the release time of j
+q
+0
+.
+Let k
+q
+0
+denote the class of job j
+q
+0
+. Let d
+q
+0
+denote the dispatch
+time of j
+q
+0
+. The right end-point t
+q
+e
+of I
+q
+is defined as d
+q
+0
+.
+Consider the jobs in J(k, l) which get dispatched during
+(r
+q
+0
+, d
+q
+0
+). Let j
+q
+1
+be such a job with the earliest release date.
+Define r
+q
+1
+, k
+q
+1
+, d
+q
+1
+similarly.
+Let H
+q
+0
+(l ), l &lt; l, be the set of jobs of class at most k
+q
+0
+which are dispatched to a machine of class l during the time
+interval (t
+M
+(j
+q
+0
+, l ), d
+q
+0
+). Note that the phrase "class at most
+k
+q
+0
+" in the previous sentence is redundant because we cannot
+dispatch a job of class greater than k
+q
+0
+during (t
+M
+(j
+q
+0
+, l ), d
+q
+0
+)
+on machines of class l (otherwise we should have dispatched
+j
+q
+0
+earlier). Let H
+q
+0
+denote
+
+l-1
+l =1
+H
+q
+0
+(l ). Define H
+q
+1
+(l ), H
+q
+1
+similarly.
+If all jobs in H
+q
+1
+H
+q
+0
+get released after r
+q
+1
+, we stop the
+process here. Otherwise find a job in H
+q
+1
+H
+q
+0
+which has the
+earliest release date, let j
+q
+2
+denote this job. As before define
+r
+q
+2
+as the release date of j
+q
+2
+, and k
+q
+2
+as the class of j
+q
+2
+. Again
+define H
+q
+2
+(l ) as the set of jobs (of class at most k
+q
+2
+) which
+get dispatched on machines of class l during (t
+M
+(j
+q
+2
+, l ), d
+q
+2
+).
+Define H
+q
+2
+analogously.
+So now assume we have defined
+j
+q
+0
+, j
+q
+1
+, . . . , j
+q
+i
+and H
+q
+0
+, H
+q
+1
+, . . . , H
+q
+i
+, i  2. If all jobs in H
+q
+i
+are
+732
+j
+q
+3
+j
+q+1
+0
+I
+q
+j
+q
+2
+I
+q-1
+r
+q
+0
+d
+q
+0
+= t
+q
+e
+d
+q
+2
+r
+q
+1
+d
+q
+3
+r
+q
+2
+r
+q
+3
+j
+q
+0
+l
+l
+l - 1
+l - 2
+1
+j
+q
+1
+Figure 1: An illustration of the notation used
+released after r
+q
+i
+, then we stop the process. Otherwise, define
+j
+q
+i+1
+as the job in H
+q
+i
+with the earliest release date. Define
+H
+q
+i+1
+in a similar manner (see Figure 1). We remark that
+the first two steps of this process differ from the subsequent
+steps. This we will see later is requierd to ensure that the
+intervals do not overlap too much. The following simple
+observation shows that this process will stop.
+Claim 4.1. For i  2, k
+q
+i
+&lt; k
+q
+i-1
+.
+Proof. Consider the job j
+q
+i
+H
+q
+i-1
+(l ). A prefers j
+q
+i
+over
+j
+q
+i-1
+. If class(j
+q
+i
+) = class(j
+q
+i-1
+), release time of j
+q
+i
+must be
+at least that of j
+q
+i-1
+. But this is not the case. Thus, class of
+j
+q
+i
+must be less than that of j
+q
+i-1
+.
+Suppose this process stops after u
+q
+steps. Define the beginning
+of I
+q
+, i.e., t
+q
+b
+as r
+q
+u
+q
+.
+This completes our description of I
+q
+.
+Let H
+q
+denote
+
+i
+H
+q
+i
+. We are now ready to show that interval I
+q
+is sufficiently
+long, and that for a large fraction of this time, all
+machines of class less than l are processing jobs of class less
+than k which are released in this interval itself. This would
+be valuable in later arguing that
+O could not have sched-uled
+jobs of J(k, l) on the lower class machines and thereby
+incurred small processing time.
+Lemma 4.2. Length of the interval I
+q
+is at least
+k
+
+l
+.
+Proof. Indeed, job j
+q
+0
+must wait for at least
+k
+
+l
+amount
+of time before being dispatched to a machine of class l. So
+t
+q
+e
+- t
+q
+s
+d
+q
+0
+- r
+q
+0
+
+k
+
+l
+.
+Lemma 4.3. H
+q
+consists of jobs of class at most k and
+all jobs in H
+q
+are released after t
+q
+b
+.
+Proof. The first statement is clear from the definition
+of H
+q
+. Let us look at H
+q
+i
+. As argued in proof of Claim 4.1
+all jobs of class k
+q
+i
+in H
+q
+i
+are released after r
+q
+i
+. If all jobs of
+class less than k
+q
+i
+in H
+q
+i
+are released after r
+q
+i
+, then we are
+done. Otherwise, all such jobs are released after r
+q
+i+1
+(after
+r
+q
+2
+if i = 0). This completes the proof of the lemma.
+Lemma 4.4. A machine of class l &lt; l processes jobs of
+H
+q
+for at least
+|I
+q
+| - 6 ·
+k
+
+l
+amount of time during I
+q
+.
+Proof. Let us fix a machine i of class l &lt; l. Let us
+consider the interval (r
+q
+p
+, d
+q
+p
+). Job j
+q
+p
+matures for i at time
+t
+M
+(j
+q
+p
+, l ). So machine i must be busy during (t
+M
+(j
+q
+p
+, l ), d
+q
+p
+),
+otherwise we could have dispatched j
+q
+p
+earlier. We now want
+to argue that machine i is mainly busy during this interval
+processing jobs from H
+q
+.
+Let j be a job which is processed by i during (t
+M
+(j
+q
+p
+, l ), d
+q
+p
+).
+We have already noted that j can be of class at most k
+q
+p
+. If j
+gets dispatched after t
+M
+(j
+q
+p
+, l ), then by definition it belongs
+to H
+q
+. If j gets dispatched before t
+M
+(j
+q
+p
+, l ), it must belong
+to A
+i
+(t ). But A
+i
+(t ) can contain at most one job of each
+class. So the total processing time taken by jobs of A
+i
+(t )
+during (t , d
+p
+) is at most
+l
+·(+
+2
++
+· · ·+
+k
+q
+p
+)
+3/2·
+k
+q
+p
+
+l
+.
+So during (r
+q
+p
+, d
+q
+p
+), i processes jobs from H
+q
+except perhaps
+for a period of length (t
+M
+(j
+q
+p
+, l ) - r
+q
+p
+) + 3/2 ·
+k
+q
+p
+
+l
+=
+5/2 ·
+k
+q
+p
+
+l
+. Since
+
+p
+(r
+q
+p
+, d
+p
+) covers I
+q
+, the amount of time
+i does not process jobs from H
+q
+is at most 5/2 ·
+l
+(
+k
++
+
+k
++
+· · · + 1), which proves the lemma.
+We would like to charge the processing time for jobs in
+J(k, l) in our solution to the flow time of jobs in H
+q
+in
+O.
+But to do this we require that the sets H
+q
+be disjoint. We
+next prove that this is almost true.
+Lemma 4.5. For any q, I
+q
+and I
+q+2
+are disjoint. Hence
+H
+q
+and H
+q+2
+are also disjoint.
+Proof. Recall that J
+q+1
+(k, l) is the set of jobs in J(k, l)
+which get released before t
+q
+b
+. However some of these jobs
+may get dispatched after t
+q
+b
+and hence I
+q
+and I
+q+1
+can intersect
+.
+Consider some job j  J
+q+1
+(k, l) which is dispatched during
+I
+q
+. Now, observe that j
+q+1
+0
+is released before t
+q
+b
+(by
+definition of J
+q+1
+(k, l)) and dispatched after j. So, j gets
+dispatched in (r
+q
+0
+, d
+q
+0
+). This means that release date of j
+q+1
+1
+must be before release date of j. But t
+q+1
+b
+r
+q+1
+1
+and so, j
+is released after t
+q+1
+b
+. But then j /
+J
+q+2
+(k, l). So all jobs
+in J
+q+2
+(k, l) get dispatched before I
+q
+begins, which implies
+that I
+q
+and I
+q+2
+are disjoint.
+Consider an interval I
+q
+. Let D
+q
+(k, l) denote the jobs in
+J(k, l) which get released after t
+q
+b
+but dispatched before t
+q
+e
+.
+It is easy to see that D
+q
+(k, l) is a superset of J
+q
+(k, l) J
+q+1
+(k, l). So
+q
+D
+q
+(k, l) covers all of J(k, l).
+Now we would like to charge the processing time of jobs
+in D
+q
+(k, l) to the flow time incurred by O on the jobs in H
+q
+.
+Before we do this, let us first show that
+O incurs significant
+733
+amount of flow time processing the jobs in H
+q
+.
+This is
+proved in the technical theorem below whose proof we defer
+to the appendix.
+Theorem 4.6. Consider a time interval I = (t
+b
+, t
+e
+) of
+length T . Suppose there exists a set of jobs J
+I
+such that
+every job j  J
+I
+is of class at most k and is released after
+t
+b
+. Further
+A dispatches all the jobs in J
+I
+during I and only
+on machines of class less than l. Further, each machine i
+of class l &lt; l satisfies the following condition : machine i
+processes jobs from J
+I
+for at least T - 6 ·
+k
+·
+l
+amount of
+time. Assuming T
+k
+·
+l
+, the flow time F
+O
+J
+I
+incurred by
+O on the jobs in J
+I
+is at least  `P
+A
+J
+I
+´.
+Substituting t
+b
+= t
+q
+b
+, t
+e
+= t
+q
+e
+, I = I
+q
+, T = |I
+q
+|, J
+I
+= H
+q
+in
+the statement of Theorem 4.6 and using Lemmas 4.2, 4.3,
+4.4, we get
+P
+A
+H
+q
+O(F
+O
+H
+q
+).
+(1)
+We are now ready to prove the main theorem of this section
+.
+Theorem 4.7. The processing time incurred by A on
+D
+q
+(k, l), namely P
+A
+D
+q
+(k,l)
+, is O(F
+O
+H
+q
++ F
+O
+D
+q
+(k,l)
+).
+Proof. Let V denote the volume of D
+q
+(k, l). By Lemma
+4.4, machines of class l do not process jobs from H
+q
+for at
+most 6
+·
+k
+
+l
+units of time during I
+q
+. This period translates
+to a job-volume of at most 6 ·
+k
+. If V is sufficiently small
+then it can be charged to the processing time (or equivalently
+the flow time in
+O) of the jobs in H
+q
+.
+Lemma 4.8. If V  c ·  ·
+k
+(m
+0
++ . . . + m
+l-1
+) where c is
+a constant, then P
+A
+D
+q
+(k,l)
+is O(F
+O
+H
+q
+).
+Proof. The processing time incurred by A on D
+q
+(k, l) is
+at most
+l
+V = O(
+k
+
+l+1
+·(m
+0
++ . . .+m
+l-1
+)). Now, Lemmas
+4.2 and 4.4 imply that machines of class l &lt; l process jobs
+from H
+q
+for at least
+k
+
+l
+/2 amount of time. So P
+A
+H
+q
+is at
+least
+k
+
+l
+(m
+0
++ . . . + m
+l-1
+)/2. Using equation (1), we get
+the result.
+So from now on we shall assume that V  c· ·
+k+1
+(m
+0
++
+. . . + m
+l-1
+) for a sufficiently large constant c. We deal with
+easy cases first :
+Lemma 4.9. In each of the following cases P
+A
+D
+q
+(k,l)
+is
+O(F
+O
+D
+q
+(k,l)
++ F
+O
+H
+q
+) :
+(i) At least V /2 volume of D
+q
+(k, l) is processed on machines
+of class at least l by O.
+(ii) At least V /4 volume of D
+q
+(k, l) is finished by O after
+time t
+q
+e
+k
+
+l
+/2.
+(iii) At least V /8 volume of H
+q
+is processed by
+O on machines
+of class l or more.
+Proof. Note that P
+A
+D
+q
+(k,l)
+is at most V
+l
+. If (i) happens,
+O pays at least V/2 ·
+l-1
+amount of processing time for
+D
+q
+(k, l) and so we are done. Suppose case (ii) occurs. All
+jobs in D
+q
+(k, l) get dispatched by time t
+q
+e
+. So they must get
+released before t
+q
+e
+k
+
+l
+. So at least 1/4 volume of these
+jobs wait for at least
+k
+
+l
+/2 amount of time in O. This
+means that F
+O
+D
+q
+(k,l)
+is at least V /8 ·
+l
+, because each job has
+size at most
+k
+. This again implies the lemma. Case (iii) is
+similar to case (i).
+So we can assume that none of the cases in Lemma 4.9
+occur.
+Now, consider a time t between t
+q
+e
+k
+
+l
+/2 and
+t
+q
+e
+. Let us look at machines of class 1 to l - 1. O finishes
+at least V /4 volume of D
+q
+(k, l) on these machines before
+time t. Further, at most V /8 volume of H
+q
+goes out from
+these machines to machines of higher class. The volume that
+corresponds to time slots in which these machines do not
+process jobs of H
+q
+in
+A is at most V/16 (for a sufficiently
+large constant c). So, at least V /16 amount of volume of
+H
+q
+must be waiting in
+O at time t. So the total flow time
+incurred by
+O on H
+q
+is at least V /(16
+k
+)
+·
+k
+
+l
+/2 which
+again is (V
+l
+). This proves the theorem.
+Combining the above theorem with Lemma 4.5, we get
+Corollary 4.10. P
+A
+J(k,l)
+is O(F
+O
+), and so P
+A
+is
+O(log S log P · F
+O
+).
+4.2
+Bounding the flow time
+We now show that the average flow time incurred by our
+algorithm is within poly-logarithmic factor of that incurred
+by the optimal solution. We shall say that a job j is waiting
+at time t in A if it is in the central pool at time t in A and
+has been released before time t.
+Let V
+A
+k
+(t) denote the volume of jobs of class at most
+k which are waiting at time t in A. Define V
+O
+k
+(t) as the
+remaining volume of jobs of class at most k which are active
+at time t in O. Note the slight difference in the definitions
+for
+A and O -- in case of A, we are counting only those jobs
+which are in the central pool, while in
+O we are counting
+all active jobs. Our goal is to show that for all values of k,
+P
+t
+V
+A
+k
+(t) is bounded from above by P
+t
+V
+O
+k
+(t) plus small
+additive factors, i.e., O(
+k
+·(P
+O
++ P
+A
+)). Once we have this,
+the desired result will follow from standard calculations.
+Before we go to the details of the analysis, let us first show
+how to prove such a fact when all machines are of the same
+speed, say 1. The argument for this case follows directly
+from [5], but we describe it to develop some intuition for the
+more general case. Fix a time t and class k of jobs. Suppose
+all machines are processing jobs of class at most k at time
+t in our schedule. Let t be the first time before t at which
+there is at least one machine in
+A which is not processing
+jobs of class k or less (if there is no such time, set t as
+0). It follows that at time t there are no jobs of class k or
+less which are mature for these machines (since all machines
+are identical, a job becomes mature for all the machines
+at the same time). So these jobs must have been released
+after t k
+. During (t k
+, t ), the optimal schedule can
+process at most m ·
+k
+volume of jobs of class at most k. So
+it follows that V
+A
+k
+(t ) - V
+O
+k
+(t ) is at most m ·
+k
+. Since our
+schedule processes jobs of class at most k during (t , t), we
+get V
+A
+k
+(t) - V
+O
+k
+(t)  x
+A
+(t) ·
+k
+, where x
+A
+(t) denotes the
+number of busy machines at timer t in our schedule (x
+A
+(t)
+is same as m because all machines are busy at time t). The
+other case when a machine may be processing jobs of class
+more than k or remain idle at time t can be shown similarly
+to yield the same expression. Adding this for all values of t,
+we get P
+t
+V
+A
+k
+(t) - P
+t
+V
+O
+k
+(t) is at most
+k
+· P
+A
+, which is
+what we wanted to show.
+This argument does not extend to the case when machines
+can have different speeds. There might be a very slow machine
+which is not processing jobs of class k or less (it may
+be idle), but then the jobs which are waiting could have
+been released much earlier and so we cannot argue that the
+734
+volume of remaining jobs of class at most k at time t in the
+two schedules are close. This complicates our proof and instead
+of defining one time t as above, we need to define a
+sequence of times.
+Before we describe this process, we need more notations.
+These are summarized in the table below for ease of reference
+.
+Let j
+k
+(t)  J
+k
+(t) be the job with the earliest release date.
+Let r
+k
+(t) denote the release date of job j
+k
+(t), and c
+k
+(t) denote
+the class of j
+k
+(t). Let l
+k
+(t) denote the largest l such that
+j
+k
+(t) has matured for machines of class l at time t. In other
+words, l
+k
+(t) is the highest value of l such that t
+M
+(j, l)  t.
+Observe that all machines of class l
+k
+(t) or less must be busy
+processing jobs of class at most c
+k
+(t) at time t, otherwise our
+algorithm should have dispatched j by time t. Our proof will
+use the following lemma.
+Lemma 4.11. For any class k of jobs and time t,
+V
+A
+k
+(t) - V
+O
+k
+(t)  2 ·  ·
+c
+k
+(t)
+· m
+(l
+k
+(t)-1)
++ V
+A
+(c
+k
+(t)-1)
+(r
+k
+(t)) - V
+O
+(c
+k
+(t)-1)
+(r
+k
+(t))
++ X
+ll
+k
+(t)
+P
+O
+l
+(r
+k
+(t), t)
+
+l-1
+Proof. Let V
+A
+denote the volume of jobs of class at most
+k which are processed by A on machines of class l
+k
+(t) - 1 or
+less during (r
+k
+(t), t). Define U
+A
+as the volume of jobs of class
+at most k which are processed by A on machines of class
+l
+k
+(t) or more during (r
+k
+(t), t). Define V
+O
+and U
+O
+similarly.
+Clearly, V
+A
+k
+(t) - V
+O
+k
+(t) = V
+A
+k
+(r
+k
+(t)) - V
+O
+k
+(r
+k
+(t)) + (V
+O
+V
+A
+) + (U
+O
+- U
+A
+).
+Let us look at V
+O
+- V
+A
+first.
+Any machine of class
+l  l
+k
+(t) - 1 is busy in A during (t
+M
+(j
+k
+(t), l ), t) processing
+jobs of class at most c
+k
+(t). The amount of volume O can
+process on such machines during (r
+k
+(t), t
+M
+(j
+k
+(t), l )) is at
+most
+m
+l
+·
+ck(t)
+
+l
+
+l -1
+, which is at most m
+l
+·  ·
+c
+k
+(t)
+. So we
+get V
+O
+- V
+A
+m
+(l
+k
+(t)-1)
+·  ·
+c
+k
+(t)
+.
+Let us now consider V
+A
+k
+(r
+k
+(t)) - V
+O
+k
+(r
+k
+(t)). Let us consider
+jobs of class c
+k
+(t) or more which are waiting at time
+r
+k
+(t) in A (so they were released before r
+k
+(t)). By our definition
+of j
+k
+(t), all such jobs must be processed by time
+t in A. If l  l
+k
+(t) - 1, then such jobs can be done on
+machines of class l only during (t
+M
+(j
+k
+(t), l ), t). So again
+we can show that the total volume of such jobs is at most
+m
+(l
+k
+(t)-1)
+·  ·
+c
+k
+(t)
++ U
+A
+.
+Thus we get V
+A
+k
+(r
+k
+(t)) V
+O
+k
+(r
+k
+(t))  m
+(l
+k
+(t)-1)
+··
+c
+k
+(t)
++U
+A
++V
+A
+(c
+k
+(t)-1)
+(r
+k
+(t))V
+O
+(c
+k
+(t)-1)
+(r
+k
+(t)), because V
+O
+(c
+k
+(t)-1)
+(r
+k
+(t))  V
+O
+k
+(r
+k
+(t)).
+Finally note that U
+O
+is at most P
+ll
+k
+(t) P
+O
+l
+(r
+k
+(t),t)
+
+l-1
+. Combining
+everything, we get the result.
+The rest of the proof is really about unraveling the expression
+in the lemma above. To illustrate the ideas involved,
+let us try to prove the special case for jobs of class 1 only.
+The lemma above implies that V
+A
+1
+(t) - V
+O
+1
+(t)  2 ·  ·
+m
+(l
+1
+(t)-1)
++P
+ll
+1
+(t) P
+O
+l
+(r
+1
+(t),t)
+
+l-1
+. We are really interested in
+P
+t
+(V
+A
+1
+(t) - V
+O
+1
+(t)). Now, the sum P
+t
+m
+(l
+1
+(t)-1)
+is not a
+problem because we know that at time t all machines of class
+l
+1
+(t) or less must be busy in A. So, x
+A
+(t)  m
+(l
+1
+(t)-1)
+. So
+P
+t
+m
+(l
+1
+(t)-1)
+is at most P
+t
+x
+A
+(t), which is the total processing
+time of
+A. It is little tricky to bound the second
+term. We shall write P
+ll
+1
+(t) P
+O
+l
+(r
+1
+(t),t)
+
+l-1
+as
+P
+ll
+1
+(t)
+P
+t
+t =r
+1
+(t) x
+O
+l
+(t )
+
+l-1
+.
+We can think of this as saying
+that at time time t , r
+1
+(t)  t  t, we are charging 1/
+l-1
+amount to each machine of class l which is busy at time t
+in
+O. Note that here l is at least l
+1
+(t).
+Now we consider P
+t
+P
+ll
+1
+(t)
+P
+t
+t =r
+1
+(t) x
+O
+l
+(t )
+
+l-1
+. For a fixed
+time t and a machine i of class l which is busy at time t
+in
+O, let us see for how many times t we charge to i. We
+charge to i at time t if t lies in the interval (r
+1
+(t), t), and
+l  l
+1
+(t). Suppose this happens. We claim that t - t has
+to be at most
+l+1
+. Indeed otherwise t - r
+1
+(t)
+l+1
+and so j
+1
+(t) has matured for machines of class l + 1 as well.
+But then l &lt; l
+1
+(t). So the total amount of charge machine i
+gets at time t is at most
+l+1
+· 1/
+l-1
+= O(1). Thus, the
+total sum turns out to be at most a constant times the total
+processing time of
+O.
+Let us now try to prove this for the general case. We
+build some notation first. Fix a time t and class k. We
+shall define a sequence of times t
+0
+, t
+1
+, · · · and a sequence of
+jobs j
+0
+(t), j
+1
+(t), . . . associated with this sequence of times.
+c
+i
+(t) shall denote the class of the job j
+i
+(t). Let us see how
+we define this sequence. First of all t
+0
+= t, and j
+0
+(t) is
+the job j
+k
+(t) (as defined above). Recall the definition of
+j
+k
+(t) ­ it is the job with the earliest release date among all
+jobs of class at most k which are waiting at time t in A.
+Note that c
+0
+(t), the class of this job, can be less than k.
+Now suppose we have defined t
+0
+, . . . , t
+i
+and j
+0
+(t), . . . , j
+i
+(t),
+i  0. t
+i+1
+is the release date of j
+i
+(t). j
+i+1
+(t) is defined as
+the job j
+c
+i
+(t)-1
+(t
+i+1
+), i.e., the job with the earliest release
+date among all jobs of class less than c
+i
+(t) waiting at time
+t
+i+1
+in
+A. We shall also define a sequence of classes of
+machines l
+0
+(t), l
+1
+(t), . . . in the following manner ­ l
+i
+(t) is the
+highest class l of machines such that job j
+i
+(t) has matured
+for machines of class l at time t
+i
+. Figure 2 illustrates these
+definitions. The vertical line at time t
+i
+denotes l
+i
+(t) ­ the
+height of this line is proportional to l
+i
+(t).
+We note the following simple fact.
+Claim 4.12.
+l
+i
+(t)
+·
+c
+i
+(t)
+t
+i
+- t
+i+1
+
+l
+i
+(t)+1
+·
+c
+i
+(t)
+.
+Proof. Indeed t
+i+1
+is the release date of j
+i
+(t) and j
+i
+(t)
+matures for machines of class l
+i
+(t) at time t
+i
+, but not for
+machines of class l
+i+1
+(t) at time t
+i
+.
+The statement in Lemma 4.11 can be unrolled iteratively
+to give the following inequality :
+V
+A
+k
+(t) - V
+O
+k
+(t)  2 ·  · (
+c
+0
+(t)
+· m
+&lt;l
+0
+(t)
++
+c
+1
+(t)
+· m
+&lt;l
+1
+(t)
++
+· · · ) +
+0
+@ X
+ll
+0
+(t)
+P
+O
+l
+(t
+1
+, t
+0
+)
+
+l-1
++ X
+ll
+1
+(t)
+P
+O
+l
+(t
+2
+, t
+1
+)
+
+l-1
++
+· · ·
+1
+A (2)
+Let us try to see what the inequality means. First look
+at the term
+c
+i
+(t)
+· m
+&lt;l
+i
+(t)
+.
+Consider a machine of class
+l &lt; l
+i
+(t). It is busy in A during (t
+M
+(j
+i
+(t), l), t
+i
+).
+Now
+t
+i
+- t
+M
+(j
+i
+(t), l) = (t
+i
+- t
+i+1
+)
+- (t
+M
+(j
+i
+(t), l) - t
+i+1
+)
+
+l
+i
+(t)
+·
+
+c
+i
+(t)
+c
+i
+(t)
+·
+l
+
+c
+i
+(t)
+·
+l
+, as l &lt; l
+i
+(t). Hence machine l is
+also busy in
+A during (t
+i
+c
+i
+(t)
+·
+l
+, t
+i
+), So the term
+c
+i
+(t)
+·
+m
+&lt;l
+i
+(t)
+is essentially saying that we charge 1/
+l
+amount to
+each machine of class l &lt; l
+i
+(t) during each time in (t
+i
+735
+x
+A
+(t), x
+O
+(t)
+Number of machines busy at time t in A, O.
+x
+A
+l
+(t), x
+O
+l
+(t)
+Number of machines of class l busy at time t in A, O.
+P
+A
+l
+(t
+1
+, t
+2
+), P
+O
+l
+(t
+1
+, t
+2
+)
+Total processing time incurred by machines of class l
+during (t
+1
+, t
+2
+) in
+A, O.
+m
+l
+, m
+l
+, m
+&lt;l
+Number of machines of class l, at most l, less than l.
+m
+(l
+1
+,l
+2
+)
+Number of machines of class between (and including) l
+1
+and l
+2
+.
+J(k, t)
+Set of jobs of class at most k which are waiting at time t in A.
+Table 1: Table of definitions
+t
+t
+t
+t
+t
+1
+0
+2
+3
+4
+l
+l
+l
+l
+l
+0
+1
+2
+3
+4
+t
+5
+5
+l
+t
+6
+r
+jj
+j
+r
+r
+r
+r
+r
+j
+j
+j
+j
+j
+0
+1
+2
+3
+4
+5
+Figure 2: Illustrating the definitions of t
+0
+, . . . and c
+0
+(t), . . ..
+
+c
+i
+(t)
+·
+l
+, t
+i
+). These intervals are shown in figure 2 using
+light shade. So a machine i of class l which is busy in A
+during these lightly shaded regions is charged 1/
+l
+units.
+Let us now look at the term P
+ll
+i
+(t) P
+O
+l
+(t
+i+1
+,t
+i
+)
+
+l-1
+. This
+means the following ­ consider a machine of class l  l
+i
+(t)
+which is busy in
+O at some time t during (t
+i+1
+, t
+i
+) ­ then
+we charge it 1/
+l-1
+units. Figure 2 illustrates this fact ­
+we charge 1/
+l-1
+to all machines of class l  l
+i
+(t) which are
+busy in
+O during the darkly shaded regions.
+Let us see how we can simplify the picture. We say that
+the index i is suffix maximum if l
+i
+(t) &gt; l
+i-1
+(t), . . . , l
+0
+(t)
+(i = 0 is always suffix maximum). In Figure 2, t
+0
+, t
+2
+and
+t
+5
+are suffix maximum.
+Let the indices which are suffix
+maximum be i
+0
+= 0 &lt; i
+1
+&lt; i
+2
+&lt; . . .. The following lemma
+says that we can consider only suffix maximum indices in
+(2). We defer its proof to the appendix.
+Lemma 4.13.
+V
+A
+k
+(t) - V
+O
+k
+(t)  4
+2
+· X
+i
+u
+
+c
+iu
+(t)
+· m
+(l
+iu-1
+(t),l
+iu
+(t)-1)
++ X
+i
+u
+X
+ll
+iu
+(t)
+P
+O
+l
+(t
+i
+u+1
+, t
+i
+u
+)
+
+l-1
+,
+where i
+u
+varies over the suffix maximum indices (define l
+i
+-1
+(t)
+as 1). Recall that m
+(l
+1
+,l
+2
+)
+denotes the number of machines
+of class between l
+1
+and l
+2
+.
+Figure 3 shows what Lemma 4.13 is saying. In the lightly
+shaded region, if there is a machine of class l which is busy
+at some time t in A, we charge it 1/
+l
+units at time t . In
+the darkly shaded region if there is a machine i of class l
+which is busy at time t in O we charge it 1/
+l-1
+units.
+Now we try to bound the charges on the darkly shaded
+region for all time t. Let us fix a machine h of class l.
+Suppose h is busy in O at time t . We are charging 1/
+l-1
+amount to h at time t if the following condition holds : for
+all i such that t
+i
+t , l
+i
+(t) is at most l. Now we ask, if we
+fix t , for how many values of t do we charge h at time t ?
+The following claim shows that this can not be too large.
+Claim 4.14. Given a machine h of class l, we can charge
+it for the darkly shaded region at time t for at most 2 ·
+l+1
+·
+
+k
+values of t.
+Proof. Suppose we charge h at time t for some value
+of t. Fix this t. Clearly t  t . Let i be the largest index
+such that t  t
+i
+. So t - t  t - t
+i+1
+. Now consider any
+i  i. Lemma 4.12 implies that t
+i
+- t
+i +1
+
+l
+i
+(t)+1
+·
+
+
+i
+(t)
+
+l+1
+·
+c
+i
+(t)
+. Since c
+i
+(t) decrease as i increases,
+P
+i
+i =0
+(t
+i
+- t
+i +1
+)
+2 ·
+l+1
+·
+k
+. This implies the claim.
+So the total amount of charge to machine h at time t is
+at most 2
+·
+2
+·
+k
+. Thus we get the following fact :
+X
+t
+0
+@X
+i
+u
+X
+ll
+iu
+(t)
+P
+O
+l
+(t
+i
+u
++1
+, t
+i
+u
+)
+
+l-1
+1
+A  2 ·
+2
+·
+k
+· P
+O
+(3)
+Now we look at the charges on the lightly shaded region.
+Let h be a machine of class l which is busy in A at time t .
+As argued earlier, we charge 1/
+l
+units to h at time t if the
+following condition holds ­ there exists a suffix maximum
+index i
+u
+such that t lies in the interval (t
+i
+u
+c
+iu
+(t)
+
+l
+, t
+i
+u
+).
+Further for all suffix maximum indices i &lt; i
+u
+, it must be
+the case that l
+i
+(t) &lt; l. Now we want to know for how many
+values of t do we charge h at time t .
+736
+t
+t
+t
+t
+t
+1
+0
+2
+3
+4
+l
+l
+l
+l
+l
+0
+1
+2
+3
+4
+t
+5
+5
+l
+t
+6
+r
+jj
+j
+r
+r
+r
+r
+r
+j
+j
+j
+j
+j
+0
+1
+2
+3
+4
+5
+Figure 3: Illustrating Lemma 4.13
+Claim 4.15. Given a machine h of class l, we can charge
+it for the lightly shaded region at time t for at most 3
+·
+l+1
+·
+
+k
+values of t.
+Proof. Fix a time t such that while accounting for V
+A
+k
+(t)
+we charge h at time t . So there is a maximum index i
+u
+such
+that t
+i
+u
+- t
+c
+iu
+(t)
+
+l
+. Further, if i is an index less than
+i
+u
+, then l
+i
+(t) must be less than l. We can argue as in the
+proof of Claim 4.14 that t - t
+i
+u
+can be at most 2
+·
+l+1
+·
+k
+.
+So t - t
+3 ·
+l+1
+·
+k
+.
+So we get
+X
+t
+X
+i
+u
+
+c
+iu
+(t)
+· m
+(l
+iu-1
+(t),l
+iu
+(t)-1)
+!
+3 ·  ·
+k
+· P
+A
+(4)
+Putting everything together, we see that Lemma 4.13, and
+equations (3) and (4) imply that there is a constant c such
+that X
+t
+V
+A
+k
+(t)  X
+t
+V
+O
+k
+(t) + c ·
+k
+· (P
+O
++ P
+A
+).
+(5)
+The final result now follows from standard calculations.
+Theorem 4.16. F
+A
+is O(log S · log
+2
+P · F
+O
+).
+Proof. We have already bounded the processing time of
+A. Once a job gets dispatched to a machine i, its waiting
+time can be charged to the processing done by i. Since at
+any time t, there are at most log P active jobs dispatched to
+a machine, the total waiting time of jobs after their dispatch
+time is at most O(log P · P
+A
+). So we just need to bound the
+time for which jobs are waiting in the central pool.
+Let n
+A
+k
+(t) be the number of jobs of class k waiting in the
+central pool at time t in our algorithm. Let n
+O
+k
+(t) be the
+number of jobs of class k which are active at time t in O
+(note the difference in the definitions of the two quantities).
+Since jobs waiting in the central pool in
+A have not been
+processed at all, it is easy to see that n
+A
+k
+(t)
+V
+A
+k
+(t)
+
+k
+. Further
+, V
+O
+k
+(t)
+k
+n
+O
+k
+(t) + · · · + n
+O
+1
+(t). Combining these
+observations with equation (5), we get for all values of k,
+X
+t
+n
+A
+k
+(t)  X
+t
+,,
+n
+O
+k
+(t) + n
+O
+k-1
+(t)
+
++
+· · · + n
+O
+1
+(t)
+
+k-1
+«
++c · (P
+O
++ P
+A
+).
+We know that total flow time of a schedule is equal to the
+sum over all time t of the number of active jobs at time t in
+the schedule. So adding the equation above for all values of
+k and using Corollary 4.10 implies the theorem.
+ACKNOWLEDGEMENTS
+We would like to express our thanks to Gagan Goel, Vinayaka
+Pandit, Yogish Sabharwal and Raghavendra Udupa for useful
+discussions.
+REFERENCES
+[1] N. Avrahami and Y. Azar. Minimizing total flow time
+and total completion time with immediate
+dispatching. In Proc. 15th Symp. on Parallel
+Algorithms and Architectures (SPAA), pages 11­18.
+ACM, 2003.
+[2] Baruch Awerbuch, Yossi Azar, Stefano Leonardi, and
+Oded Regev. Minimizing the flow time without
+migration. In ACM Symposium on Theory of
+Computing, pages 198­205, 1999.
+[3] N. Bansal and K. Pruhs. Server scheduling in the l p
+norm: A rising tide lifts all boats. In ACM Symposium
+on Theory of Computing, pages 242­250, 2003.
+[4] Luca Becchetti, Stefano Leonardi, Alberto
+Marchetti-Spaccamela, and Kirk R. Pruhs. Online
+weighted flow time and deadline scheduling. Lecture
+Notes in Computer Science, 2129:36­47, 2001.
+[5] C. Chekuri, S. Khanna, and A. Zhu. Algorithms for
+weighted flow time. In ACM Symposium on Theory of
+Computing, pages 84­93. ACM, 2001.
+[6] Chandra Chekuri, Ashish Goel, Sanjeev Khanna, and
+Amit Kumar. Multi-processor scheduling to minimize
+flow time with epsilon resource augmentation. In
+ACM Symposium on Theory of Computing, pages
+363­372, 2004.
+[7] R. L. Graham, E. L. Lawler, J. K. Lenstra, and A. H.
+G. Rinnooy Kan. Optimization and approximation in
+deterministic sequencing and scheduling : a survey.
+Ann. Discrete Math., 5:287­326, 1979.
+[8] Bala Kalyanasundaram and Kirk Pruhs. Speed is as
+powerful as clairvoyance. In IEEE Symposium on
+737
+Foundations of Computer Science, pages 214­221,
+1995.
+[9] Hans Kellerer, Thomas Tautenhahn, and Gerhard J.
+Woeginger. Approximability and nonapproximability
+results for minimizing total flow time on a single
+machine. In ACM Symposium on Theory of Cmputing,
+pages 418­426, 1996.
+[10] Stefano Leonardi and Danny Raz. Approximating
+total flow time on parallel machines. In ACM
+Symposium on Theory of Computing, pages 110­119,
+1997.
+[11] C. A. Phillips, C. Stein, E. Torng, and J. Wein.
+Optimal time-critical scheduling via resource
+augmentation. In ACM Symposium on Theory of
+Computing, pages 140­149, 1997.
+Appendix
+Proof of Theorem 4.6.
+Let M denote the set of machines
+of class less than l. First observe that the processing
+time incurred by
+A on J
+I
+is at most twice of
+|M | · T (the
+factor twice comes because there may be some jobs which
+are dispatched during I but finish later -- there can be at
+most one such job for a given class and a given machine).
+So we will be done if we can show that F
+O
+J
+I
+is (
+|M | · T ).
+Let V be the volume of jobs in J
+I
+which are done by
+O
+on machines of class l or more. If V
+|M |·T
+
+l+1
+, then we are
+done because then the processing time incurred by
+O on J
+I
+is at least V ·
+l
+. So we will assume in the rest of the proof
+that V
+|M |·T
+
+l+1
+.
+Let i be a machine of class less than l. We shall say that
+i is good is i processes jobs from J
+I
+for at least T /4 units
+of time during I in the optimal solution O. Otherwise we
+say that i is bad. Let G denote the set of good machines. If
+|G|
+|M |
+
+, then we are done again, because P
+O
+J
+I
+is at least
+|G| · T/4. Let B denote the set of bad machines.
+So we can assume that the number of good machines is
+at most 1/ fraction of the number of machines of class less
+than l. Now consider a time t in the interval (t
+b
++ T /2, t
+e
+).
+Claim 6.1. At time t, at least
+k
+|M | volume of jobs from
+J
+I
+is waiting in
+O.
+Proof. Let V
+1
+denote the volume of jobs from J
+I
+which
+is done by
+A during (t
+b
+, t). Let V
+2
+denote the volume of jobs
+from J
+I
+which is done by
+O on machines of class less than
+l during (t
+b
+, t). Recall that for a machine i, s
+i
+denotes the
+slowness of i.
+Since a machine i of class l &lt; l does not perform jobs
+from J
+I
+for at most 6
+k
+
+l
+amount of time during I, we see
+that V
+1
+P
+iM t-t
+b
+-6
+k
+·
+ci
+s
+i
+, where c
+i
+denotes the class
+of i. Let us look at V
+2
+now. In
+O all bad machines do not
+process jobs from J
+I
+for at least 3T /4 units of time during I.
+So they do not process jobs from J
+I
+for at least T /4 units of
+time during (t
+b
+, t
+b
++T /2). So V
+2
+P
+iM (t-t
+b
+)
+s
+i
+-P
+iB T
+4s
+i
+.
+This shows that V
+1
+- V
+2
+P
+iB T
+4s
+i
+- P
+iM 6
+k
+
+ci
+s
+i
+.
+For a bad machine i, T /4 - 6
+k
+
+c
+i
+T/8, since c
+i
+l 1
+(assuming  is large enough). So, we can see that this
+difference is at least P
+iB T
+8s
+i
+- P
+i /
+B
+6
+k
+. Since T
+l
+·
+
+k
+, we see that this difference is at least
+T
+
+l-1
+(
+|B|/8 - 6|G|),
+which is at least
+T |M |
+10
+l-1
+, because we have assumed that
+|B| is
+larger than
+|G| by a sufficiently high constant factor. Recall
+that V is the volume of jobs in J
+I
+which is done by
+O on
+machines of class l or more. Clearly, the volume of jobs from
+J
+I
+which is waiting at time t in O is at least V
+1
+- V
+2
+- V .
+But V is at most
+T |M |
+
+l+1
+. Hence the volume waiting at time
+t is at least
+T |M |
+
+l
+. This proves the lemma.
+Since each job
+in J
+I
+is of size at most
+k
+, we see that at least (
+|M |) jobs
+are waiting at time t. Summing over all values of t in the
+range (t
+b
++ T /2, t
+e
+) implies the theorem.
+Proof of Lemma 4.13.
+Consider an i, i
+u+1
+&lt; i  i
+u
+.
+Then l
+i
+(t)  l
+i
+u
+(t), otherwise we should have another suffix
+maximal index between i
+u+1
+and i
+u
+. So P
+i
+u+1
+-1
+i=i
+u
+
+c
+i
+(t)
+·
+m
+&lt;l
+i
+(t)
+m
+&lt;l
+iu
+(t)
+· P
+i
+u
+-1
+i=i
+u
+
+c
+i
+(t)
+2 · m
+&lt;l
+iu
+(t)
+·
+c
+iu
+(t)
+. So
+we get P
+i
+
+c
+i
+(t)
+· m
+&lt;l
+i
+(t)
+2 · P
+i
+u
+m
+&lt;l
+iu
+(t)
+·
+c
+iu
+(t)
+.
+Now we consider the sum P
+i
+P
+ll
+i
+(t) P
+O
+l
+(t
+i+1
+,t
+i
+)
+
+l-1
+. Fix an
+i, i
+u+1
+&lt; i  i
+u
+. Using Claim 4.12, we see that P
+O
+l
+(t
+i+1
+, t
+i
+)
+
+m
+l
+·
+l
+i
+(t)+1
+·
+c
+i
+(t)
+. So we get
+X
+ll
+i
+(t)
+P
+O
+l
+(t
+i+1
+, t
+i
+)
+
+l-1
+X
+ll
+iu
+(t)
+P
+O
+l
+(t
+i+1
+, t
+i
+)
+
+l-1
++
+l
+iu
+(t)-1
+X
+l=l
+i
+(t)
+m
+l
+·
+l
+i
+(t)+1
+·
+c
+i
+(t)
+
+l-1
+Now the second term on the right hand side above is at
+most
+2
+· m
+&lt;l
+iu
+(t)
+
+c
+i
+(t)
+. So we get
+i
+u+1-1
+X
+i=i
+u
+X
+ll
+i
+(t)
+P
+O
+l
+(t
+i+1
+, t
+i
+)
+
+l-1
+X
+ll
+iu
+(t)
+P
+O
+l
+(t
+i
+u+1
+, t
+i
+u
+)
+
+l-1
++ 2
+2
+
+c
+iu
+(t)
+m
+&lt;l
+iu
+(t)
+,
+because
+c
+i
+(t)
+scales down geometrically as i increases.
+Finally note that P
+i
+u
+
+c
+iu
+(t)
+m
+&lt;l
+iu
+(t)
+is at most twice of
+P
+i
+u
+
+c
+iu
+(t)
+· m
+(l
+iu-1
+(t),l
+iu
+(t)-1)
+, because
+c
+i
+(t)
+scale down
+geometrically. This proves the lemma (using (2)).
+738

@@ -1,0 +1,3170 @@
+Lower Bounds & Competitive Algorithms for Online Scheduling of Unit-Size Tasks to Related Machines
+ABSTRACT
+In this paper we study the problem of assigning unit-size
+tasks to related machines when only limited online information
+is provided to each task. This is a general framework
+whose special cases are the classical multiple-choice games
+for the assignment of unit-size tasks to identical machines.
+The latter case was the subject of intensive research for the
+last decade. The problem is intriguing in the sense that the
+natural extensions of the greedy oblivious schedulers, which
+are known to achieve near-optimal performance in the case
+of identical machines, are proved to perform quite poorly in
+the case of the related machines.
+In this work we present a rather surprising lower bound
+stating that any oblivious scheduler that assigns an arbitrary
+number of tasks to n related machines would need
+log
+n
+loglog
+n
+polls of machine loads per task, in order to
+achieve a constant competitive ratio versus the optimum
+offline assignment of the same input sequence to these machines
+. On the other hand, we prove that the missing information
+for an oblivious scheduler to perform almost optimally
+, is the amount of tasks to be inserted into the system.
+In particular, we provide an oblivious scheduler that only
+uses
+O(loglog n) polls, along with the additional information
+of the size of the input sequence, in order to achieve
+a constant competitive ratio vs.
+the optimum offline assignment
+. The philosophy of this scheduler is based on an
+interesting exploitation of the slowfit concept ([1, 5, 3];
+for a survey see [6, 9, 16]) for the assignment of the tasks
+to the related machines despite the restrictions on the provided
+online information, in combination with a layered in-This
+work has been partially supported by the IST Program
+of the European Union under contract number IST-1999
+-14186 (
+ALCOM-FT)
+A full version of this paper is available at
+www.mpi-sb.mpg.de/
+spyros/
+Permission to make digital or hard copies of all or part of this work for
+personal or classroom use is granted without fee provided that copies are
+not made or distributed for profit or commercial advantage and that copies
+bear this notice and the full citation on the first page. To copy otherwise, to
+republish, to post on servers or to redistribute to lists, requires prior specific
+permission and/or a fee.
+STOC'02 May 19-21, 2002, Montreal, Quebec, Canada.
+Copyright 2002 ACM 1-58113-495-9/02/0005 ...
+$
+5.00.
+duction argument for bounding the tails of the number of
+tasks passing from slower to faster machines. We finally use
+this oblivious scheduler as the core of an adaptive scheduler
+that does not demand the knowledge of the input sequence
+and yet achieves almost the same performance.
+INTRODUCTION
+The problem of the Online Assignment of Tasks to Related
+Machines is defined as follows: there are
+n machines
+possibly of different speeds, that are determined by a speed
+vector c
+(C
+1
+, . . . , C
+n
+)
+IR
+n
++
+, and an input sequence
+of m independent tasks to be assigned to these machines.
+The tasks arrive sequentially, along with their associated
+weights (positive reals) and have to be assigned immediately
+and uniquely to the machines of the system. The size
+of the input sequence as well as the weights of the tasks
+are determined by an oblivious adversary (denoted here by
+ADV). Each task has to be assigned upon its arrival to one
+of the machines, using the following information:
+· (possibly a portion of) the online information of current
+status of the system,
+· the offline information of the machine speeds, and
+· its own weight.
+The tasks are considered to be of infinite duration (permanent
+tasks) and no preemption is allowed. The cost of
+an online scheduler
+ALG for the assignment of an input sequence
+of tasks  (denoted by ALG()) is the maximum load
+eventually appearing in the system. In case that a random-ized
+scheduler is taken into account, then the cost of the
+scheduler is the expectation of the corresponding random
+variable. The quality of an online scheduler is compared vs.
+the optimum offline assignment of the same input sequence
+to the n machines. We denote the optimum offline cost for
+ by ADV(). That is, we consider the competitive ratio
+(or performance guarantee) to be the quality measure, (eg,
+see [6]):
+Definition
+1.1. An online scheduler
+ALG is said to achieve
+a competitive ratio of parameters (a, ), if for any
+124
+input sequence  the relation connecting its own cost ALG()
+and the optimum offline cost of
+ADV, are related by
+ALG()  a · ADV() + .
+ALG is strictly a-competitive if
+, ALG()  a · ADV().
+In this work we study the consequences of providing only
+some portion of the online information to a scheduler. That
+is, we focus our interest on the case where each task is capable
+of checking the online status only by a (small wrt n)
+number d of polls from the n machines. In this case, the
+objective is to determine the trade-off between the number
+of polls that are available to each of the tasks and the performance
+guarantee of the online scheduler, or equivalently,
+to determine the minimum number of polls per task so that
+a strictly constant competitive ratio is achieved.
+Additionally, we consider the case of unit-size tasks that
+are assigned to related machines. Thus, each task t  [m]
+has to be assigned to a machine host(t)  [n] using the following
+information that is provided to it: the current loads
+of d suitably chosen machines (the kind of the "suitable"
+selection is one of the basic elements of a scheduler and will
+be called the polling strategy from now on) and an assignment
+strategy that determines the host of t among
+these d selected candidates on behalf of t.
+In what follows we shall consider homogeneous schedulers
+, ie, schedulers that apply exactly the same protocol on
+all the tasks that are inserted into the system. This choice
+is justified by the fact that no task is allowed to have access
+to knowledge concerning previous or forthcoming choices of
+other tasks in the system, except only for the current loads
+of those machines that have been chosen to be its candidate
+hosts. Additionally, we shall use the terms (capacitated)
+bins instead of (related) machines and (identical) balls
+instead of (unit-size) tasks interchangeably, due to the profound
+analogy of the problem under consideration with the
+corresponding Balls & Bins problem.
+1.1
+Polling Strategies
+The way a scheduler
+ALG lets each newly inserted task
+choose its d candidate hosts is called a polling strategy
+(PS). We call the strategies that poll candidate machines
+homogeneously for all the inserted tasks of the same size,
+homogeneous polling strategies (HPS). In the present
+work we consider the tasks to be indistinguishable: Each
+task upon its arrival knows only the loads of the machines
+that it polls, along with the speed (or equiv. capacity wrt
+bins) vector c of the system.
+This is why we focus our
+interest in schedulers belonging to HPS. Depending on the
+dependencies of the polls that are taken on behalf of a task,
+we classify the polling strategies as follows:
+Oblivious polling strategies(HOPS)
+In this case we consider that the polling strategy on behalf
+of a newly inserted task t consists of an independent (from
+other tasks) choice of a d-tuple from [n]
+d
+according to a fixed
+probability distribution f : [n]
+d
+[0, 1]. This probability
+distribution may only depend on the common offline information
+provided to each of the tasks. It should be clear
+that any kind of d independent polls (with or without replacement
+) on behalf of each task, falls into this family of
+polling strategies. Thus the whole polling strategy is the sequence
+of m d-tuples chosen independently (using the same
+probability distribution f ) on behalf of the m tasks that
+are to be inserted into the system. Clearly for any polling
+strategy belonging to HOPS, the d random polls on behalf
+of each of the m tasks could have been fixed prior to the
+start of the assignments.
+Adaptive polling strategies (HAPS)
+In this case the i
+th
+poll on behalf of ball t  [m] is allowed
+to exploit the information gained by the i - 1 previous polls
+on behalf of the same ball. That is, unlike the case of HOPS
+where the choice of d candidates of a task was oblivious to
+the current system state, now the polling strategy is allowed
+to direct the next poll to specific machines of the system
+according to the outcome of the polls up to this point. In
+this case all the polls on behalf of each task have to be taken
+at runtime, upon the arrival of the task.
+Remark:
+It is commented that this kind of polling strategies
+are not actually helpful in the case of identical machines,
+where HOPS schedulers achieve asymptotically optimal performance
+(see [18]). Nevertheless, we prove here that this
+is not the case for the related machines. It will be shown
+that oblivious strategies perform rather poorly in this setting
+, while HAPS schedulers achieve actually asymptotically
+optimal performance.
+1.2
+Assignment Strategies
+Having chosen the d-size set of candidate hosts for task
+t  [m], the next thing is to assign this task to one of these
+machines given their current loads and possibly exploiting
+the knowledge on the way that they were selected. We call
+this procedure the assignment strategy. The significant
+question that arises here is the following: Given the polling
+strategy adopted and the knowledge that is acquired at runtime
+by the polled d-tuple on behalf of a task t  [m], which
+would be the optimal assignment strategy for this task so that
+the eventual maximum load in the system be minimized?
+In the Unit Size Tasks-Identical Machines case, when
+each of the d polls is chosen iur (with replacement) from [n],
+Azar et al. ([2]) show that the best assignment strategy
+is the minimum load rule and requires
+O(log n) polls per
+task for a strictly constant competitive ratio. Consequently
+V¨
+ocking ([18]) has suggested the always go left strategy
+, which (in combination with a properly chosen oblivious
+polling strategy) only requires a total number of
+O(loglog n)
+in order to achieve a constant competitive ratio. In the same
+work it was also shown that one should not expect much by
+exploiting possible dependencies of the polls in the case of
+unit-size tasks that are placed into identical machines, since
+the load of the fullest machine is roughly the same as the one
+achieved in the case of non-uniform but independent polls
+using the always go left rule.
+Nevertheless, things are quite different in the Related
+Machines case: we show by our lower bound (section 3)
+that even if a scheduler
+ALG considers any oblivious polling
+strategy and the best possible assignment strategy,
+ALG
+has a strict competitive ratio of at least
+2d
+n
+4
+d-2
+, where d is
+the number of oblivious polls per task. This implies that
+in the case of the related machines there is still much space
+for the adaptive polling strategies until the lower bound of
+(loglog n) polls per task is matched.
+125
+1.3
+Related Work
+In the case of assigning unit-size tasks to identical machines
+, there has been a lot of intensive research during the
+last decade. If each task is capable of viewing the whole
+status of the system upon its arrival (we call this the Full
+Information case), then Graham's greedy algorithm assures
+a competitive ratio that asymptotically tends to 2
+1
+n
+([6]).
+Nevertheless, when the tasks are granted only a limited number
+of polls, things are much more complicated: In the case
+of unit-size tasks and a single poll per task, the result of
+Gonnet [10] has proved that for m  n the maximum load
+is (1 + o(1))
+ln
+n
+lnln
+n
+when the poll of each task is chosen iur
+from the n machines, whp.
+1
+In [15] an explicit form for the
+expected maximum load is given for all combinations of n
+and m. From this work it easily seen that for m  n ln n, the
+maximum load is
+m
+n
++ (
+m ln n/n), which implies that by
+means of competitive ratio, m  n is actually the hardest
+instance.
+In the case of d  2 polls per task, a bunch of new techniques
+had to be applied for the analysis of such schedulers.
+The main tools used in the literature for this problem have
+been the layered induction, the witness tree argument and
+the method of fluid models (a comprehensive presentation
+of these techniques may be found in the very good survey
+of Mitzenmacher et al. [14]). In the seminal paper of Azar
+Broder Karlin and Upfal [2] it was proved that the proposed
+scheduler abku that chooses each of the polls of a task iur
+from [n] and then assigns the task to the candidate machine
+of minimum load, achieves a maximum load that is at
+most
+m
+n
++
+lnln
+n
+ln
+d
+± (1). This implies a strictly O
+lnln
+n
+ln
+d
+competitive
+ratio, or equivalently, at least
+O(ln n) polls per
+task would be necessary in order to achieve a strictly constant
+competitive ratio. In [18] the always go left algorithm
+was proposed, which assures a maximum load of
+at most
+m
+n
++
+lnln
+n
+d ln 2
+± (1) and thus only needs an amount
+of
+O(loglog n) polls per task in order to achieve a strictly
+constant competitive ratio. In addition it was shown that
+this is the best possible that one may hope for in the case
+of assigning unit-size tasks to identical machines with only
+d (either oblivious or adaptive) polls per task.
+The Online Assignment of Tasks to Related Machines
+problem has been thoroughly studied during the past years
+for the Full Information case (eg, see chapter 12 in [6]). In
+particular, it has been shown that a strictly (small) constant
+competitive ratio can be achieved using the slowfit-like algorithms
+that are based on the idea of exploiting the least
+favourable machines (this idea first appeared in [17]). The
+case of Limited Information has attracted little attention
+up to this point: some recent works ([12, 13, 8]) study the
+case of each task having a single poll, for its assignment
+to one of the (possibly related) machines when the probability
+distributions of the tasks comprise a Nash Equilibrium
+. For example, in [8] it was shown that in the Related
+Machines case a coordination ratio (ie, the ratio between the
+worst possible expected maximum load among Nash Equilibria
+over the offline optimum) of
+O
+log
+n
+logloglog
+n
+. However,
+when all the task weights are equal then it was shown by
+Mavronicolas and Spirakis [13] that the coordination ratio
+1
+A probabilistic event A is said to hold with high probability
+(whp) if for some arbitrarily chosen constant  &gt; 0,
+IP[A]  1 - n
+
+.
+is
+O
+log
+n
+loglog
+n
+. As for the case of d &gt; 1 in the Related
+Machines problem, up to the author's knowledge this is the
+first time that this problem is dealt with.
+1.4
+New results
+In this work we show that any HOPS scheduler requires at
+least
+O
+log
+n
+loglog
+n
+polls in order to achieve a strictly constant
+competitive ratio vs. an oblivious adversary. The key point
+in this lower bound argument is the construction of a system
+of d+1 groups of machines running at the same speed within
+each group, while the machine speeds (comparing machines
+of consecutive groups) fall by a fixed factor and on the other
+hand the cumulative capacities of the groups are raised by
+the same factor. Then it is intuitively clear that any HOPS
+scheduler cannot keep track of the current status within each
+of these d + 1 groups while having only d polls per new task,
+and thus it will have to pay the cost of misplacing balls in
+at least one of these groups. More specifically, we show the
+following lower bound:
+Theorem
+1.
+d  1, the competitive ratio of any
+d-hops scheduler is at least
+2d
+n
+4
+d-2
+.
+Then we propose a new d-hops scheduler OBL
+
+which,
+if it is fortified with the additional knowledge of the total
+number of tasks to be inserted, then it achieves the following
+upper-bound:
+Theorem 2.
+Let lnln n - lnlnln n &gt; d  2 and suppose
+that the size of the input sequence is given as offline
+information.If
+OBL
+
+provides each task with (at most) 2d
+polls, then it has a strict competitive ratio that drops double-exponentially
+with d.In particular the cost of OBL
+
+is with
+high probability at most
+OBL
+
+(m)  (1 + o(1))8
+n
+d2
+d+3
+1
+/(2
+d+1
+-1)
++ 1
+ADV(m)
+It is commented that all the schedulers for the Identical
+Machines-Limited Information case up to now used minimum
+load
+as the profound assignment rule. On the other
+hand,
+OBL
+
+was inspired by the slowfit approaches for
+the Related Machines-Full Information problem and the
+fact that a greedy scheduler behaves badly in that case.
+Up to the author's knowledge, the idea of using the slow-est
+machine possible first appeared in [17]. Additionally, a
+layered induction argument is employed for bounding the
+amount of tasks that flow from the slower to the faster machines
+in the system.
+2
+This then allows the use of relatively
+simple arguments for bounding the maximum load
+of the tasks that end up in a small fraction of the system
+that consists of the fastest machines. Clearly this upper
+bound is near-optimal (up to a multiplicative constant),
+since it matches the  (loglog n) lower bound of the Unit
+Size Tasks-Identical Machines problem ([18]) which is a
+subcase of our setting.
+Finally we propose a haps scheduler (
+ADAPT ) that combines
+the previous hops scheduler with a classical guessing
+2
+Note that this does not imply preemption of tasks which is
+not allowed in our setting, but rather the event that a task
+hits slower machines that are already overloaded and thus
+has to assign itself to a faster machine.
+126
+argument for the cost of
+ADV and assures a cost roughly 5
+times the cost of
+OBL
+
+:
+Theorem 3.
+For any input sequence  of identical tasks
+that have to be assigned to n related machines using at most
+2d + 1 polls per task, the cost of ADAPT is (whp),
+ADAPT () &lt; O
+n
+d2
+d+3
+1
+/(2
+d+1
+-1)
++ 1
+ADV()
+A SIMPLE LOWER BOUND ON HOMOGENEOUS SINGLE-POLL GAMES
+This section contains a simple argument for the claimed
+lower bound on online schedulers that devote a single poll
+per new task, ie, d = 1. Clearly by their nature these are
+HOPS schedulers, since there is no actual option for the
+assignment strategy. The proof for the lower bound of these
+schedulers is rather simple but it will and shed some light to
+the essence of the construction for the proof of the general
+lower bound that will follow in the next section.
+Let's assume that there exists a HOPS scheduler that only
+uses 1 poll per task and claims to be strict a-competitive
+against any oblivious adversary
+ADV. Initially ADV chooses
+an arbitrary real number r  n which will be fixed in the
+end so as to maximize the lower bound on a. Let also the
+variables C
+total
+, C
+max
+denote the total capacity and the maximum
+possible polled capacity using one poll (ie, the maximum
+bin capacity in this case) in the system. Consequently
+ADV uses the following system of capacitated bins so that
+these values are preserved:
+C
+1
+=
+C
+max
+,
+C
+i
+=
+C
+max
+r , i = 2, . . . ,
+C
+total
+- C
+max
+C
+max
+r
++ 1 (
+n)
+Observe that the capacity of bin i  2 is r times smaller
+than
+C
+max
+, while on the other hand, the cumulative capacity
+of the last n - 1 machines is
+n-1
+r
+times larger than the
+capacity of the largest bin in the system. Consider also the
+following abbreviations of probabilities and events that may
+occur upon the arrival of a new ball:
+E
+i
+"bin i is hit by a ball"
+P
+1
+IP[E
+1
+], ¯
+P
+1
+1 - P
+1
+Obviously due to the assumption of a-competitiveness,
+a  C
+total
+C
+max
+= C
+max
++
+(
+n-1)C
+max
+r
+C
+max
+= 1 + n - 1
+r
+since
+ALG could choose to assign all the incoming balls to
+the largest bin in the system. The question that arises is
+whether there exists a 1-poll scheduler that can do better
+than that. We consider the following input sequences:
+|| = 1, w
+1
+= w:
+ALG() = IE[L
+max
+()]
+P
+1
+·w
+C
+max
++
+¯
+P
+1
+·w
+Cmax
+r
+ADV() =
+w
+C
+max
+
+
+
+
+/ a-comp. /
+=
+
+a  P
+1
++ r · ¯
+P
+1
+= r - P
+1
+(r - 1)
+P
+1
+
+r-a
+r-1
+|| = , t  1, w
+t
+= w: In this case the loads of all the
+bins will tend to their expected values, and thus
+||
+(1) = IE[
+||
+(1)] =
+P
+1
+·||·w
+C
+max
+ALG() = IE[L
+max
+()]
+P
+1
+·||·w
+C
+max
+ADV() =
+||·w
+C
+total
+
+
+/ a-comp. /
+=
+
+a ·
+||·w
+C
+total
+
+P
+1
+·||·w
+C
+max
+P
+1
+
+aC
+max
+C
+total
+=
+a
+n-1
+r
++1
+Combining the two bounds on P
+1
+we get:
+aC
+max
+C
+total
+=
+a
+n-1
+r
++ 1
+P
+1
+r - a
+r - 1
+a · r - a  n - 1 + r - a
+n - 1
+r
++ 1
+a r + n - 1
+r
+r + n - 1
+a
+r + n - 1
+r +
+n-1
+r
+= r
+2
++ n · r - r
+r
+2
++ n - 1
+which is maximized for r = n + 1 and assures a lower
+bound on a of
+n
+2
+.
+Remark:
+It is worth noting that the lower bound com-pletely
+depends on the number of bins in the system, and on
+the ratio r =
+C
+max
+C
+min
+and does not depend at all on the total
+capacity of the system, C
+total
+.
+THE LOWER BOUND ON MULTI-HOPS SHCEDULERS
+In this section we study the behaviour of homogeneous
+schedulers that adopt an oblivious polling strategy (ie, the
+polling strategy is from HOPS) and an arbitrary assignment
+strategy. We call these d-hops schedulers, since the choice of
+the d candidates on behalf of each ball is done independently
+for each ball, according to a common probability distribution
+f : [n]
+d
+[0, 1]. Recall that the choice of the candidate
+bins for each ball is oblivious to the current system state
+and thus could have been fixed prior to the beginning of the
+assignments.
+Theorem
+1.
+d  1, the competitive ratio of any d-hops
+scheduler is at least
+2d
+n
+4
+d-2
+.
+Proof:
+Let f : [n]
+d
+[0, 1] be the adopted Oblivious
+polling strategy by an arbitrary d-hops scheduler, ALG. Assume
+also that
+ALG uses the best possible assignment strategy
+given this polling strategy, that is, each ball chooses its
+own candidate bins according to f and then it may assign
+itself to an arbitrarily chosen host among its candidates, depending
+on the current loads of the candidate bins. Assume
+also that
+ALG claims a (strict) competitive ratio a against
+oblivious adversaries.
+As parameters of the problem we consider again the quantities
+C
+total
+=
+n
+i=1
+C
+i
+and
+C
+max
+: the total capacity of a
+system of n related machines and the maximum capacity
+that may be returned by a single poll. We shall describe
+an adversary
+ADV that initially chooses an arbitrary real
+number 1
+r  n and then considers the system of (d + 1
+groups of) n capacitated bins that is described in Table 1.
+Observe that this construction preserves the following two
+invariants when considering two successive groups of bins
+F
+
+, F
++1
+: 1
+d:
+127
+Group of Bins
+Number of Bins in group
+Capacity per Bin
+Cumulative Group Capacity
+F
+1
+1
+C
+max
+C
+max
+F
+2
+r(r - 1)
+C
+max
+/r
+(r - 1)C
+max
+F
+3
+r
+3
+(r - 1)
+C
+max
+/r
+2
+r(r - 1)C
+max
+F
+4
+r
+5
+(r - 1)
+C
+max
+/r
+3
+r
+2
+(r - 1)C
+max
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+F
+d
+r
+2
+d-3
+(r - 1)
+C
+max
+/r
+d-1
+r
+d-2
+(r - 1)C
+max
+F
+d+1
+n - 1 r
+r+1
+(r
+2
+d-2
+- 1)  n - r
+2
+d-2
+C
+max
+/r
+d
+(
+n
+r
+d
+- r
+d-2
+)
+C
+max
+Table 1: The system of (d + 1 groups of ) capacitated bins considered by ADV for the proof of the Lower
+Bound on d-HOPS schedulers.
+(I1) when going from one group to its successor, the bin
+capacities decrease by a factor of r, and
+(I2) the cumulative capacity of the first  + 1 groups is
+larger than the cumulative capacity of the first  groups
+by a factor of r.
+We shall denote by C[F ] the cumulative capacity of any
+group of bins F  [n].
+Remark:
+The preservation of invariant (I2) when  = d
+implies that C[F
+d+1
+]
+r
+d-1
+(r-1)C
+max
+
+n
+r
+d
+- r
+d-2
+C
+max
+r
+d-1
+(r - 1)C
+max
+n  r
+2
+d
+- r
+2
+d-1
++ r
+2
+d-2
+.
+We fortify
+ALG by allowing a perfect balance of the bins
+of a group F
+
+whenever at least one poll on behalf of a new
+ball goes to a bin of this group. This is actually in order
+to capture the notion of the "perfect assignment strategy
+given the polling strategy" claim stated above. Clearly this
+does not cause any problem since we are looking for a lower
+bound. Because
+ALG could lock its d choices to the first d
+groups of the system, it is obvious that its competitive ratio
+a is at most a
+C
+total
+C[
+d
+=1
+F
+
+]
+=
+n
+r
+2d-1
++ 1.
+Consider now the d events E
+
+"F
+
+is hit by a ball" (1
+
+d), while P
+
+IP[E
+
+] (call it the hitting probability
+of group F
+
+) is the probability of at least one bin from
+F
+
+being hit by a ball.
+We shall charge
+ALG according
+to the hitting probabilities that its polling strategy determines
+. Notice that these are fixed at the beginning of the
+assignments since the polling strategy of
+ALG is an oblivious
+strategy. Furthermore, the following conditional hitting
+probabilities are also determined uniquely by the polling
+strategy of
+ALG: i, j  [n] : i &gt; j,
+P
+i|j
+IP[E
+i
+|E
+1
+E
+2
+· · ·  E
+j
+],
+Q
+i|j
+IP[E
+i
+|¬E
+1
+¬E
+2
+· · ·  ¬E
+j
+].
+Finally, let B
+
+() ( = 1, . . . , d) denote the maximum number
+of balls that may be hosted by bins of the set
+
+
+=1
+F
+
+without violating the assumption of a-competitiveness of
+ALG, when the input sequence of tasks  is chosen by ADV.
+The following lemma states an inherent property of any d-hops
+scheduler:
+Lemma
+3.1. For any  &gt; 1, unless ALG admits a competitive
+ratio a &gt;
+(
+-1)(1-r
+-2
+)
+d
+2
+r
+, the following property holds:
+1    d, P
+|-1
+1 
+- 1 ·
+a
+r
+Proof:
+We prove this lemma by considering the following
+input sequences of balls of the same (arbitrarily chosen) size
+w:
+|| = 1: In this case we know that ADV() =
+w
+C
+max
+. The
+cost (ie, the expectation of maximum load) of
+ALG is:
+ALG()  P
+1
+w
+C
+max
++
+(1
+- P
+1
+) Q
+2
+|1
+rw
+C
+max
++ (1
+- Q
+2
+|1
+)Q
+3
+|2
+r
+2
+w
+C
+max
++
++
+· · · + (1 - Q
+2
+|1
+)
+· · · (1 - Q
+d|d-1
+) r
+d
+w
+C
+max
+Due to the demand for a-competitiveness of ALG against
+ADV, this then implies
+a
+r
+1 - P
+1
+P
+1
+1 a
+r
+.
+|| = r
+2-2
+,  = 2, · · · , d: In this case ADV will use
+only the bins of
+
+
+=1
+F
+
+and thus he will pay a cost of
+ADV() =
+r
+2-2
+w
+r
+-1
+C
+max
+=
+r
+-1
+w
+C
+max
+. As for the cost of ALG, we
+shall only charge it for the input subsequence of balls that
+definitely hit groups F
+1
+, . . . , F
+-1
+(call it ^
+). Our purpose
+is from this sequence of tasks to determine P
+|-1
+, ie, the
+conditional hitting probability of group F
+
+given that all the
+previous groups are hit by a ball. Clearly,
+IE[
+|^|] = || ·
+-1
+=1
+P
+|-1
+= r
+2
+-2
+·
+-1
+=1
+P
+|-1
+(where for symmetry of representation we let P
+1
+|0
+= P
+1
+).
+Recall that B
+-1
+() denotes the maximum number of balls
+that may be assigned to the bins of the first  - 1 groups,
+given the claimed competitive ratio a by ALG and the input
+sequence . Then we have:
+wB
+-1
+(
+)
+C[
+-1
+=1
+F
+
+]
+a · ADV()
+B
+-1
+()  a · r
+2
+-3
+. Thus, there is a subsequence ~
+of ^
+
+that consists of those tasks which cannot be assigned to the
+bins of the first  - 1 groups due to the a-competitiveness
+constraint. All these tasks have to exploit their remaining
+(at most) d -  + 1 polls among the bins of [n] \
+-1
+=1
+F
+
+.
+It is clear that
+ALG has no reason to spoil more than one
+poll per group due to the optimal assignment strategy that
+it adopts. Thus we can safely assume that there remain
+exactly d -  + 1 polls for the remaining groups. Obviously
+IE[
+|~|]  IE[|^|] - B
+-1
+()  r
+2
+-2
+-1
+=1
+P
+|-1
+- ar
+2
+-3
+r
+2
+-3
+· (r
+-1
+- a),
+where for simplification of notation we use the bounding se-128
+quence
+-1
+=
+-2
+· 1 
+-1
+a
+r
+
+-1
+= 1
+
+-1
+a
+r
+-1
+and
+0
+= 1. This is true because P
+1
+1 a
+r
+
+1
+= 1
+
+-1
+a
+r
+,  &gt; 1, while we assume inductively that
+-1
+=1
+P
+|-1
+
+-1
+. By showing that P
+|-1
+1 
+-1
+a
+r
+we shall also
+have assured that
+
+
+=1
+P
+|-1
+. We apply the Markov
+Inequality (on the complementary random variable
+||-|~|)
+to find a lower bound on the size of ~
+:
+&gt; 1, IP[|~|  r
+2
+-3
+(r - r + r
+-1
+- a)]  1 - 1.
+Now it is clear that if
+ALG claims a competitive ratio
+a  ( - 1)(1 - r
+-2
+)
+
+2
+d r
+ ( - 1) 1 1
+r
+2-2
+
+2
+r
+,
+then at least one ball of  will belong to ~
+with probability
+at least 1
+1
+. Thus, either
+ALG has a &gt;
+(
+-1)(1-r
+-2
+)
+
+2
+dr
+, or
+(by simply charging it only for this very specific ball)
+ALG()
+1
+- 1 [P
+|-1
++ (1
+- P
+|-1
+)r] r
+-1
+w
+C
+max
+which, combined with the demand for a-competitiveness and
+the cost of
+ADV for , implies that
+P
+|-1
+1 
+- 1
+a
+r .
+We finally try the following input sequence, in case that
+ALG still claims a competitive ratio a
+(
+-1)(1-r
+-2
+)
+d
+2
+·
+r:
+|| = : For this input sequence it is clear that
+ADV() = ||w
+C
+total
+=
+||w
+r
+d-1
+- r
+d-2
++
+n
+r
+d
+C
+max
+.
+For
+ALG we again consider the subsequence ^ of balls that
+definitely hit the first d - 1 groups of the system. Clearly
+|^| = IE[|^|]
+d-1
+· || since we now consider an infinite
+sequence of incoming balls. As for the upper bound on the
+balls that the first d - 1 groups can host, this is again given
+by the demand for a-competitiveness:
+wB
+d-1
+()
+C[
+d-1
+=1
+F
+
+] =
+wB
+d-1
+()
+r
+d-2
+C
+max
+
+a||w
+r
+d-1
+- r
+d-2
++
+n
+r
+d
+C
+max
+B
+d-1
+()
+r
+d-1
+r
+d-1
+- r
+d-2
++
+n
+r
+d
+a
+r ||
+The subsequence ~
+^
+that has to exploit a single poll
+among the bins of [n] \
+d-1
+=1
+F
+
+has size at least
+|~| = IE[|~|]  IE[|^|] - B
+d-1
+()
+
+
+d-1
+r
+d-1
+r
+d-1
+- r
+d-2
++
+n
+r
+d
+a
+r
+· ||
+
+1
+- (d - 1)
+- 1
+a
+r r
+d-1
+r
+d-1
+- r
+d-2
++
+n
+r
+d
+a
+r
+||
+
+1
+- d - 1
+- 1
+a
+r
+||
+where for the last inequality we consider that n  r
+2
+d-2
+.
+Since we consider that a
+(
+-1)(1-r
+-2
+)
+
+2
+dr
+, we can be sure
+that
+|~|  1 1
++
+1
+r
+2
+|| and thus, the cost of ALG will
+be lower bounded by the expected load of the bins in F
+d
+due
+to the tasks of ~
+:
+a · ADV()  ALG()
+P
+d|d-1
+· |~| · w
+(r
+d-1
+- r
+d-2
+)
+C
+max
+a
+r
+d-1
+- r
+d-2
++
+n
+r
+d
+P
+d|d-1
+1
+
+(
+-1)(1-r
+-2
+)
+
+2
+dr
+d-1
+- r
+d-2
+1
+1
+
+(
+-1)(1-r
+-2
+)
+(d-1)
+1 +
+n
+r
+2d-2
+(
+r-1)
+1 
+- 1
+a
+r
+1 - 1 - r
+-2
+d - 1
+which is not possible for any  &gt; 1 and n  r
+2
+d
+. Thus we
+conclude that
+ALG cannot avoid a competitive ratio
+a  min
+- 1
+(d - 1) r,
+n
+r
+2
+d-1
++ 1
+for any  &gt; 1 and n  r
+2
+d
+, which for  = 2 and n = r
+2
+d
+gives the desired bound.
+DEALING WITH INPUT SEQUENCES OF KNOWN TOTAL SIZE
+In this section we prove that the missing information for
+an oblivious scheduler to perform efficiently is the size of
+the input sequence. More specifically, considering that the
+input size is provided as offline information to each of the
+newly inserted tasks, we construct an oblivious scheduler
+that exploits this information along with a slowfit assignment
+rule and a layered induction argument for the flow of
+balls from slower to faster bins, in order to achieve a strictly
+constant competitive ratio with only
+O(loglog n) polls per
+task.
+Assume that m unit-size balls are thrown into a system
+of n capacitated bins with capacities C
+max
+=
+C
+n
+C
+n-1
+
+· · ·  C
+1
+=
+C
+min
+. Assume also that each ball is allowed to
+poll up to 2d bins and then it has to assign itself to one of
+these candidates. We additionally assume that
+C
+max
+
+n
+2
+d+1
+.
+As it will become clear later by the analysis, if this was not
+the case then it could only be in favour of the oblivious
+scheduler that we propose, because this would allow the absorption
+of the large additive constants in the performance
+guarantee of the scheduler.
+We consider (wlog) that the capacity vector c is nor-malized
+by
+n
+||c||
+1
+so that
+n
+i=1
+C
+i
+= n. We also assume
+that the total size m the input sequence is given to every
+newly inserted ball.
+This implies that each ball can
+estimate the cost
+ADV(m)  opt (ie, the optimum offline
+assignment of the m unit-size balls to the n capacitated
+bins), and thus it can know a priori the subset of bins
+that may have been used by
+ADV during the whole process
+.
+3
+Having this in mind, we can assume that every bin
+in the system is legitimate, that is, it might have been
+used by the optimum solution, otherwise we could have each
+ball ignore all the illegitimate bins in the system. Thus,
+opt
+max
+1
+C
+min
+,
+m
+C
+total
+= max
+1
+C
+min
+,
+m
+n
+. Finally, we assume
+that each of the legitimate bins of the system gets at
+3
+A bin i  [n] may have been used by ADV if and only if
+1/C
+i
+opt.
+129
+least one ball in the optimum offline schedule. This does not
+affect the performance of
+ADV, while it may only deteriorate
+the performance of an online scheduler. Nevertheless, it
+assures that
+m
+n
+opt
+m
+n
++ 1, meaning that the fractional
+load on the bins is actually a good estimation of opt.
+Let the load of bin i  [n] at time t (that is, right after the
+assignment of the t
+th
+ball of the input sequence) be denoted
+as
+t
+(i)
+q
+t
+(
+i)
+C
+i
+, where q
+t
+(i) is the number of balls assigned
+to bin i up to that time. The following definition refers to
+the notion of saturated bins in the system, ie, overloaded
+bins wrt the designed performance guarantee of an oblivious
+scheduler:
+Definition
+4.1. A bin i  [n] is called saturated upon
+the arrival of a new ball t  m, if and only if it has
+t-1
+(i) &gt; a · opt  (a), where (a) is called the designed
+performance guarantee
+of the oblivious scheduler.
+Let
+r  [d], i
+r
+min{i  [n] :
+i
+j=1
+C
+j
+
+r
+=1
+n
+2
+
+}.
+Then, we consider the following partition of the set of bins
+[n] into d + 1 groups of (roughly geometrically) decreasing
+cumulative capacities:
+F
+1
+{1, . . . , i
+1
+},
+F
+r
+{i
+r-1
++ 1, . . . , i
+r
+}, r = 2, . . . , d,
+F
+d+1
+{i
+d
++ 1, . . . , n}.
+Although the cumulative capacity of group F
+r
+may vary
+from
+n
+2
+r
+-C
+max
+to
+n
+2
+r
++
+C
+max
+, for ease of the following computations
+we assume that asymptotically
+r  [d], C[F
+r
+]
+
+n
+2
+r
+and C[F
+d+1
+]
+
+n
+2
+d
+. We denote by
+C
+min
+
+the capacity of the
+smallest bin in F
+
+,   [d + 1].
+We now consider the following ideal scheduler that uses
+an oblivious polling strategy and an assignment strategy
+based on the slowfit rule. This scheduler (we call it
+OBL
+
+)
+initially discards all the illegitimate bins in the system, using
+the knowledge of m. Then first it normalizes the capacity
+vector of the remaining bins and afterwards it considers the
+grouping mentioned above and adopts the following pair of
+strategies:
+POLLING:
+1  r  d group F
+r
+gets exactly 1 poll, which
+is chosen among the bins of the group proportionally to the
+bin capacities. That is,
+r  [d], i  F
+r
+,
+IP[bin i  F
+r
+is a candidate host of a ball]
+C
+i
+C[F
+r
+] .
+The remaining d polls are assigned to the bins of group F
+d+1
+,
+either to the d fastest bins, or according to the polling strategy
+of always go left, depending only on the parameters
+(c, d) of the problem instance.
+4
+ASSIGNMENT: Upon the arrival of a new ball t  [m],
+the smallest polled bin from
+
+d
+=1
+F
+
+(starting from F
+1
+, to
+F
+2
+, a.s.o.) that is unsaturated gets this ball (slowfit rule).
+In case that all the first d polls of a ball are already saturated
+, then this ball has to be assigned to a bin of F
+d+1
+using its remaining d candidates. Within group F
+d+1
+, either
+the minimum post load rule (ie, the bin of minimum load
+among the d choices from F
+d+1
+is chosen, taking into account
+also the additional load of the new ball), or the slowfit rule
+4
+Observe that this is offline information and thus this decision
+can be made at the beginning of the assignment process,
+for all the balls of the input sequence.
+is applied, depending on the offline parameters (c
+, d) of the
+problem instance. If all the 2d polled bins are saturated,
+then the minimum post load rule is applied among them.
+Ties are always broken in favour of smaller bins (ie, slower
+machines).
+The following theorem gives the performance of
+OBL
+
+,
+when the additional information of the input size is also
+provided offline:
+Theorem
+2. For lnln n - lnlnln n &gt; d  2, when the
+size of the input sequence m  n is given as offline information
+,
+OBL
+
+has a strict competitive ratio that drops
+double-exponentially with d.In particular the cost of OBL
+
+is (whp) at most
+OBL
+
+(m)  (1 + o(1))8
+n
+d2
+d+3
+1
+/(2
+d+1
+-1)
++ 1
+ADV(m)
+Proof:
+Let  + 1  m be the first ball in the system that
+hits only saturated bins by its 2d polls. Our purpose is to
+determine the value of a in the designed performance guarantee
+(a), so that the probability of ball  +1 existing to be
+polynomially small. As stated before, the technique that we
+shall employ is a layered induction argument on the number
+of balls that are passed to the right of group F
+r
+, r  [d]. For
+the assignment of the balls that end up in group F
+d+1
+we
+use a slightly modified version of the always go left scheduler
+of [18] that gives an upper bound on the maximum load
+in group F
+d+1
+(we denote this by
+L
+max
+[F
+d+1
+]). This upper
+bound on
+L
+max
+[F
+d+1
+] holds with high probability. This assignment
+is only used when it produces a smaller maximum
+load than the brute assignment of all the balls ending up in
+F
+d+1
+to the d fastest bins of the group.
+We shall consider a notion of time that corresponds to the
+assignments of newly arrived balls into the system: At time
+t  m, the t
+th
+ball of the input sequence is thrown into the
+system and it has to be immediately assigned to one of its
+2d candidates.
+Consider the polls on behalf of a ball to be ordered according
+to the groups from which they are taken. Observe then
+that each ball t   is assigned to the first unsaturated bin
+that it hits from the first d groups, or to a bin in group F
+d+1
+.
+Thus,
+[d+1], each ball that has been assigned to group
+F
+
+up to (and including) ball  , has definitely failed to hit
+an unsaturated bin in all the groups F
+1
+, . . . , F
+-1
+. For any
+ball t  m and   [d], let Q
+t
+() denote the number of balls
+that have been assigned to group F
+
+up to time t (ie, right
+after the assignment of the t
+th
+ball), while ~
+Q
+t
+() denotes the
+balls that have been assigned to the right of group F
+
+, that
+is, to bins of [n] \
+
+=1
+F
+
+. Thus, ~
+Q
+t
+() =
+d+1
+=+1
+Q
+t
+().
+Let also S
+t
+() denote the set of saturated bins in F
+
+at time
+t. Then,   [d], t   ,
+IP[t hits a saturated bin in F
+
+] = C[S
+t-1
+()]
+C[F
+
+]
+C[S
+
+()]
+C[F
+
+] .
+Observe now that
+[d],
+Q
+
+() =
+iF
+
+q
+
+(i)
+
+iS
+
+(
+)
+C
+i
+q
+
+(i)
+C
+i
+&gt; C[S
+
+()](a)
+C[S
+
+()]
+C[F
+
+]
+&lt;
+Q
+
+()
+(a) · C[F
+
+]  P
+
+(1)
+130
+Recall that up to time  , we can be sure that Q
+
+()
+(a) · C[F
+
+] (because all these balls are assigned to unsaturated
+bins), which in turn assures that
+P
+
+1. Inequality
+(1) implies that, had we known ~
+Q
+
+(-1), then the number
+~
+Q
+
+() of balls before ball  + 1 that go to the right of
+set F
+
+would be stochastically dominated by the number of
+successes in ~
+Q
+
+(-1) Bernoulli trials with success probability
+P
+
+. We shall denote this number by B( ~
+Q
+
+( - 1), P
+
+).
+5
+In the following lemma, we apply the Chernoff-Hoeffding
+bound on these Bernoulli trials to get an upper bound on
+the amount of balls that have to be assigned beyond group
+F
+
+, for   [d], as a function of the number of balls that
+have been assigned beyond group F
+-1
+:
+Lemma
+4.1.
+[d] and for an arbitrary constant  &gt; 1,
+with probability at least 1
+- n
+~
+Q
+
+()  max
+2
++1
+[ ~
+Q
+
+( - 1)]
+2
+(a)n
+,
+2 ln n ~
+Q
+
+( - 1) .
+Proof:
+Let's assume that we already know the number
+~
+Q
+
+( - 1) of balls that have already failed in F
+1
+, . . . , F
+-1
+.
+Then ~
+Q
+
+() is stochastically dominated by the random variable
+B( ~
+Q
+
+( - 1), P
+
+).
+By applying Chernoff-Hoeffding
+bounds ([11], p. 198) on these Bernoulli trials, we get that
+IP[B( ~
+Q
+
+( - 1), P
+
+)
+~
+Q
+
+( - 1) · (P
+
++ )]
+exp(-2 ~
+Q
+
+( - 1)
+2
+),  &gt; 0
+IP B( ~
+Q
+
+( - 1), P
+
+)
+~
+Q
+
+( - 1) · P
+
++
+ln n
+2 ~
+Q
+
+(
+-1)
+n
+
+,  &gt; 0
+where we have set  =
+ln n
+2 ~
+Q
+
+(
+-1)
+. But recall that
+P
+
+=
+Q
+
+(
+)
+(
+a)·C[F
+
+]
+and also that C[F
+
+]
+
+n
+2
+
+. Thus we conclude that
+with probability at least 1
+- n
+
+,
+~
+Q
+
+()  B( ~
+Q
+
+( - 1), P
+
+)
+
+~
+Q
+
+( - 1) ·
+2
+
+Q
+
+(
+)
+(
+a)n
++
+ln n
+2 ~
+Q
+
+(
+-1)
+Q
+
+() = ~
+Q
+
+( - 1) - ~
+Q
+
+()
+
+
+
+
+
+
+
+
+
+~
+Q
+
+()  ~
+Q
+
+( - 1)
+2
+
+[ ~
+Q
+
+( - 1) - ~
+Q
+
+()]
+(a)n
++
+ln n
+2 ~
+Q
+
+( - 1)
+~
+Q
+
+() · 1 + 2
+
+~
+Q
+
+( - 1)
+(a)n
+
+~
+Q
+
+( - 1) ·
+2
+
+~
+Q
+
+( - 1)
+(a)n
++
+ln n
+2 ~
+Q
+
+( - 1)
+~
+Q
+
+()
+2
+
+[ ~
+Q
+
+( - 1)]
+2
++ (a)n
+ln n
+2
+~
+Q
+
+( - 1)
+(a)n + 2
+
+~
+Q
+
+( - 1)
+from which we get the desired bound.
+Consider now the following finite sequence
+^
+Q() = max
+2
++1
+[ ^
+Q(-1)]
+2
+(
+a)n
+,
+2 ln n ^
+Q
+
+( - 1) ,   [d]
+^
+Q(0) = m
+5
+For the integrity of the representation we set ~
+Q
+
+(0) =
+m - 1.
+We then bound the number of balls that end up in group
+F
+d+1
+by the d
+th
+term of this sequence:
+Lemma
+4.2. With probability at least 1
+- dn
+
+, at most
+^
+Q(d) balls end up in group F
+d+1
+.
+Proof:
+The proof of this lemma is relatively simple and
+due to lack of space it is differed to the full version of the
+paper.
+Consequently we estimate a closed form for the first terms
+of the bounding sequence
+^
+Q(),  = 0, . . . , d that was
+determined earlier:
+Lemma
+4.3. The first log
+log
+m
+ln n
+log(
+a/8)
++2 terms of the bounding
+sequence
+^
+Q(),  = 0, . . . , d are given by the closed
+form ^
+Q() =
+m
+2
+
+·
+(
+a
+8
+)
+2-1
+.
+Proof:
+Assume that
+
+was the first element in the sequence
+for which
+2
+
+
++1
+[ ^
+Q(
+
+- 1)]
+2
+(a)n
+&lt;
+2 ln n ^
+Q(
+
+- 1)
+(2)
+Then, up to term
+
+- 1 the sequence is dominated by the
+right-hand term of the above inequality, and thus,
+r &lt;
+
+,
+^
+Q(r) =
+2
+r+1
+(a)n [
+^
+Q(r - 1)]
+2
+= 2
+r+1
+(a)n
+2
+r
+(a)n
+2
+[ ^
+Q(r - 2)]
+4
+=
+2
+r+1
+(a)n
+2
+0
+2
+r
+(a)n
+2
+1
+2
+r-1
+(a)n
+2
+2
+[ ^
+Q(r - 3)]
+2
+3
+=
+· · · =
+r
+=1
+2
+2
+r+2
+(a)n
+2
+-1
+[ ^
+Q(0)]
+2
+r
+=
+2
+r
+=1
+(
+r+2-)·2
+-1
+·
+1
+(a)n
+r
+=1
+2
+-1
+· [ ^
+Q(0)]
+2
+r
+=
+2
+3
+·2
+r
+-r-3
+(
+a)n
+m
+2
+r
+-1
+· m
+m
+2
+r
+a
+8
+2
+r
+-1
+since
+(
+a)n
+8
+m
+
+a
+8
+. We now plug in this closed form for ^
+Q(
+
+1
+) in inequality (2) to get the following:
+2 ln n &gt;
+2
+
+
++1
+(a)n
+
+m
+2
+
+
+-1 a8 2
+-1
+-1
+
+3
+/2
+m
+3
+/2
+2 lnn &lt; (a)n
+2
+
+
++1
+2
+3
+2
+(
+
+
+-1)
+(a)n
+8m
+2
+-1
+-1
+m
+2 ln n
+&lt; 2
+1
+2
+(
+
+
++3)
+a
+8
+2
+-1
+From the above and the definition of
+
+, it is easy to see that
+
+
+-1 = max r  [d] :
+ln
+m-ln -lnln n
+ln 2
+- 4  r + 2
+r-2
+ln
+a
+8
+.
+By setting A = log m lnln
+n+ln
+ln 2
+- 4 and B = ln
+a
+8
+we get
+the solution
+
+A W
+[
+B ln 2
+4
+exp(
+A ln 2)
+]
+ln 2
++ 1, where W (x)
+is the Lambert W Function ([7]). By approximating this
+function by ln x - lnln x (since x =
+B ln 2
+4
+exp(A ln 2)  )
+we conclude that
+
+
+log log
+m
+ln n
+log(a/8)
++ 3
+131
+Lemma
+4.4. Assume that m  n and d &lt;
+lnln
+n-lnlnln n
+(2+1) ln 2
+.
+If we set a = 8
+n
+d2
+d+3
+1
+/(2
+d+1
+-1)
+the cost of
+OBL
+
+is upper
+bounded (whp) by
+OBL
+
+(m)  (1 + o(1))(a + 1)ADV(m).
+Proof:
+The cost of
+OBL
+
+up to time  is upper-bounded
+by max
+{L
+max
+[F
+d+1
+], (a + 1) · opt} since in the first d groups
+no saturated bin ever gets another ball and all the bins are
+legitimate. We choose a so that the cost in the first d groups
+is at least as large as
+L
+max
+[F
+d+1
+] (whp), given the upper
+bound ^
+Q(d) on the number of balls that end up in the last
+group. Thus the probability of  + 1 existing will be then
+polynomially small because at least one poll in F
+d+1
+will
+have to be unsaturated whp. This then implies the claimed
+upper bound on the performance of
+OBL
+
+. Due to lack of
+space, the complete proof of this lemma is presented in the
+full version of the paper.
+Combining the statements of all these technical lemmas, we
+conclude with the desired bound on the competitive ratio of
+OBL
+
+.
+A COMPETITIVE HAPS SCHEDULER
+In the previous section we have proposed a hops scheduler
+that is based on the knowledge of the size of the input
+sequence and then assures that its own performance is never
+worse than (a + 1)opt, whp. In this section we propose a
+haps
+scheduler (call it
+ADAPT ) whose main purpose is
+to "guess" the value opt of the optimum offline cost by a
+classical guessing argument and then let
+OBL
+
+do the rest
+of the assignments. This approach is in complete analogy
+with the online schedulers of the Related Machines-Full
+Information problem (see [6], pp. 208-210). The only difference
+is that
+OBL
+
+has a performance which holds whp,
+and this is why the final result also holds whp.
+A significant difficulty of
+ADAPT is exactly this guessing
+mechanism that will have to be based on the limited information
+provided to each of the new tasks. Our goal is not to
+assume that any kind of additional information (eg, global
+environment variables) is provided to the balls, other than
+the capacity vector and the current loads of each ball's candidates
+.
+ADAPT sacrifices one of the available polls per
+ball, in order to create such a good guessing mechanism.
+Of course, a different approach that would be based on the
+outcome of some of the polls (eg, a constant fraction of the
+polls) in order to estimate a proper online prediction of opt
+would be more interesting in the sense that it would not
+create a communication bottleneck for the tasks. Nevertheless
+, the purpose of
+ADAPT is mainly to demonstrate the
+possibility of constructing such an adaptive scheduler whose
+performance is close to that of
+OBL
+
+.
+Let's assume that the system now has n + 1 capacitated
+bins (
+C
+min
+=
+C
+1
+C
+2
+· · ·  C
+n+1
+=
+C
+max
+). Assume also
+that each new task is provided with 2d + 1 polls. Fix a
+number r &gt; 1. Then an r-guessing mechanism proceeds
+in stages: Stage  ( = 0, 1, . . . ) contains a (consecutive)
+subsequence of tasks from the input sequence that use the
+same prediction
+
+= r
+
+
+0
+for their assignment. We set
+
+0
+=
+1
+C
+max
+. The following definitions refer to the notions
+of eligible and saturated machines upon the arrival of a
+new task t  [m] into the system, that are used in a similar
+fashion as in [5] where the concept of eligible-saturated
+machines was introduced:
+Definition
+5.1. Suppose that task t  m belongs to stage
+.The set of eligible machines for t is
+E
+
+i  [n] : 1
+C
+i
+
+
+= r
+
+
+0
+,
+while a machine i  [n] is considered to be saturated upon
+the arrival of task t, if
+t-1
+(i) &gt; a
+
+
+
+= r
+
+a
+
+
+0
+, where
+a
+
+= 8
+· max 1,
+|E
+
+|
+d2
+d+3
+1
+/(2
+d+1
+-1)
+.
+Notice that the static information of (E
+
+, a
+
+),  = 0, 1, . . .
+only depends on the capacity vector c and the number d of
+polls per task. Thus it can be easily computed by each of
+the tasks, or alternatively it can be provided a priori to all
+the tasks as additional offline information.
+ADAPT proceeds in phases and works as follows: Upon
+the arrival of a new ball t  [m], first the fastest bin in the
+system is polled and the stage s(t) to which this ball belongs
+is determined, according to the following rule:
+s(t) =   IN : r
+-1
+a
+-1
++ 1 &lt; q
+t-1
+(n + 1)  r
+
+a
+
++ 1
+(obviously for stage 0 only the second inequality must hold).
+The remaining 2d polls of task t are taken from group E
+s(t)
+in a fashion similar to that of
+OBL
+
+. The assignment strategy
+of
+ADAPT is exactly the same with that of OBL
+
+, with
+the only difference that whenever the first 2d candidates of
+a task are already saturated, then this task is assigned to
+the fastest machine in the system, n + 1. If the latter event
+causes machine n + 1 to become also saturated, then by the
+definition of the stages this task is the last ball of the current
+stage and a new stage (with an r times larger prediction)
+starts from the next task on.
+Lemma
+5.1. Suppose that
+ADAPT uses r = 9/4.Let
+h denote the stage at which the prediction
+h
+of
+ADAPT
+reaches opt for the first time.Then the last stage of
+ADAPT
+is at most h + 1.
+Proof:
+The case of h = 0 is easy since this implies that
+opt = 1/C
+max
+and then
+ADAPT cannot be worse than
+OBL
+
+which (having the right prediction) succeeds to assign
+all the incoming tasks (but for those that might fit in machine
+n +1 without making it saturated) below (a
+0
++ 1)
+·opt,
+whp. So let's consider the case where h  1.
+Let E
+
+denote the set of legitimate machines in the system
+(ie, E
+
+=
+{i  [n + 1] : 1/C
+i
+opt}). The amount
+of work inserted into the system during the whole assignment
+process is bounded by C[E
+
+]
+· opt. By definition of
+h, r
+h-1
+/C
+max
+&lt; opt  r
+h
+/C
+max
+. Stage h + 1 ends when
+machine n + 1 becomes saturated. Let W () denote the
+total amount of work assigned during stage , while R()
+denotes the amount of remaining work at the end of stage
+. We shall prove that the amount of remaining work at the
+end of stage h is not enough to make OBL
+
+fail within stage
+h + 1.
+Observe that at the end of stage h, no machine has exceeded
+a load of (a
+h
++ 1)
+h
+= (a
+h
++ 1)r
+h
+/C
+max
+(by definition
+of stages). On the other hand, during stage h + 1, each of
+the eligible machines i  E
+h+1
+needs a load of more than
+a
+h+1
+
+h+1
+= a
+h+1
+r
+h+1
+/C
+max
+in order to become saturated
+for this stage. We denote the additional free space of bin
+132
+i  E
+h+1
+by f ree
+i
+(h+1) &gt;
+a
+h+1
+r
+h+1
+C
+max
+
+(
+a
+h
++1)
+r
+h
+C
+max
+·C
+i
+, while
+F REE(h + 1)
+iE
+h+1
+f ree
+i
+(h + 1)
+&gt;
+a
+h+1
+r
+h+1
+C
+max
+- (a
+h
++ 1)r
+h
+C
+max
+· C[E
+h+1
+]
+&gt;
+a
+h+1
+r
+h+1
+C
+max
+· 1 - a
+h
++ 1
+r · a
+h+1
+C[E
+h+1
+]
+&gt; (a
+h+1
++ 1)optC[E
+h+1
+]
+ra
+h+1
+a
+h+1
++ 1 a
+h
++ 1
+a
+h+1
++ 1
+(3)
+is the cumulative free space granted to the eligible bins of
+the system for stage h + 1. It only remains to prove that the
+amount of work that has to be dealt with by
+OBL
+
+using
+only the bins of [n] is less than F REE(h+1)/(a
+h+1
++1). Observe
+now that
+OBL
+
+uses the bins of E
+h+1
+and has to deal
+with an amount of work less than W (h + 1) - f ree
+n+1
+(h +
+1) &lt; R(h)-a
+h+1
+r
+h
+C
+max
+r a
+h
++1
+a
+h+1
+C
+max
+&lt; C[E
+
+]opt
+-a
+h+1
+(r-2
+)opt
+C
+max
+&lt; opt(C[E
+
+]
+-(r-2)a
+h+1
+C
+max
+) &lt; (C[E
+
+]
+-C
+max
+)
+·
+opt if we set r  17/8. This is because a
+h+1
+a
+h
+8 and
+at the end of stage h+1 bin n+1 must have already become
+saturated. Observe also that E
+h+1
+E
+h
+E
+
+\ {n + 1} by
+definition of h. Thus, C[E
+h+1
+]
+C[E
+
+]
+- C
+max
+. Thus, the
+amount of work that has to be served by
+OBL
+
+during stage
+h + 1 is less than opt · C[E
+h+1
+]. Then, setting r = 9/4 in
+inequality (3) assures that
+ra
+h+1
+a
+h+1
++1
+a
+h
++1
+a
+h+1
++1
+1 (recall
+that a
+h+1
+a
+h
+8) and thus the remaining work at the
+end of stage h is not enough to make OBL
+
+fail.
+The following theorem is now a straightforward consequence
+of the previous lemma:
+Theorem
+3. For any input sequence  of identical tasks
+that have to be assigned to n related machines using at most
+2d + 1 polls per task, the cost of ADAPT is (whp),
+ADAPT () &lt; O
+n
+d2
+d+3
+1
+/(2
+d+1
+-1)
++ 1
+· ADV().
+CONCLUSIONS
+In this work we have studied the problem of exploiting limited
+online information for the assignment of a sequence of
+unit-size tasks to related machines. We have shown that the
+oblivious schedulers that perform asymptotically optimally
+in the case of identical machines, deteriorate significantly
+in this case. We have then determined an adaptive scheduler
+that actually mimics the behaviour of an ideal oblivious
+scheduler, in order to achieve roughly the asymptotically optimal
+performance similar to the case of the identical machines
+.
+As for further research, the issue of providing only limited
+information to online algorithms is critical in many problems
+for which an objective is also the minimization of the communication
+cost. In this category fall most of the network
+design problems. Another interesting line of research would
+be the avoidance of communication bottlenecks for such limited
+information online algorithms. Additionally, it would
+be very interesting to study the case of tasks of arbitrary
+sizes being injected into the system.
+ACKNOWLEDGMENTS
+The author wishes to thank Paul Spirakis for valuable
+discussions during the write-up of the paper and also for
+suggesting an appropriate terminology on the categorization
+of polling strategies.
+
+REFERENCES
+[1] J. Aspens, Y. Azar, A. Fiat, S. Plotkin, O. Waarts. Online
+Machine Scheduling with Applications to Load Balancing
+and Virtual Circuit Routing. In Journal of ACM, Vol. 44
+(1997), pp. 486-504.
+[2] Y. Azar, A. Broder, A. Karlin, E. Upfal. Ballanced
+Allocations. In Proc. of 26th ACM-STOC (1994), pp.
+593-602. Also in SIAM J. Computing, 29 (1999), pp.
+180-200.
+[3] P. Berman, M. Charikar, M. Karpinski. Online Load
+Balancing for Related Machines. In Proc. of 5th Int.
+Workshop on Algorithms and Data Structures (1997),
+LNCS 1272, Springer-Verlag 1997, pp. 116-125.
+[4] P. Berenbrink, A. Czumaj, A. Steger, and B. V¨
+ocking.
+Balanced Allocations: The Heavily Loaded Case. In Proc.
+of 32
+nd
+ACM-STOC (Portland, 2000), pp. 745-754.
+[5] A. Bar-Noy, A. Freund, J. Naor. NewAlgorithms for
+Related Machines with Temporary Jobs. In Journal of
+Scheduling, Vol. 3 (2000), pp. 259-272.
+[6] A. Borodin, R. El Yaniv. Online Computation and
+Competitive Analysis. Cambridge Univ. Press 1998.
+[7] R. Corless, G. Gonnet, D. Hare, D. Jeffrey, D. Knuth. On
+the Lambert W Function. In Advances in Computational
+Mathematics, Vol. 5 (1996), pp. 329-359.
+[8] A. Czumaj and B. V¨
+ocking. Tight Bounds for Worst-Case
+Equilibria. In Proc. of 13
+th
+ACM-SIAM SODA (San
+Francisco, 2002), pp. 413-420.
+[9] Y. Azar. Online Load Balancing. In Online Algorithms:
+The State of the Art, A. Fiat, G. Woeginger, (Eds.). LNCS
+1442, Springer 1998, pp. 178-195.
+[10] G. Gonnet. Expected Length of the Longest Probe
+Sequence in Hash Code Searching. In J. of ACM, Vol. 28,
+No. 2 (1981), pp. 289-304.
+[11] M. Habib, C. McDiarmid, J. Ramirez-Alfonsin, B. Reed
+(Eds.). Probabilistic Methods for Algorithmic Discrete
+Mathematics. ISBN: 3-540-64622-1, Springer-Velrag 1998.
+[12] E. Koutsoupias, C. Papadimitriou. Worst-case Equilibria.
+In Proc. of 16
+th
+Annual Symposium on Theoretical
+Aspects of Computer Science (STACS), LNCS 1563,
+Springer-Verlag 1999, pp. 404-413.
+[13] M. Mavronicolas, P. Spirakis. The Price of Selfish Routing.
+In Proc. of 33
+rd
+ACM-STOC (Krete, 2001), pp. 510-519.
+[14] M. Mitzenmacher, A. Richa, R. Sitaraman. The Power of
+Two Random Choices: A Survey of Techniques and
+Results. In Handbook of Randomized Algorithms (to
+appear). Also available through
+http://www.eecs.harvard.edu/ michaelm/.
+[15] A. Steger, M. Raab. "Balls into Bins" - A Simple and
+Tight Analysis. In Proc. of RANDOM'98, LNCS 1518,
+Springer Verlag, 1998, pp. 159-170.
+[16] J. Sgall. Online Scheduling. In Online Algorithms: The
+State of the Art, A. Fiat, G. Woeginger (Eds.). LNCS
+1442, Springer 1998, pp. 196-231.
+[17] D. Shmoys, J. Wein, D. Williamson. Scheduling Parallel
+Machines Online. In Proc. of the 32
+nd
+IEEE-FOCS (1991),
+pp. 131-140.
+[18] B. V¨
+ocking. HowAsymmetry Helps Load Balancing. In
+Proc. of 40
+th
+IEEE-FOCS (NewYork, 1999), pp. 131-140.
+133
+

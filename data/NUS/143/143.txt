@@ -1,0 +1,2538 @@
+On the Complexity of Computing Peer Agreements for Consistent Query Answering in Peer-to-Peer Data Integration Systems
+ABSTRACT
+Peer-to-Peer (P2P ) data integration systems have recently
+attracted significant attention for their ability to manage
+and share data dispersed over different peer sources. While
+integrating data for answering user queries, it often happens
+that inconsistencies arise, because some integrity constraints
+specified on peers' global schemas may be violated. In these
+cases, we may give semantics to the inconsistent system by
+suitably "repairing" the retrieved data, as typically done in
+the context of traditional data integration systems. However
+, some specific features of P2P systems, such as peer
+autonomy and peer preferences (e.g., different source trusting
+), should be properly addressed to make the whole approach
+effective. In this paper, we face these issues that
+were only marginally considered in the literature. We first
+present a formal framework for reasoning about autonomous
+peers that exploit individual preference criteria in repairing
+the data. The idea is that queries should be answered over
+the best possible database repairs with respect to the preferences
+of all peers, i.e., the states on which they are able to
+find an agreement. Then, we investigate the computational
+complexity of dealing with peer agreements and of answering
+queries in P2P data integration systems. It turns out
+that considering peer preferences makes these problems only
+mildly harder than in traditional data integration systems.
+Categories and Subject Descriptors
+H.2.4 [Database Management]:
+systems--Relational
+databases; F.2.2 [Analysis of Algorithms and Problem
+Complexity]: Nonnumerical Algorithms and Problems
+
+General Terms
+Theory, Management
+Permission to make digital or hard copies of all or part of this work for
+personal or classroom use is granted without fee provided that copies are
+not made or distributed for profit or commercial advantage and that copies
+bear this notice and the full citation on the first page. To copy otherwise, to
+republish, to post on servers or to redistribute to lists, requires prior specific
+permission and/or a fee.
+CIKM'05, October 31­November 5, 2005, Bremen, Germany.
+Copyright 2005 ACM 1-59593-140-6/05/0010 ...
+$
+5.00.
+
+INTRODUCTION
+Peer-to-Peer (P2P ) data integration systems are networks
+of autonomous peers that have recently emerged as an effective
+architecture for decentralized data sharing, integration,
+and querying. Indeed, P2P systems offer transparent access
+to the data stored at (the sources of) each peer p, by
+means of the global schema equipped with p for modeling
+its domain of interest; moreover, pair of peers with the same
+domain of interest one peer and the system is in charge of
+accessing each peer containing relevant data separately, and
+combining local results into a global answer by suitably exploiting
+the mapping rules.
+P2P systems can be considered the natural evolution of
+traditional data integration systems, which have received
+considerable attention in the last few years, and which have
+already become a key technology for managing enormous
+amounts of information dispersed over many data sources.
+In fact, P2P systems have attracted significant attention
+recently, both in the development of efficient distributed algorithms
+for the retrieval of relevant information and for
+answering user queries (see, e.g., [9, 21, 12, 13]), and in the
+investigation of its theoretical underpinnings (see, e.g., [16,
+3, 20, 11, 9, 5]).
+In this paper, we continue along this latter line of research,
+by investigating some important theoretical issues. In particular
+, we consider an expressive framework where integrity
+constraints are specified on peer schemas in order to enhance
+their expressiveness, so that each peer can be in fact considered
+a completely specified data integration system. In
+this scenario, it may happen that data at different peers are
+mutually inconsistent, i.e., some integrity constraints are violated
+after the integration is carried out; then, a "repair"
+for the P2P system has to be computed [5, 17]. Roughly
+speaking, repairs may be viewed as insertions or deletions
+of tuples at the peers that are able to lead the system to a
+consistent state.
+Our aim is to deal with data integration in P2P systems,
+by extending some of the ideas described in previous studies
+on merging mutually inconsistent databases into a single
+consistent theory [2, 14] and on repairing individual data
+integration systems [8, 6, 4, 10].
+36
+Indeed, in order to be effective in this framework, the repair
+approach should consider the peculiarities of P2P systems
+and, specifically, the following two issues:
+· In practical applications, peers often have an a-priori
+knowledge about the reliability of the sources that, in
+turn, determines their criteria for computing repairs.
+That is, peers will rarely delete tuples coming from
+highly reliable sources, and will try to solve conflicts
+by updating the less reliable sources only.
+· Peers are autonomous and not benevolent: they rarely
+disregard their individual preferences in order to find
+an agreement with other peers on the way the repair
+should be carried out. Therefore, the presence of possibly
+contrasting interests of selfish peers should be
+accounted for, when answering user queries.
+Despite the wide interest in this field, none of the approaches
+in the literature considered the issue of modeling the autonomy
+of the peers in providing a semantics for the system,
+and therefore they implicitly assume that all the peers act
+cooperatively in the network. Moreover, the possibility of
+modeling peer preferences has been rarely considered in previous
+studies, even though it has been widely recognized to
+be a central issue for the design of quality-aware integration
+systems (cf. [17]). Indeed, the first and almost isolated
+attempt is in [5], where the authors considered trust relationships
+among peers in a simplified setting in which the
+system does not transitively propagate information through
+peers. Actually, an extension to the case of transitive propagations
+is also argued, but peers autonomy is not considered,
+and query answering is undecidable in presence of loops.
+In this paper, we face the above issues by introducing
+a formal framework for reasoning about autonomous peers
+that exploit individual preference criteria in repairing data.
+In summary, our contributions are the following:
+£ We preliminary introduce a framework for P2P data
+integration systems, where each peer is equipped with
+integrity constraints on its global schema. The model
+is simple yet very expressive, since each peer is assumed
+to be in turn a data integration system. The
+semantics of a P2P system is defined in terms of suitable
+databases for the peers, called models. We show
+that checking whether a system has a model can be
+done efficiently.
+£ We propose an approach to the repair of inconsistent
+P2P systems that focuses on data stored at the
+sources, rather than on the global schema (following
+the approach described by [15] for the standard data
+integration setting).
+This is particularly suited for
+dealing with peers, as their preferences are typically
+expressed over the sources. Indeed, if repairs were considered
+on the global schema, suitable reformulations
+and translation of the preferences would be required.
+£ We investigate the effect of considering individual preferences
+on the semantics of P2P database integration
+systems. The idea is that queries should be answered
+over the best possible database repairs with respect
+to the preferences of all peers, i.e., over the states on
+which they are able to find an agreement. Unfortu-nately
+, but not surprisingly, it turns out that considering
+autonomous peers gives rise to scenarios where
+they are not able to find any agreement on the way
+the integration should be done.
+£ The above result motivates the subsequent study of
+the complexity of dealing with peer agreements and
+of answering queries in such P2P data integration systems
+. We show that checking whether a given database
+is an agreed repair is a difficult task, since it is complete
+for the class co-NP. Moreover, the complexity of
+computing an agreement turns out to be complete for
+the functional class FPNP. Finally, we study the complexity
+of computing consistent answers and show that
+this problem is
+P
+2
+-complete. It follows that our approach
+for handling preferences in P2P systems is just
+mildly harder than the basic data integration framework
+, where in fact query answering lies at the first
+level of the polynomial hierarchy [8], as well.
+The rest of the paper is organized as follows.
+In Section
+2, we briefly present some preliminaries on relational
+databases. In Section 3, we introduce a simple formalization
+of P2P data integration systems and in the subsequent
+section we enrich it to take care of peers' preferences. The
+computational complexity of the concept of agreement in
+query answering is studied in Section 5. Finally, in Section 6
+we draw our conclusions.
+PRELIMINARIES ON RELATIONAL DATABASES
+We recall the basic notions of the relational model with
+integrity constraints. For further background on relational
+database theory, we refer the reader to [1].
+We assume a (possibly infinite) fixed database domain
+whose elements can be referenced by constants c
+1
+,. . . , c
+n
+under the unique name assumption, i.e. different constants
+denote different objects. These elements are assumed to be
+shared by all the peers and are, in fact, the constants that
+can appear in the P2P system.
+A relational schema (or simply schema)
+RS is a pair
+,  , where:  is a set of relation symbols, each with an
+associated arity that indicates the number of its attributes,
+and  is a set of integrity constraints, i.e., (first-order) assertions
+that have to be satisfied by each database instance.
+We deal with quantified constraints, i.e., first order formulas
+of the form:
+~x.
+l
+i=1
+A
+i
+~y.
+m
+j=1
+B
+j
+
+n
+k=1
+
+k
+,
+(1)
+where l+m &gt; 0, n  0, A
+1
+, . . . A
+l
+and B
+1
+, . . . B
+m
+are positive
+literals,
+1
+, . . .
+n
+are built-in literals, and ~
+x and ~
+y are lists
+of distinct variables.
+Actually, to keep things simple, we shall assume throughout
+the paper that ~
+y is empty, thereby dealing with universally
+quantified constraints. We recall here that this kind of
+constraint covers most of the classical constraints issued on
+a relational schema, such as keys, functional dependencies,
+and exclusion dependencies. A brief discussion on how to
+generalize the results in the paper to other classes of constraints
+is reported in Section 6.
+A database instance (or simply database)
+DB for a schema
+RS = ,  is a set of facts of the form r(t) where r is a
+relation of arity n in  and t is an n-tuple of constants
+from . We denote as r
+DB
+the set
+{t | r(t)  DB}.
+A database
+DB for a schema RS is said to be consistent
+with
+RS if it satisfies (in the first order logic sense) all constraints
+expressed on
+RS.
+37
+Figure 1: The
+P2P system P
+r
+in Example 1.
+A relational query (or simply query ) over
+RS is a formula
+that is intended to extract tuples of elements from
+the underlying domain of constants .
+We assume that
+queries over
+RS = ,  are Unions of Conjunctive Queries
+(UCQs), i.e., formulas of the form
+{~x | ~y
+1
+.
+conj
+1
+(~
+x, ~
+y
+1
+)
+
+· · ·  ~y
+m
+.
+conj
+m
+(~
+x, ~
+y
+m
+)
+} where, for each i  {1, . . . , m},
+conj
+i
+(~
+x, ~
+y
+i
+) is a conjunction of atoms whose predicate symbols
+are in , and involve ~
+x = X
+1
+, . . . , X
+n
+and ~
+y
+i
+=
+Y
+i,1
+, . . . , Y
+i,n
+i
+, where n is the arity of the query, and each
+X
+k
+and each Y
+i,
+is either a variable or a constant in .
+Given a database
+DB for RS, the answer to a UCQ Q
+over
+DB, denoted Q
+DB
+, is the set of n-tuples of constants
+c
+1
+, . . . , c
+n
+such that, when substituting each X
+i
+with c
+i
+, the
+formula
+~y
+1
+.
+conj
+1
+(~
+x, ~
+y
+1
+)
+· · ·~y
+m
+.
+conj
+m
+(~
+x, ~
+y
+m
+) evaluates
+to true on
+DB.
+DATA INTEGRATION IN P2P SYSTEMS
+In this section, we introduce a simple framework for dealing
+with P2P systems. The model is not meant to be a novel
+comprehensive formalization, since our aim here is to face
+the problem of finding agreement among peers rather than
+to investigate new syntactic modeling features.
+Therefore, our approach takes basically the same perspective
+as [9, 11, 5, 17].
+3.1
+Basic Framework
+A P2P system
+P is a tuple P, I, N , map , where P is
+a non-empty set of distinct peers and
+I, N and map are
+functions whose meaning will be explained below.
+First,
+each peer p  P is equipped with its own data integration
+system
+I(p), which is formalized as a triple G
+p
+, S
+p
+, M
+p
+.
+Basically,
+S
+p
+is meant to denote the set of sources to
+which p is allowed to access and is in fact modeled as a
+relational schema of the form
+S
+p
+=
+p
+,  , i.e., there are
+no integrity constraints on the sources. The structure of
+the global schema is, instead, represented by means of the
+schema
+G
+p
+=
+p
+,
+p
+, whereas the relationships between
+the sources and the global schema are specified by
+M
+p
+,
+which is a set of local mapping assertions between
+G
+p
+and
+S
+p
+.
+We assume that each assertion is of the form Q
+S
+p
+Q
+G
+p
+,
+where Q
+S
+p
+and Q
+G
+p
+are two conjunctive queries of the same
+arity over the source schema
+S
+p
+and the peer schema
+G
+p
+,
+respectively.
+Example 1 Let us introduce three peers, namely p
+1
+, p
+2
+,
+and p
+3
+, that constitute the P2P scenario that will be used
+as a running example throughout this paper to illustrate
+technical definitions.
+The global schema
+G
+p
+1
+of peer p
+1
+consists of the relation
+predicate secretary (Employee, Manager ) (without constraints
+), the source schema
+S
+p
+1
+consists of the relation symbol
+s
+1
+, and the set
+M
+p
+1
+of the local mapping assertions is
+{X, Y | s
+1
+(X, Y )}
+{X, Y | secretary (X, Y )}.
+As for peer p
+2
+, the schema
+G
+p
+2
+consists of the relation
+financial (Employee, Manager ) (without constraints),
+the source schema consists of the relation symbol s
+2
+, and
+M
+p
+2
+=
+{X, Y | s
+2
+(X, Y )}
+{X, Y | financial(X, Y )}.
+The schema
+G
+p
+3
+of peer p
+3
+consists of the relations
+employee(Name, Dept) and boss(Employee, Manager ),
+whose set of constraints contains the assertions (quantifiers
+are omitted) employee (X, Y )  boss(X
+1
+, Y
+1
+)
+X = Y
+1
+and
+boss(X, Y )  boss(X
+1
+, Y
+1
+)
+Y
+1
+= X, stating that managers
+are never employees; the source schema
+S
+p
+3
+comprises the
+relation symbols s
+3
+; and, the set of the local mapping assertions
+is
+{X, Y | s
+3
+(X, Y )}
+{X, Y | employee(X, Y )}.
+P
+Each peer p  P in a P2P system P = P, I, N , map is
+also equipped with the neighborhood function
+N providing
+a set of peers
+N (p)  P - {p} containing the peers (called
+neighbors) who potentially have some information of interest
+to p. Intuitively, the neighborhood relation determines the
+structure of a P2P system
+P. Such a structure is better
+described by the dependency graph G(
+P) of P, i.e., by a
+directed graph having P as its set of vertices and {(p, q) |
+q  P  p  N (q)} as its set of edges.
+In particular, a peer q is in N (p) iff p is interested in the
+data exported by q by means of its global schema, i.e., some
+of the global relations of p can be populated by means of
+the data coming from q besides the data coming from the
+sources of p itself. To this aim, map(p) defines the set of
+peer mapping assertions of p.
+Each assertion is an expression of the form Q
+q
+Q
+p
+,
+where the peer q  N (p) is a neighbor of p, and Q
+q
+and Q
+p
+are two conjunctive queries of the same arity over schemas
+G
+q
+and
+G
+p
+, respectively.
+Example 1 (contd.) Let
+P
+r
+=
+P
+r
+, I
+r
+, N
+r
+, map
+r
+be a
+P2P system, where P
+r
+consists of three peers p
+1
+, p
+2
+and p
+3
+,
+such that
+N
+r
+(p
+1
+) =
+N
+r
+(p
+2
+) =
+and N
+r
+(p
+3
+) =
+{p
+1
+, p
+2
+}.
+Figure 1 summarizes the structure of the system
+P
+r
+by
+showing, for each peer, its global schema, its source schema,
+and its local and peer mapping assertions. In particular,
+notice that the mapping assertions are such that: map(p
+1
+) =
+map(p
+2
+) =
+, and map(p
+3
+) =
+{X, Y | financial(X, Y ))}
+{X, Y | boss(X, Y )}  {X, Y | secretary(X, Y )}
+{X, Y |
+boss(X, Y )}.
+P
+38
+A source database for a P2P system
+P is a function D
+assigning to each peer p  P such that I(p) = G
+p
+, S
+p
+, M
+p
+a database instance
+D(p) for S
+p
+.
+A global database for
+P is a function B assigning to each
+peer p a database instance B(p) for G
+p
+.
+Usually, we are
+interested in global databases that can be "retrieved" from
+a given source, as formalized below.
+Given a source database
+D for P, a retrieved global
+database for
+D is a global database B that satisfies the
+mapping assertions
+M
+p
+of each peer p, i.e., B is such that:
+p  P and (Q
+S
+p
+Q
+G
+p
+)
+M
+p
+, it is the case that
+Q
+D(p)
+S
+p
+Q
+B(p)
+G
+p
+.
+We denote by ret (
+P, D) the set of all the retrieved global
+databases for
+D in the system P.
+Notice that in the definition above we are considering
+sound mappings: data retrieved from the sources by the
+mapping views are assumed to be a subset of the data that
+satisfy the corresponding global relation. This is a classical
+assumption in data integration, where sources in general do
+not provide all the intended extensions of the global schema,
+hence extracted data are to be considered sound but not
+necessarily complete.
+Example 1 (contd.) Let
+D
+r
+be a source database for
+the P2P system
+P
+r
+such that
+D
+r
+(p
+1
+) is
+{s
+1
+(Albert, Bill)},
+D
+r
+(p
+2
+) consists of
+{s
+2
+(John, Mary), s
+2
+(Mary, Tom)}, and
+D
+r
+(p
+3
+)
+=
+{s
+3
+(Mary, D1)}.
+Consider also the global
+database
+B
+r
+such that
+B
+r
+(p
+1
+) =
+{secretary (Albert, Bill)},
+B
+r
+(p
+2
+) =
+{financial(John, Mary), financial(Mary, Tom)}
+and
+B
+r
+(p
+3
+) =
+{employee(Mary, D1)}. Then, it is easy
+to see that
+B
+r
+is a retrieved database for
+D
+r
+in
+P
+r
+, i.e.,
+B
+r
+ret(P
+r
+, D
+r
+).
+Note that a global database
+B whose peer schema for some
+peer p  {p
+1
+, p
+2
+, p
+3
+} is a superset of B
+r
+(p) is in ret (P
+r
+, D
+r
+)
+as well - we simply say that
+B is a superset of B
+r
+.
+P
+3.2
+Models of Peer-to-Peer Systems
+Given a source database
+D, it is particular important
+to investigate whether it is possible to retrieve from
+D
+a database which satisfies the semantics of the network.
+Therefore, we next define a suitable notion of model for a
+P2P system. The approach has been inspired by the au-toepistemic
+approach of [9]; in particular, we assume that
+peers propagate through mapping assertions only the values
+they really trust.
+Definition 2 Let
+P = P, I, N , map be a P2P system, p
+P a peer with I(p) = G
+p
+, S
+p
+, M
+p
+and
+G
+p
+=
+p
+,
+p
+, and
+D a source instance for P. Then, a p-model for P w.r.t. D is
+a maximal nonempty set of global databases
+M  ret(P, D)
+such that:
+1. for each
+B  M, B(p) satisfies the constraints in
+p
+,
+and
+2. for each assertion Q
+q
+Q
+p
+map(p), it holds:
+B  M
+Q
+B (q)
+q
+
+B  M
+Q
+B (p)
+p
+.
+P
+Thus, according to Condition 1, any databases in the p-model
+satisfies all the integrity constraints issued over the
+global schema of p; moreover, Condition 2 guarantees that
+peers communicate only those values that belong to all models
+, i.e., a cautious approach to the propagation has been
+pursued. Finally we point out that, as for local mapping assertions
+, peer mapping assertions are assumed to be sound.
+Now, given that each peer singles out its models, a notion
+of model for the whole system can be easily stated.
+Definition 3 Let
+P = P, I, N , map be a P2P system.
+A model for
+P w.r.t. D is a maximal nonempty set M
+ret (
+P, D) of global databases such that, for each p  P , M
+is a p-model. If a model for P w.r.t. D exists, we say that
+D satisfies P, denoted by D |= P.
+P
+For
+instance,
+in
+our
+running
+example,
+D
+r
+does
+not
+satisfy
+P
+r
+;
+indeed,
+the
+peer
+mapping
+assertions
+constrain the schema of p
+3
+to contain in every
+global
+database
+(retrieved
+from
+D
+r
+)
+the
+tuples
+boss(Albert, Bill), boss(John, Mary), boss(Mary, Tom),
+and
+employee (Mary, D1) that violate the integrity constraints
+over p
+3
+, since Mary results to be both an employee and a
+manger. Therefore, retrieving data from
+D
+r
+leads to an inconsistent
+scenario.
+We conclude by noticing that deciding whether a P2P
+system admits a model can be done efficiently. The result
+can be proven by modifying the techniques in [9], in order
+to first evaluate all the mappings in the network and then
+check for the satisfaction of the integrity constraints over
+peer schemas.
+Theorem 4
+Let
+P = P, I, N , map be a P2P system, and
+D be a database instance for P. Then, deciding whether
+there is a model for
+P w.r.t. D, i.e., D |= P, is feasible in
+polynomial time.
+DEALING WITH AUTONOMOUS PEERS
+As shown in our running example, in general data stored
+in local and autonomous sources are not required to satisfy
+constraints expressed on the global schema (for example
+when a key dependency on
+G is violated by data retrieved
+from the sources). Thus, a P2P system may be unsatisfiable
+w.r.t. a source database
+D. In this section, we face the problem
+of solving inconsistencies in P2P systems. Specifically,
+we introduce a semantics for "repairing" a P2P system. To
+this aim, we first provide a model for peer preferences, and
+then show the impact of these individual preferences on the
+cost of reaching a global agreed repair.
+4.1
+Peer Preferences and Repairs
+Let
+P = P, I, N , map be a P2P system, and D be a
+source database instance for
+P. Next, we define a repair
+weighting function w
+p
+(P,D)
+for each peer p, encoding its preferences
+on candidate repairs of
+D. Formally, w
+p
+(P,D)
+is a
+polynomially-computable function assigning, to each source
+database instance
+D, a natural number that is a measure of
+the preference of p on having D as a repair for D (the lower
+the number, the more preferred the repair).
+As a quite simple, yet natural example of weighting function
+, we can consider the evaluation of the number of deletions
+performed to the peer's sources.
+In this case, we
+have that w
+p
+(P,D)
+(
+D ) = |D (p) - D(p)|, which in fact corresponds
+to the size of the difference between
+D and D
+restricted to tuples of peer p. This weighting function is
+called cardinality-based in the following.
+Example 1 (contd.) Consider the source databases
+D
+r
+1
+,
+D
+r
+2
+, and
+D
+r
+3
+such that:
+D
+r
+1
+(p
+1
+) =
+D
+r
+2
+(p
+1
+) =
+D
+r
+3
+(p
+1
+) =
+D
+r
+(p
+1
+),
+39
+D
+r
+1
+(p
+2
+) =
+{s
+2
+(John, Mary)}, D
+r
+2
+(p
+2
+) =
+{s
+2
+(Mary, Tom)},
+D
+r
+3
+(p
+2
+) =
+{}, D
+r
+1
+(p
+3
+) =
+{}, D
+r
+2
+(p
+3
+) =
+{s
+3
+(Mary, D1)}, and
+D
+r
+3
+(p
+3
+) =
+{s
+3
+(Mary, D1)}.
+Assume that, for each peer p, w
+p
+(P
+r
+,D
+r
+)
+(
+D) = |D(p) D
+r
+(p)|, i.e., she prefers source repairs where the minimum
+number of tuples is deleted from
+D
+r
+(p).
+Then,
+w
+p
+1
+(P
+r
+,D
+r
+)
+(
+D
+r
+1
+)
+=
+w
+p
+1
+(P
+r
+,D
+r
+)
+(
+D
+r
+2
+)
+=
+w
+p
+1
+(P
+r
+,D
+r
+)
+(
+D
+r
+3
+)
+=
+0;
+w
+p
+2
+(P
+r
+,D
+r
+)
+(
+D
+r
+1
+) = w
+p
+2
+(P
+r
+,D
+r
+)
+(
+D
+r
+2
+) = 1; w
+p
+2
+(P
+r
+,D
+r
+)
+(
+D
+r
+3
+) = 2;
+w
+p
+3
+(P
+r
+,D
+r
+)
+(
+D
+r
+1
+) = 1; w
+p
+3
+(P
+r
+,D
+r
+)
+(
+D
+r
+2
+) = w
+p
+3
+(P
+r
+,D
+r
+)
+(
+D
+r
+3
+) = 0.
+P
+The problem of solving inconsistency in "classical" data
+integration systems has been traditionally faced by providing
+a semantics in terms of the repairs of the global
+databases that the mapping forces to be in the semantic
+of the system [4, 7, 6]. Repairs are obtained by means of
+addition and deletion of tuples according to some minimality
+criterion.
+We next propose a generalization of these approaches to
+the P2P framework, which takes into account peers preferences
+. To this aim, we focus on finding the proper set of facts
+at the sources that imply as a consequence a global database
+satisfying all integrity constraints. Basically, such a way of
+proceeding allows us to easily take into account information
+on preferences when trying to solve inconsistency, since repairing
+is performed by directly focusing on those sources,
+whose integration has caused inconsistency.
+Definition 5 (Repair) Let
+P be a P2P system, p a peer,
+and
+D and D two source databases. We say that D is p-minimal
+if
+D |= P, and there exists no source database D
+such that w
+p
+(P,D)
+(
+D ) &lt; w
+p
+(P,D)
+(
+D ) and D |= P.
+Then,
+D is a repair for P w.r.t. D if D is p-minimal for
+each peer p.
+P
+Example 1 (contd.) It is easy to see that
+D
+r
+1
+,
+D
+r
+2
+, and
+D
+r
+3
+satisfy
+P
+r
+and they are both p
+1
+-minimal. Indeed, peer
+p
+1
+has no preferences among the three databases, since
+w
+p
+1
+(P
+r
+,D
+r
+)
+(
+D
+r
+1
+) = w
+p
+1
+(P
+r
+,D
+r
+)
+(
+D
+r
+2
+) = w
+p
+1
+(P
+r
+,D
+r
+)
+(
+D
+r
+3
+) = 0.
+Moreover,
+D
+r
+1
+and
+D
+r
+2
+are equally preferred by p
+2
+, whereas
+D
+r
+2
+and
+D
+r
+3
+are equally preferred by p
+3
+. Therefore, all peers
+agree on
+D
+r
+2
+, which is thus a repair for
+D
+r
+w.r.t.
+P
+r
+. However
+, neither
+D
+r
+3
+is p
+2
+-minimal, nor
+D
+r
+1
+is p
+3
+-minimal, and
+thus they are not repairs.
+P
+We next define the semantics of a P2P system, in terms
+of models for those sources on which all the peers agree.
+Definition 6 (Agreement) Let
+P = P, I, N , map be a
+P2P system, and
+D be an instance for P. The agreement for
+P w.r.t. D is the set of all of its models w.r.t. some repair,
+and will be denoted by Agr (
+P, D).
+P
+Example 1 (contd.)
+D
+r
+2
+is p-minimal, for each peer p,
+and it is easy to see that the set Agr (
+P
+r
+, D
+r
+) contains
+all databases belonging to some model for
+P
+r
+w.r.t.
+D
+r
+2
+.
+In particular,
+it contains the supersets
+(satisfying
+the constraints)
+of
+the database
+B
+r
+2
+such that
+B
+r
+2
+(p
+1
+) =
+{secretary (Albert, Bill)}, B
+r
+2
+(p
+2
+) =
+{financial(Mary, Tom)} and B
+r
+2
+(p
+3
+) =
+{boss(Albert, Bill),
+boss (Mary, Tom), employee(Mary, D1)}. Moreover, no other
+global database is in Agr (
+P
+r
+, D
+r
+).
+P
+We can finally characterize the answer to a user query in
+terms of the repairs for the system.
+Definition 7 Let
+P = P, I, N , map be a P2P system, let
+D be a source database for it, and let Q be a query over
+the schema of a peer p. Then, the answer to Q is the evaluation
+of the query over all the possible agreed databases:
+ans(Q, p, P, D) =
+B Agr(P,D)
+Q
+B(p)
+p
+.
+P
+For instance, in our running example, the answer to the
+user query
+{X | boss(X, Y )} posed over peer p
+3
+, which asks
+for all employees that have a boss, is
+{ Albert , Mary },
+since this query is evaluated over the supersets of the
+database
+B
+r
+2
+retrieved from
+D
+r
+2
+only.
+We conclude the section by noticing that Agr (
+P, D) is just
+a formal characterization of the semantics of a P2P system.
+Usually, we are not interested in computing such a set; and,
+in fact, for practical applications, suitable techniques and
+optimization algorithms should be investigated to handle
+inconsistency at query time (in the spirit of, e.g., [10]).
+4.2
+The Price of Autonomy
+Given the framework presented so far, we are in the position
+of studying the effects of having autonomous peers
+repairing their source databases according to their own preferences
+. We next show that, in some cases, peers might not
+find an agreement on the way the repair has to be carried
+out. This is a somehow expected consequence of having selfish
+interested peers in the absence of a global coordination.
+Proposition 8
+There exists a P2P system
+P and a source
+database
+D such that there is no agreement, i.e., Agr(P , D)
+is empty.
+Proof
+[Sketch].
+Consider the P2P system
+P =
+P , I , N , map , where P consists of the peers challenger
+(short: c) and duplicator (short: d), that are mutually connected
+, i.e.,
+N (c) = {d} and N (d) = {c}.
+Peer c is such that I (c) = G
+c
+, S
+c
+, M
+c
+, where the schema
+G
+c
+consists of predicates r
+c
+(X) and mr
+d
+(X) with constraints
+r
+c
+(X)  r
+c
+(Y )  X = Y and r
+c
+(X)  mr
+d
+(Y )  X = Y ; the
+source schema consists of the relation symbol s
+c
+; and
+M
+c
+contains only the assertion
+{X | s
+c
+(X)}
+{X | r
+c
+(X)}.
+Peer d is such that I (d) = G
+d
+, S
+d
+, M
+d
+, where the schema
+G
+d
+consists of predicates r
+d
+(X) and mr
+c
+(X) with constraints
+r
+d
+(X)  r
+d
+(Y )  X = Y and r
+d
+(X)  mr
+c
+(Y )  X = Y ; the
+source schema consists of the relation symbol s
+d
+; and
+M
+d
+contains only the assertion
+{X | s
+d
+(X)}
+{X | r
+d
+(X)}.
+Finally, map(c) contains the assertion {X | r
+c
+(X))}
+{X | mr
+c
+(X)}, while map(d) contains the assertion {X |
+r
+d
+(X))}
+{X | mr
+d
+(X)}.
+Let
+D be a source database for P such that D(c) =
+{s
+c
+(0), s
+c
+(1)
+} and D(d) = {s
+d
+(0), s
+d
+(1)
+}. We build four
+source databases, say
+D
+1
+,
+D
+2
+,
+D
+3
+and
+D
+4
+, that satisfy
+P. They are such that: D
+1
+(c) = {}, D
+1
+(d) = {s
+d
+(0)
+};
+D
+2
+(c) = {}, D
+2
+(d) = {s
+d
+(1)
+}; D
+3
+(c) = {s
+c
+(0)
+}, D
+3
+(d) = {};
+D
+4
+(c) = {s
+c
+(1)
+}, D
+4
+(d) = {}. Notice that all the other
+databases satisfying
+P are proper subsets of these ones.
+Then, by assuming that each peer wants to minimize the
+number of deletions in
+D, there exists no source database
+satisfying
+P that is both c-minimal and d-minimal.
+THE COMPLEXITY OF QUERY ANSWERING
+In the light of Proposition 8, it is particulary relevant to
+investigate the complexity of dealing with peer agreements
+40
+and query answering in such P2P data integration systems.
+In this section, we first present some basic problems arising
+in the proposed framework, and subsequently analyze their
+computational complexity. This analysis is a fundamental
+premise to devise effective and optimized implementations.
+5.1
+Problems
+Given a P2P system
+P and a source database D for P, we
+consider the following problems:
+· RepairChecking: given a source instance D , is D a
+repair for
+P w.r.t. D?
+· AgreementExistence: is Agr(P, D) = ?
+· AnyAgreementComputation: compute a database B in
+the agreement Agr (
+P, D), if any.
+· QueryOutputTuple: given a query Q over a peer
+schema
+G
+p
+and a tuple t, is t  ans(Q, p, P, D)?
+Intuitively,
+RepairChecking
+is
+the
+very
+basic
+problem
+of
+assessing
+whether
+a
+source
+instance
+at
+hand
+satisfies
+the
+data
+integration
+system.
+Then,
+AgreementExistence (and its corresponding computational
+version
+AnyAgreementComputation) asks for singling
+out scenarios where some agrement can be in fact computed
+. Finally,
+QueryOutputTuple represents the problem
+characterizing the intrinsic complexity of a query answering
+in the proposed framework; indeed, it is the problem of
+deciding the membership of a given tuple in the result of
+query evaluation.
+5.2
+Results
+Our first result is that checking whether all the peers are
+satisfied by a given source database is a difficult task that
+is unlikely to be feasible in polynomial time.
+Theorem 9
+RepairChecking is co-NP-complete. Hardness
+holds even for cardinality-based weighting functions.
+Proof [Sketch].
+Membership. Consider the complementary
+problem of deciding whether there exists a peer p
+such that
+D is not p-minimal. This problem is feasible
+in NP by guessing a source database
+D and checking in
+that 1.
+D |= P , and 2. there exists a peer p such that
+w
+p
+(P,D)
+(
+D ) &lt; w
+p
+(P,D)
+(
+D ). In particular, 1. is feasible in
+polynomial time because of Theorem 4, and 2. is feasible in
+polynomial time because our weighting functions are polynomially
+computable.
+Hardness. Recall that deciding whether a Boolean formula
+in conjunctive normal form  = C
+1
+. . .  C
+m
+over the
+variables X
+1
+, . . . , X
+n
+is not satisfiable, i.e., deciding whether
+there exists no truth assignments to the variables making
+each clause C
+j
+true, is a co-NP-hard problem.
+We built a P2P system
+P
+
+such that:
+P
+
+contains a peer
+x
+i
+for each variable X
+i
+, a peer c
+j
+for each clause C
+j
+, and
+the distinguished peer e. The source schema of x
+i
+(resp. c
+j
+)
+consists of the unary relation s
+x
+i
+(resp. s
+c
+j
+), whereas the
+global schema consists of the unary relation r
+x
+i
+(resp. r
+c
+j
+).
+The source schema of e consists of the unary relations s
+e
+and
+s
+a
+, whereas its global schema consists of the unary relations
+r
+e
+and r
+a
+. For each source relation, say s , P() contains
+a local mapping assertion of the form
+{X | s (X)}
+{X |
+r (X)}. Each global relation of the form r
+x
+i
+is equipped
+with the constraint r
+x
+i
+(X
+1
+)
+r
+x
+i
+(X
+2
+)
+X
+1
+= X
+2
+, stating
+that each relation must contain one atom at most. Each
+global relation of the form r
+c
+j
+is equipped with the constraint
+r
+c
+j
+(tx
+i
+)
+r
+c
+j
+(fx
+i
+)
+, where  is the empty disjunction
+, stating that for each variable x
+i
+, r
+c
+j
+cannot contain
+both tx
+i
+and fx
+i
+at the same time. Moreover, peer e
+has also the constraint r
+e
+(X
+1
+)
+r
+a
+(X
+2
+)
+X
+1
+= X
+2
+.
+Consider the source database
+D
+
+for
+P
+
+such that:
+D
+
+(x
+i
+)
+=
+{s
+x
+i
+(tx
+i
+), s
+x
+i
+(fx
+i
+)
+}; for each x
+i
+occurring
+in c
+j
+,
+D
+
+(c
+j
+)
+=
+{s
+c
+j
+(tx
+i
+), s
+c
+j
+(fx
+i
+)
+}; and D
+
+(e) =
+{s
+e
+(t), s
+e
+(f), s
+a
+(t)}. Notice that due to the constraints issued
+over peers schemas, any source database
+D , with
+D |= P
+
+, is such that
+|D (x
+i
+)
+|  1, for each x
+i
+. Therefore
+, the restriction of
+D to the peers of the form x
+i
+is in
+one-to-one correspondence with a truth-value assignment for
+, denoted by µ(D ). Intuitively, the atom s
+x
+i
+(tx
+i
+) (resp.
+s
+x
+i
+(fx
+i
+)) means that variable X
+i
+is set to true (resp. false),
+whereas the atom s
+c
+j
+(tx
+i
+) means that the clause C
+j
+is true,
+witnessed by the assignment for the variable X
+i
+occurring
+in c
+j
+.
+Finally, the peers mapping assertions in
+P
+
+are defined
+as follows.
+For each variable X
+i
+occurring positively
+(resp.
+negatively) in the clause C
+j
+there are exactly
+two mappings of the form
+{r
+x
+i
+(tx
+i
+)
+}
+{r
+c
+j
+(tx
+i
+)
+} and
+{r
+x
+i
+(fx
+i
+)
+}
+{r
+c
+j
+(fx
+i
+)
+} (resp. {r
+x
+i
+(fx
+i
+)
+}
+{r
+c
+j
+(tx
+i
+)
+}
+and
+{r
+x
+i
+(tx
+i
+)
+}
+{r
+c
+j
+(fx
+i
+)
+}); moreover, for each clause
+C
+j
+containing variables X
+j
+1
+, ..., X
+j
+k
+, there exists a mapping
+{r
+c
+j
+(fx
+j
+1
+)
+· · ·  r
+c
+j
+(fx
+j
+k
+)
+}
+{r
+e
+(f)}.
+Figure 2 shows on the upper part the dependency graph
+G(
+P
+
+) for the formula  = (X
+1
+X
+2
+)
+(X
+3
+)
+(X
+1
+X
+3
+
+¬X
+4
+)
+(X
+4
+)
+(¬X
+5
+¬X
+6
+X
+7
+)
+(X
+4
+X
+6
+X
+8
+).
+Assume that each peer wants to minimize the number of
+deletions in
+D
+
+. Then, given a source database
+D minimal
+w.r.t. each peer in
+P
+
+but e, we can show that the
+above mappings encode an evaluation of the assignment
+µ(D ). In particular, it is easy to see that µ(D ) is a satisfying
+assignment for  if and only if
+D (e) contains the facts
+{s
+e
+(t), s
+a
+(t)}, i.e., one fact is deleted from the source of e
+only. Assume, now, that
+D is such that D (e) = {s
+e
+(f)},
+i.e., two facts are deleted from the source of e. Then, D is
+also e-minimal if and only if  is not satisfiable.
+P
+Given the above complexity result, one can easily see that
+AnyAgreementComputation is feasible in the functional version
+of
+P
+2
+. Indeed, we can guess in NP a source instance
+D, build in polynomial time a model B for P w.r.t. D (by
+construction in Theorem 4), and check in co-NP that
+D is
+minimal for each peer.
+Actually, we can do much better. In fact, we next show
+that the problem is complete for the polynomial time closure
+of NP, and thus remains at the first level of the polynomial
+hierarchy.
+Theorem 10
+AnyAgreementComputation
+is
+FPNP-complete
+.
+Hardness
+holds even for cardinality-based
+weighting functions.
+Proof [Sketch]. Membership. The problem can be solved
+by processing peers in a sequential manner. For each peer in
+P, we can find the minimum value of the associated preference
+function by means of a binary search, in which at each
+step we guess in NP a database instance and verify that
+such a preference holds. After having collected the minimum
+values for all peers, we conclude with a final guess to
+get a repair
+D, and a subsequent check that actually each
+peer gets its minimum possible value for
+P w.r.t. D.
+41
+Figure 2: Constructions in Proofs of Complexity Results
+.
+Finally, a model for
+P w.r.t. D can be build in polynomial
+time (again, by construction in Theorem 4).
+Hardness. Let  be a boolean formula in conjunctive normal
+form  = C
+1
+. . .  C
+m
+over the variables X
+1
+, . . . , X
+n
+.
+Assume that each clause, say C
+j
+, is equipped with a weight
+w
+j
+(natural number).
+Let  be an assignment for the
+variables in .
+Its weight is the sum of the weights of
+all the clauses satisfied in .
+The problem of computing
+the maximum weight over any truth assignment, called
+MAX - WEIGHT - SAT, is FPNP-complete.
+Consider again the construction in Theorem 9, and modify
+P
+
+as follows.
+The source schema of peer e consists
+of the relation s
+w
+, whereas its global schema consists
+of the relations r
+w
+and r
+v
+, and of the constraint
+r
+v
+(X)  r
+w
+(X, Y ) . The local mappings of e is {X, Y |
+s
+w
+(X, Y )}
+{X, Y | r
+w
+(X, Y )}. Moreover, for each clause
+c
+j
+over variables X
+j
+1
+, ..., X
+j
+k
+, map(e) contains the assertion
+{r
+c
+j
+(fx
+j
+1
+)
+· · ·  r
+c
+j
+(fx
+j
+k
+)
+}
+{r
+v
+(fc
+j
+)
+}. Let ¯
+P
+
+be such
+a modified P2P system. Notice that G( ¯
+P
+
+) coincides with
+G(
+P
+
+) (see again Figure 2).
+Consider now the database instance ¯
+D
+
+for ¯
+P
+
+obtained
+by modifying
+D
+
+such that ¯
+D
+
+(e) contains the atoms
+s
+w
+(fc
+j
+, 1), s
+w
+(fc
+j
+, 2), ...s
+w
+(fc
+j
+, w
+j
+) for each clause c
+j
+. Intuitively
+, peer e stores w
+j
+distinct atoms for each clause c
+j
+.
+Let
+D be a source instance that satisfies ¯
+P
+
+. As in Theorem
+9, the restriction of
+D over the variables is in one-to-one
+correspondence with a truth assignment for , denoted
+by µ(D ). Then, it is easy to see that peer e must delete
+in
+D all the w
+j
+distinct atoms corresponding to a clause
+C
+j
+that is not satisfied by the assignment µ(D ). Therefore
+,
+|D (e)| =
+i|C
+i
+is false in
+µ(D )
+w
+i
+. Hence, the result
+easily follows, since computing the source instance that is e-minimal
+, say
+D, determines the maximum weight over any
+assignment for  as (
+i
+w
+i
+)
+- |D(e)|.
+P
+We next focus on the
+AgreementExistence problem. Note
+that membership of this problem in
+P
+2
+is easy to proven,
+after the above theorem. However, the reduction for the
+hardness part we shall exploit here is rather different.
+Theorem 11
+AgreementExistence is
+P
+2
+-complete. Hardness
+holds even for cardinality-based weighting functions.
+Proof [Sketch]. Membership is shown with the same line
+of reasoning of Theorem 10. For the hardness, consider again
+MAX - WEIGHT - SAT, and the
+P
+2
+-complete problem of deciding
+whether it has a unique solution.
+Let ¯
+P
+
+be the P2P system built in Theorem 10, and let
+¯
+P
+
+be a copy of it, obtained by replacing each element
+(both relations and peers) r in ¯
+P
+
+by r . Then, consider the
+system ~
+P
+
+obtained as the union of ¯
+P
+
+, ¯
+P
+
+and a fresh
+peer u. Figure 2 shows the dependency graph G( ~
+P
+
+).
+The local schema of u is empty, while its global schema
+consists of the unary relation r
+u
+with the constraint
+n
+i=1
+r
+u
+(bad
+i
+)
+. The mapping assertions are as follows.
+For each variable X
+i
+in , map(u) contains {r
+x
+i
+(tx
+i
+)
+
+r
+x
+i
+(tx
+i
+)
+}
+{r
+u
+(bad
+i
+)
+} and {r
+x
+i
+(fx
+i
+)
+r
+x
+i
+(fx
+i
+)
+}
+{r
+u
+(bad
+i
+)
+}. It is worthwhile noting that, for the sake of
+simplicity, the mapping assertions are slightly more general
+than those allowed in the usual definition of P2P systems,
+since they involve joins among different peers. However, this
+is only a syntactical facility, as such a mapping can be easily
+simulated by introducing a suitable dummy peer.
+The idea of the reduction is that, if the same assignment
+that maximizes the weight of the satisfied clauses is selected
+for both ¯
+P
+
+and ¯
+P
+
+, then r
+u
+(bad
+i
+) is pushed to u (for each
+i), thereby violating the constraint. Thus, there is a (nonempty
+) agreement in ~
+P
+
+if and only if there are at least two
+such assignments.
+P
+We conclude our investigation by observing that query
+answering is at least as hard as
+AgreementExistence. Indeed
+, intuitively, if peers are not able to find an agreement
+in an inconsistent P2P system, then the answer to any given
+query will be empty. Moreover, membership can be proven
+by the same line of reasoning of Theorem 10, and we thus
+get the following result.
+Theorem 12
+QueryOutputTuple is
+P
+2
+-complete.
+Hardness
+holds even for cardinality-based weighting functions.
+CONCLUSIONS
+In this paper, we investigated some important theoretical
+issues in P2P data integration systems. Specifically, we
+introduced a setting in which peers take into account their
+own preferences over data sources, in order to integrate data
+if some inconsistency arise. This seems a natural setting for
+such kind of systems, which has not been previously investigated
+in the literature. It turns out that there are scenarios
+where peers do not find any agreement on the way the repair
+should be carried out, and where some kind of centralized
+coordination is required.
+Actually, our results show that this coordination comes
+with a cost and some basic problems are unlikely to be
+tractable. However, the complexity of the problems studied
+in this paper are only mildly harder than the corresponding
+problems in traditional data integration systems.
+42
+This is an important feature of our approach, that paves
+the way for possible easy implementations, based on available
+systems.
+In particular, the prototypical implementation appears viable
+with minor efforts if done on top of integration systems
+that exploit a declarative approach to data integration (e.g.,
+[18], where logic programs serve as executable logic specifications
+for the repair computation). Indeed, our complexity
+results show that logic engines able to express all problems
+in the second level of the polynomial hierarchy, such as the
+DLV system [19], suffices for managing the framework, once
+we provide appropriate logic specifications.
+A number of interesting research questions arise from this
+work.
+First, it is natural to ask whether the framework
+can be extended to the presence of existentially quantified
+constraints. This can be easily done for some special syntactic
+fragments, such as for non key-conflicting schemas,
+i.e., global schemas enriched with inclusion dependencies
+and keys, for which decidability in the context of data integration
+systems has been proven in [7]. To this aim, one has
+to modify the algorithm in [9] to propagate information in a
+P2P system by accounting for mapping assertion as well as
+for inclusion dependencies, and eventually check that after
+such propagation no key has been violated.
+We conclude by noticing that an avenue of further research
+is to consider more sophisticated peer-agreement semantics,
+besides the Pareto-like approach described here.
+For instance
+, we may think of some applications where peers may
+form cooperating groups, or do not cooperate at all. Another
+line of research may lead to enrich the setting by further
+kinds of peer preferences criteria, by replacing or complementing
+the weighting functions proposed in this paper.
+Acknowledgments
+The work was partially supported by the European Commission
+under project IST-2001-33570 INFOMIX.
+Francesco Scarcello's work was also supported by ICAR-CNR
+, Rende, Italy.
+REFERENCES
+[1] Serge Abiteboul, Richard Hull, and Victor Vianu.
+Foundations of Databases. Addison Wesley Publ. Co.,
+Reading, Massachussetts, 1995.
+[2] Marcelo Arenas, Leopoldo E. Bertossi, and Jan
+Chomicki. Consistent query answers in inconsistent
+databases. In Proc. of PODS'99, pages 68­79, 1999.
+[3] P. Bernstein, F. Giunchiglia, A. Kementsietsidis,
+J. Mylopoulos, L. Serafini, and I. Zaihrayeu. Data
+management for peer-to-peer computing: A vision. In
+Workshop on the Web and Databases, WebDB, 2002.
+[4] Leopoldo Bertossi, Jan Chomicki, Alvaro Cortes, and
+Claudio Gutierrez. Consistent answers from integrated
+data sources. In Proc. of FQAS'02, pages 71­85, 2002.
+[5] Leopoldo E. Bertossi and Loreto Bravo. Query
+answering in peer-to-peer data exchange systems. In
+Proc. of EDBT Workshops 2004, pages 476­485, 2004.
+[6] Loreto Bravo and Leopoldo Bertossi. Logic
+programming for consistently querying data
+integration systems. In Proc. of IJCAI'03, pages
+10­15, 2003.
+[7] Andrea Cal`i, Domenico Lembo, and Riccardo Rosati.
+On the decidability and complexity of query
+answering over inconsistent and incomplete databases.
+In Proc. of PODS'03, pages 260­271, 2003.
+[8] Andrea Cal`i, Domenico Lembo, and Riccardo Rosati.
+Query rewriting and answering under constraints in
+data integration systems. In Proc. of IJCAI'03, pages
+16­21, 2003.
+[9] Diego Calvanese, Giuseppe De Giacomo, Maurizio
+Lenzerini, and Riccardo Rosati. Logical foundations of
+peer-to-peer data integration. In Proc. of PODS'04,
+pages 241­251, 2004.
+[10] Thomas Eiter, Michael Fink, Gianluigi Greco, and
+Domenico Lembo. Efficient evaluation of logic
+programs for querying data integration systems. In
+Proc. of ICLP'03, pages 348­364, 2003.
+[11] Enrico Franconi, Gabriel Kuper, Andrei Lopatenko,
+and Luciano Serafini. A robust logical and
+computational characterisation of peer-to-peer
+database systems. In Proc. of DBISP2P'03, pages
+64­76, 2003.
+[12] Enrico Franconi, Gabriel Kuper, Andrei Lopatenko,
+and Ilya Zaihrayeu. A distributed algorithm for robust
+data sharing and updates in p2p database networks.
+In Proc. of P2P&DB'04, pages 446­455, 2004.
+[13] Enrico Franconi, Gabriel Kuper, Andrei Lopatenko,
+and Ilya Zaihrayeu. Queries and updates in the codb
+peer to peer database system. In Proc. of VLDB'04,
+pages 1277­1280, 2004.
+[14] Gianluigi Greco, Sergio Greco, and Ester Zumpano. A
+logic programming approach to the integration,
+repairing and querying of inconsistent databases. In
+Proc. of ICLP'01, pages 348­364. Springer, 2001.
+[15] Gianluigi Greco and Domenico Lembo. Data
+integration with prefernces among sources. In Proc. of
+ER'04, pages 231­244, 2004.
+[16] Alon Y. Halevy, Zachary G. Ives, Peter Mork, and
+Igor Tatarinov. Piazza: data management
+infrastructure for semantic web applications. In Proc.
+of WWW'03, pages 556­567, 2003.
+[17] Maurizio Lenzerini. Quality-aware peer-to-peer data
+integration. In Proc. of IQIS'04, 2004.
+[18] Nicola Leone, Thomas Eiter, Wolfgang Faber, Michael
+Fink, Georg Gottlob, Gianluigi Greco, Giovambattista
+Ianni, Edyta Kalka, Domenico Lembo, Maurizio
+Lenzerini, Vincenzino Lio, Bartosz Nowicki, Riccardo
+Rosati, Marco Ruzzi, Witold Staniszkis, and Giorgio
+Terracina. The INFOMIX system for advanced
+integration of incomplete and inconsistent data. In
+Proc. of SIGMOD'05, pages 915­917, 2005.
+[19] Nicola Leone, Gerald Pfeifer, Wolfgang Faber,
+Thomas Eiter, Georg Gottlob, Simona Perri, and
+Francesco Scarcello. The DLV System for Knowledge
+Representation and Reasoning. ACM Transaction on
+Cumputational Logic. To appear.
+[20] Luciano Serafini, Fausto Giunchiglia, John
+Mylopoulos, and Philip A. Bernstein. Local relational
+model: A logical formalization of database
+coordination. In Fourth International and
+Interdisciplinary Conference on Modeling and Using
+Context, CONTEXT 2003, pages 286­299, 2003.
+[21] Igor Tatarinov and Alon Halevy. Efficient query
+reformulation in peer data management systems. In
+Proc. of SIGMOD'04, pages 539­550, 2004.
+43
+

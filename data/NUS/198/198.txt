@@ -1,0 +1,2157 @@
+Towards Reasonability Properties for Access-Control Policy Languages
+ABSTRACT
+The growing importance of access control has led to the definition
+of numerous languages for specifying policies. Since
+these languages are based on different foundations, language
+users and designers would benefit from formal means to compare
+them. We present a set of properties that examine the
+behavior of policies under enlarged requests, policy growth,
+and policy decomposition. They therefore suggest whether
+policies written in these languages are easier or harder to reason
+about under various circumstances. We then evaluate
+multiple policy languages, including XACML and Lithium,
+using these properties.
+Categories and Subject Descriptors
+D.4.6 [Operating Systems]: Security and Protection--Access
+Controls
+General Terms
+Languages, Security
+
+INTRODUCTION
+Access-control policies should not be write-only. Because
+they govern both the containment and availability of critical
+information, they must be highly amenable to analysis by
+both humans and by reasoning software such as verifiers.
+An access-control policy dictates a function from requests
+for access to decisions about whether or not to grant access
+. The competing requirements of expressive power and
+computational speed makes the design of policy languages a
+delicate balancing act. Contemporary policy languages have
+Current affiliation:
+Computer
+Science
+Department,
+Carnegie Mellon University.
+Permission to make digital or hard copies of all or part of this work for
+personal or classroom use is granted without fee provided that copies are
+not made or distributed for profit or commercial advantage and that copies
+bear this notice and the full citation on the first page. To copy otherwise, to
+republish, to post on servers or to redistribute to lists, requires prior specific
+permission and/or a fee.
+SACMAT'06, June 7­9, 2006, Lake Tahoe, California, USA.
+Copyright 2006 ACM 1-59593-354-9/06/0006 ...
+$
+5.00.
+largely followed one of two routes. Some are based on logics,
+restricting first-order logic (e.g., Lithium [9]) or augmenting
+Datalog (e.g., Cassandra [2]). Others are custom languages
+such as XACML [12] and EPAL [13], which behave roughly
+by rule-evaluation and do not depend on theorem-proving
+capabilities to determine a response to a query.
+The custom language approach often produces fairly limited
+languages. For example, to express hierarchical role-based
+access-control (RBAC) [14] in XACML requires a
+fairly cumbersome encoding [1]. On the other hand, its more
+direct request evaluation strategy suggests that policies written
+in XACML are more transparent than policies written
+in languages based on first-order logic (as we motivate in
+Section 2).
+How, then, do we distinguish different policy languages?
+Studies of complexity and expressive power may ensure tractable
+verification and the ability to capture certain policies,
+but do not directly classify the ease of reasoning about policies
+in a language. In this paper we take a step towards formalizing
+reasonability properties that make languages more
+amenable to reasoning. We then apply these properties to
+actual policy languages.
+Such properties are useful even
+when verification is computationally tractable because they
+provide a guide to where and how to edit a policy for a
+desired effect.
+Concretely, our properties study three main questions:
+how decisions change as requests include more information,
+how decisions change as policies grow, and how amenable
+policies are to compositional reasoning. The last of these is
+especially important for two reasons. First, organizations in-creasingly
+have different divisions creating policy fragments
+that must be combined into a whole while preserving the intent
+of each division; second, to mirror these use cases, and
+to scale better as policies grow in size, it becomes important
+for analysis and verification tools to function modularly.
+These properties codify our observations made while writing
+and studying policies for non-trivial systems. (We do
+not, however, presume to make broad statements about the
+impact of these properties for manual reasoning.) They are
+meant to be descriptive rather than prescriptive: which ones
+a language should satisfy depends on the context of its use.
+We do expect these properties to help both language designers
+and policy authors, the former to set goals and the latter
+to evaluate languages.
+We first motivate the work with an example. Section 3
+presents background on policy languages. Section 4 presents
+the heart of our formalism. Section 5 applies this framework
+to XACML, and Section 6 to logical approaches such as
+160
+Lithium. The remainder discusses related work and offers
+concluding remarks.
+MOTIVATING EXAMPLE
+Consider the following natural-language policy:
+1
+1. If the subject is a faculty member, then permit that
+subject to assign grades.
+2. If the subject is a student, then do not permit that
+subject to assign grades.
+3. If the subject is not a faculty member, then permit
+that subject to enroll in courses.
+We might represent this policy as follows:
+faculty(
+s) = Permit(s, grades, assign)
+(
+p
+1
+)
+student(
+s) = ¬Permit(s, grades, assign)
+(
+p
+2
+)
+¬faculty(s) = Permit(s, courses, enroll)
+(
+p
+3
+)
+Let the above formalization be
+p and the first line of the
+policy be sub-policy
+p
+1
+, the second
+p
+2
+, and the third
+p
+3
+.
+Consider the following natural-language request:
+A student requests to enroll in courses.
+Assume that requests list the subject, resource, and action
+by name if possible and by variable if the name is unknown,
+along with any other known facts. In this representation,
+the request becomes:
+(s, courses, enroll) with student(s)
+(
+q
+1
+)
+Should the policy grant access? At least three interpretations
+of the policy are possible:
+1.
+p grants access due to p
+3
+. The request does not show
+the subject being a faculty member; thus,
+p
+3
+applies
+and
+p produces the decision to permit access. This
+relies on the assumption that since the request does
+not show the subject being faculty, that the subject is
+in fact not faculty. One could drop this assumption.
+2. The policy does not apply to the request. One would
+reason that
+p
+1
+and
+p
+2
+do not apply since they are dealing
+with assigning grades and not enrolling in courses.
+Furthermore, one could conclude that
+p
+3
+does not apply
+since the request does not prove that the subject
+is not faculty. To do so, the request would have been
+(s, courses, enroll) with student(s)  ¬faculty(s)
+Since the policy does not apply to the request, the
+system should have and enact some default behavior.
+3. By reasoning different than that used in the first interpretation
+,
+p could still grant the request. As in the
+second interpretation, one could conclude that the request
+alone fails to establish that the subject is not a
+faculty member. However, if the subject were a faculty
+member, then the first two lines together would
+yield a contradiction:
+p
+1
+would imply that the subject
+could enroll in courses and
+p
+2
+would imply that the
+subject could not. Thus, student-faculty members do
+not exist. Since the subject of the request is clearly
+a student, he must not be faculty member. Thus,
+p
+3
+applies to grant access.
+1
+This example is adapted from Halpern and Weissman [9].
+In the first two interpretations the user may limit his reasoning
+to each sub-policy independent of one another. However
+, under the third interpretation (which, in fact, is the
+one chosen by Halpern and Weissman), the user must reason
+about all three sub-policies at once. Furthermore, under
+Interpretation 2, the user must reason about both positive
+and negative attributes, unlike under Interpretation 1.
+These semantic differences drastically affect a reader's ability
+to comprehend policies. For example, Interpretation 3
+requires both global analysis and demands rich reasoning
+power to deduce the contradiction. This paper formalizes
+these differences and their burdens.
+BACKGROUND
+Despite the differences between access-control policy languages
+, we can still identify many common elements. First
+we describe features common to most languages, and then
+we discuss in detail two areas in which many languages differ
+: the available decisions and policy combinators.
+3.1
+Common Features
+A policy language must provide a way of describing the
+different forms of access and the environment in which they
+could occur. This information forms a request. Many languages
+break requests into four different parts:
+Subject the person or process making the request,
+Resource the object, subsystem, person, or process that
+the subject would like to affect (e.g., a file name or a
+process id),
+Action the command or change that the subject would like
+to execute on the resource, and
+Environment describes any other relevant information including
+the time of day, location, or the previous actions
+of the subject.
+The first three make up the form of access requested while
+the last gives the context in which this access would occur.
+Each of these parts lists attributes associated with its respective
+topic. In some languages, the absence or negation of an
+attribute might also be explicitly listed (see Section 4.2).
+Languages must also provide a set of decisions. Such a set
+must include some decisions that grant access and some that
+prohibit access. A policy will associate with each request a
+decision (or in the case of nondeterministic policies, a policy
+will relate each request with some number of decisions).
+Definition 3.1. An access-control policy language is a
+tuple
+L = (P, Q, G, N, · ) with
+P a set of policies,
+Q a family of sets of requests indexed by policies,
+G the set of decisions that stipulate that the system should
+grant access (granting decisions),
+N the set of decisions that stipulate that the system should
+not grant access (non-granting decisions),
+· a function taking a policy p  P to a relation between
+Q
+p
+and G  N,
+where G  N = .
+161
+When clear from context, the above symbols will be ref-erenced
+without explicitly relating them to
+L, and D will
+represent G  N. The function
+· gives the meaning of
+policy p, and we write q p d for p  P , q  Q
+p
+, and d  D,
+when p assigns a decision of d to the request q. If for a
+language Q
+p
+= Q
+p
+for all p and p in P , then we drop the
+subscript on Q and treat it as a set of requests common to
+all policies. Given
+L define the partial order  on D to be
+such that d  d if either d, d  N, d, d  G, or d  N and
+d  G.
+3.2
+Decisions
+Policy languages must provide decisions to indicate a pol-icy's
+intent to grant or not to grant a request. Some languages
+might just provide two decisions: permit for granting
+access and deny for not granting access. A policy in such a
+language associates various subsets of requests with one of
+these two decisions. For example,
+p
+1
+explicitly identifies a
+subset of permitted requests and
+p
+2
+gives denied requests.
+However, a policy might assign some requests to neither
+permit nor deny (e.g.,
+q
+1
+under Interpretation 2 of
+p). To err
+on the side of safety, the policy language should provide for
+such requests a default decision that does not imply a grant
+of access creating a closed policy [10]. However, assigning
+them the decision of deny may limit the ability to compose
+policies. For example, while combining the policies of two
+departments, one would like to distinguish between those
+requests that each department really would like to prohibit
+and those about which they do not care [3]. The decision of
+not applicable serves this purpose.
+With a decision of not applicable sufficing to prevent access
+, some languages elect not to include statements associating
+requests with deny. This leaves only statements permitting
+some set of requests. The uniformity of statements
+in such languages might make the policy easier to read and
+compose (see Section 3.3). However, allowing for the explicate
+denial of requests can quickly rule out exceptional cases
+and provides a means to determine when a policy does not
+grant access by desire rather than by default.
+Some requests might not have a logical interpretation under
+a given policy. For example, a request of
+(s, grades, assign) with faculty(s)  student(s) (q
+2
+)
+under Interpretation 3 of
+p contradicts the policy itself. A
+request might even contain illogical values or require undefined
+computation (such as division by zero). For generality,
+a system might like to assign a decision to such inputs rather
+than excluding them from the set of requests and leaving the
+policy undefined on them. In such cases, a decision of error
+or some refinement of it might be appropriate.
+One may view the fact that an error state is reached given
+a request to be a weakness in the policy. However, one may
+also take it to be a statement about the world in which the
+policy is to function: that no such requests may logically
+exist.
+Error decisions can enforce these preconditions or
+assumptions that the policy has made.
+3.3
+Policy Combinators
+The policy of an organization often consists of the composition
+of policy fragments, or sub-policies, from a variety of
+internal units (e.g., legal, accounting, and execute departments
+of a corporation).
+Thus, policy languages provide
+combinators to create a single policy from these fragments.
+Under
+p, the request given above (q
+2
+) is permitted by
+p
+1
+but denied
+p
+2
+. The method used to combine the three sub-policies
+of
+p into one policy determines how to resolve this
+conflict. Some languages, like the hypothetical language in
+which
+p is written, might have only one policy combinator
+that is implicitly applied. Other languages provide multiple
+combinators. If a policy has sub-policies nested inside of
+sub-policies, the different layers may be resolved differently.
+Some of the possible policy combinators are:
+Permit Overrides If any of the sub-policies produces a
+permit, return only permit. Otherwise, if any produces
+a deny, return only deny. Else, return not applicable.
+Deny Overrides If any of the sub-policies produces a deny,
+return only deny. Otherwise, if any produces a permit,
+return only permit. Else, return not applicable.
+First Applicable Return the decision reached by the first
+sub-policy to reach one other than not applicable.
+All Seen Return a set containing the decisions reached by
+all the sub-policies.
+Either Permit or Deny Nondeterministically return one
+of the produced decisions.
+Error Return a error if the sub-policies produces both permit
+and deny. Otherwise return permit if produced,
+or deny if produced. Else, return not applicable.
+And Conjoin the sub-policies together by logical And and
+return the implied decision(s).
+De Capitani di Vimercati et al. [4] list additional combinators
+. The nature of the combinators available in a language
+can greatly impact the clarity of policies written in it.
+Notice that many of the above combinators behave the
+same in the absence of the decision of deny. One might conclude
+from this observation that allowing the explicit denial
+of a request is an undesirable complication in a language.
+To formalize the role of policy combinators, let policies be
+either an atomic policy or a set of sub-policies combined by
+some policy combinator. Let p be a policy that consists of
+sub-policies p
+i
+with 1
+i  n. Then p = (p
+1
+, p
+2
+, . . . , p
+n
+)
+represents the composition of the sub-policies using
+.
+2
+Since sub-policies are themselves policies, one may apply
+· to them.
+3
+The relationship between
+(p
+1
+, p
+2
+, . . . , p
+n
+)
+and meaning of each sub-policy p
+i
+affects the clarity of the
+policy and is studied in the next section.
+POLICY LANGUAGE PROPERTIES
+Having formalized policy languages, we are now ready to
+describe properties of them.
+2
+We assume that the set of combinators in a given language
+L = (Q, P, G, N, · ) is clear from the structure of P and
+· . If this is not the case for a language, one could explicitly
+add it to the definition of an policy language.
+3
+Some languages may permit contextual information from
+enclosing policies to affect the meaning of the sub-policies.
+For example, a language might have a notation of variable
+binding. For such a language,
+· might be extended to
+take a second argument that carries such contextual information
+. All the following definitions could be extended, e.g.,
+monadically, to deal with such an extended
+· .
+162
+4.1
+Determinism and Totality
+Definition 4.1. A language L = (P, Q, G, N, · ) is deterministic
+if
+p  P, q  Q
+p
+, d, d  D, q p d  q p d = d = d
+For a deterministic language, we can define a function
+·
+which takes a policy p  P and returns a function from Q
+p
+to
+D as p . q . d  D s.t. q p d. For a deterministic language,
+· may be given instead of · to define the language. (We
+only even mention nondeterministic languages due to the
+existence of one: XACML with obligations.)
+Definition 4.2. A language L = (P, Q, G, N, · ) is total
+if
+p  P, q  Q
+p
+, d  D s.t. q p d
+The policies of total languages will always make a decision.
+4.2
+Safety
+Under Interpretation 2, the request contained too little
+information to determine which of the sub-policies of
+p applied
+. Interpretation 1 avoids such indecision by having requests
+implicitly refute the presence of any attribute not
+listed. These two interpretations produce different meanings
+for statements like
+¬faculty(s) found in p
+3
+. Under
+Interpretation 1,
+¬faculty(s) holds if faculty(s) is not in
+the request, while under the second, the request must explicitly
+list
+¬faculty(s) for it to hold. We call the former
+implicit and the latter explicit.
+The explicit approach permits distinguishing between unknown
+information and attributes known to be absent. The
+explicit interpretation, however, incurs the cost of listing a
+possibly large set of absent attributes and can lead to indecision
+as shown above.
+Such indecision, however, allows the system to recognize
+when the policy requires more information to yield a decision
+. In contrast, the implicit interpretation can grant undue
+access. If, for example, a request does not list faculty(s)
+simply because the system did not determine whether s was
+a faculty member or not, then the system might erroneously
+allow s to enroll in courses. Thus, the sub-system producing
+requests must be sure to include all the relevant facts in
+each request.
+For large scale systems, collecting or even determining
+the germane information might consume large amounts of
+time. For such systems, the explicate approach might prove
+better since requests may leave out information safely and
+be refined until the policy yields a decision. Furthermore,
+overzealous optimizations and other coding errors might result
+in the system producing requests that do not contain
+all the relevant facts.
+Having a policy drive which information requests include
+allows for the system to collect only the information really
+needed to reach a decision from the policy. Under this approach
+, the sub-system evaluating the policy starts with a
+request that contains only the readily available information.
+If this sub-system needs additional information to reach a
+decision from the policy, it requests the necessary additional
+information. Thus, the system does not need to know what
+information the policy requires at the time of generating the
+initial request. This approach may allow for more efficient
+implementations.
+Once a datum has been published, it cannot easily be retracted
+. Therefore, preventing unwanted access is usually
+preferable to granting it. As a result, such incomplete requests
+should only result in a grant of access if the complete
+one would have. We can formally state this safety concern:
+Definition 4.3. Let  be a family of partial ordering on
+requests of a language
+L = (P, Q, G, N, · ) indexed by the
+policies of
+L. L is safe with respect to
+iff
+p  P, q, q  Q
+p
+, q
+p
+q = p (q)  p (q ).
+Due to differences in the contents of a requests, for each language
+a different family of partial orderings
+will interest
+users. The relation should be such that if q
+p
+q , then
+q contains all the information contained in q and possibly
+more. Often one partial ordering may serve every policy.
+For example, consider a language in which requests are
+sets of non-contradictory facts and the set of decisions is
+{permit, deny}. Then using the subset partial ordering for
+p
+(for every policy p) will make sense since it matches the
+intuition of information content. If the language is safe with
+respect to such a defined
+, then one may omit facts from
+a request without causing undue access.
+Informally, in a safe language, undue access is impossible
+provided that requests tell no lies; whereas, in an unsafe
+language, the requests must additionally tell the whole truth.
+The choice between these is a function of trust in the program
+generating requests, comprehensiveness of analysis to
+generate requests, efficiency, and so on. Nevertheless, the
+ability to conclude, given a request that will yield access,
+that all requests with more information will also yield access
+, can potentially be a great boon to policy reasoning.
+Some languages might choose to avoid the complications
+introduced by a policy testing for the absence of an attribute
+all together. In some contexts, such as certificate passing
+systems in which a certificate may be withheld, negated attributes
+may not make sense.
+4
+In such a context, requests
+would not list negated attributes and the policy would not
+test for the absence of an attributes at all.
+4.3
+Independent Composition
+Consider the third interpretation of
+p. Under this interpretation
+, the meaning of
+p can only be determined by looking
+at the interactions of the different sub-policies as a whole.
+Notice that any one of these sub-policies would produce a
+decision of not applicable in isolation, and yet together they
+interact to produce a permit decision. The third interpretation
+thus inhibits the easy use of local reasoning to reach
+conclusions about the policy as a whole. This increases the
+possibility of unintended results from combining sub-policies
+into a policy.
+The alternative, as found in the first two interpretations,
+is for the sub-policies to be combined in such a way that
+only the result of each in isolation matters. This property
+is formalized as follows:
+Definition 4.4. A policy combinator  of a language
+L = (P, Q, G, N, · ) independently composes its sub-4
+One may argue that certificate passing systems may use
+negative certificates to achieve the checking of attribute absence
+. Whether this captures the notion of the absence of
+an attribute or just the presence of another related attribute
+is unclear. For example, one could conceivably hold both a
+positive and a negative certificate for an attribute.
+163
+policies iff
+p
+1
+, p
+2
+, . . . , p
+n
+P, i,
+1
+i  n = Q
+(p
+1
+,p
+2
+,...,p
+n
+)
+Q
+p
+i
+(1)
+and there exists a function
+: Q  D
+
+D such that
+p
+1
+, p
+2
+, . . . , p
+n
+P, q  Q
+(p
+1
+,p
+2
+,...,p
+n
+)
+,
+(p
+1
+, p
+2
+, . . . , p
+n
+) (q)
+=
+(q)( p
+1
+(q), p
+2
+(q), . . . , p
+n
+(q)) (2)
+If all the combinators of
+L independently compose, then L
+has the independent composition property.
+The first requirement forces a request defined for a policy
+to also be defined on each of its sub-policies. This is necessary
+for the second requirement to be well defined. The
+second requirement ensures that one can determine the decision
+of the whole policy from the request and decisions of
+its sub-policies on that request; no other properties of the
+sub-policies matter.
+One might alternatively be tempted to define independent
+composition thus:
+Definition 4.5. A policy combinator  of a language
+L = (P, Q, G, N, · ) semantically composes its sub-policies
+iff
+: (Q  D)
+
+(Q  D), p
+1
+, p
+2
+, . . . , p
+n
+P,
+(p
+1
+, p
+2
+, . . . , p
+n
+) =
+( p
+1
+, p
+2
+, . . . , p
+n
+)
+(3)
+If all the combinators of
+L semantically compose, then L has
+the semantic composition property.
+Semantic composition ensures that all sub-policies with the
+same meaning in isolation will behave the same under the
+combinator.
+A language with the semantic composition
+property is arguably more clear than one without it, since
+only the isolated meaning of the sub-policy must known to
+reason about its use under the combinator.
+Theorem 4.6. If a policy combinator  of an policy language
+L has independent composition, then it has semantic
+composition.
+Proof. To prove that  has semantic composition,
+:
+(Q  D)
+
+(Q  D) required for Equation 3 will be
+constructed from the
+: Q  D
+
+D known to exist
+since
+independently composes. Let
+(f
+1
+, f
+2
+, . . . , f
+n
+) = q . (q)(f
+1
+(q), f
+2
+(q), . . . , f
+n
+(q))
+Then
+( p
+1
+, p
+2
+, . . . , p
+n
+)
+= q . (q)( p
+1
+(q), p
+2
+(q), . . . , p
+3
+(q))
+= q . (p
+1
+, p
+2
+, . . . , p
+n
+) (q)
+=
+(p
+1
+, p
+2
+, . . . , p
+n
+)
+Theorem 4.7. The semantic composition of a policy combinator
+does not imply that it independently composes.
+Proof. Consider a rather odd language that has only one
+unary policy combinator,
+, atomic policies that are sets of
+values, G = {permit}, N = {deny}, and requests that are
+sets of values. Let the semantics be
+(p
+1
+) = q .
+(permit p
+1
+(
+{v }) = permit
+deny
+p
+1
+(
+{v }) = deny
+for some distinguished value v , and for atomic policies p,
+p (q) equals permit iff p  q =  and equals deny otherwise.
+The language has semantic composition: for
+such that
+(f
+1
+) =
+(permit f
+1
+(
+{v }) = permit
+deny
+f
+1
+(
+{v }) = deny
+clearly,
+(p
+1
+) =
+( p
+1
+).
+To show that the language does not have independent
+composition, assume that it does. Then there exists such a
+: Q  D
+
+D to satisfy Equation 2. Let p
+1
+=
+{v} and
+p
+2
+=
+{v, v } for some value v such that v = v . Then,
+deny = ({v}) ({v})
+=
+(
+{v})( {v} ({v})) = ({v})(permit)
+=
+(
+{v})( {v, v } ({v})) = ({v, v }) ({v}) = permit
+A contradiction is reached since permit = deny.
+Only with independent composition can a policy reader
+with a specific request in mind know the decision of the
+whole policy from each of the component policies. This enables
+a reader to ask what-if questions like "What if Bob
+requests to write the log?" and determine the answer from
+recursively asking that question of the sub-policies. Such an
+ability is particularly helpful to readers interested in only a
+subset of the possible requests or already familiar with some
+of the sub-policies.
+4.4
+Monotonicity
+As noted at the end of Section 3.3, the decision of deny
+complicates the policy combinators. One of the reasons for
+this is that, under combinators like Deny Overrides, a back-and
+-forth pattern can arise when considering the decision of
+the whole policy from the sub-policies. Consider each sub-policy
+in
+p with the request q
+2
+. Under a reasonable interpretation
+p
+1
+yields a decision of permit,
+p
+2
+a decision of deny,
+and
+p
+3
+not applicable. Thus, if the order of
+p was changed
+to
+p
+3
+,
+p
+1
+,
+p
+2
+and we assume a Deny Overrides policy combinator
+, the apparent decision would go from non-granting
+to granting to non-granting.
+Note that Permit Overrides does not exhibit this pattern
+since it is impossible to go from a granting decision to a
+non-granting one under it. Thus, the formalization of this
+pattern focuses on the transition from a granting to a non-granting
+decision.
+Definition 4.8. A policy combinator  of a language
+L = (P, Q, G, N, · ) is monotonic iff
+p
+1
+, . . . , p
+n
+, p  P, q  Q ,
+(p
+1
+, . . . , p
+n
+) (q)  (p
+1
+, . . . , p
+i
+, p , p
+i+1
+, . . . , p
+n
+) (q)
+where Q = Q
+(p
+1
+,...,p
+n
+)
+Q
+(p
+1
+,...,p
+i
+,p ,p
+i+1
+,...,p
+n
+)
+. We say
+L is monotonic if every combinator is monotonic.
+Adding another sub-policy to a monotonic combinator cannot
+change the decision from granting to non-granting.
+Having motivated and established these criteria, we now
+apply them to concrete access control languages.
+164
+CORE XACML
+In its entirety, XACML [12] exceeds the bounds of the
+definitions given in Section 3. Full XACML includes obligations
+, which act as annotations on the decisions of permit
+and deny. These annotations specify actions that the system
+enforcing the access controls must preform before granting
+access or upon prohibiting access. Thus, an XACML policy
+may have effects beyond just granting or prohibiting access
+that the model presented fails to address.
+Handling all of XACML is beyond the scope of this paper
+. For illustrative purposes, we employ a formalized subset
+of XACML, which we will call Core XACML (CXACML),
+which corresponds to the input of the tool Margrave [7, 8].
+This subset is expressive enough to capture RBAC
+0
+[14].
+5.1
+Syntax
+CXACML has two syntaxes: one for policies and one for
+requests. We present the policy syntax first, with the start
+non-terminal P. For syntactic brevity, we use a Lisp-like
+parenthetical syntax in place of XML notation.
+P
+::=
+(Policy C T P
+
+)
+| (Rule T F)
+C
+::=
+FirstApp
+| DenyOver | PermitOver
+T
+::=
+( (L
+
+) (L
+
+) (L
+
+) (L
+
+) )
+L
+::=
+(A
++
+)
+A
+::=
+(id val)
+F
+::=
+Permit
+| Deny
+Those policies formed by using solely the right choice of
+the production rule for P are called rules. XACML does not
+consider rules to be policies. However, since the semantics
+assigned to rules allows them to behave as policies, we will
+consider them policies. The elements of the syntax category
+T are called targets. The four parts of the target are the
+requirements placed on the subject, resource, action, and
+environment, respectively, for the policy to apply to a request
+. The non-terminals id and val are strings representing
+the attribute IDs and values.
+Example 5.1. The following is a CXACML policy:
+(Policy FirstApp
+((()) (((name log))) (()) (()))
+(Rule (((role dr)) (()) (()) (())) Deny)
+(Rule ((()) (()) (()) (())) Permit))
+This policy permits all requests for access to a log except
+those made by doctors, which it denies. In detail, the policy
+is composed of two sub-policies using the combinator First
+Applicable and applies only to requests where the resource
+has the name of log. The first sub-policy denies requests
+where the subject has the role of dr regardless of the resource,
+action, or environment. The second permits all requests.
+The syntax for requests is (with start non-terminal Q):
+Q
+::=
+( (A
+
+) (A
+
+) (A
+
+) (A
+
+) )
+They simply list the attributes possessed by the subject,
+resource, action, and environment in turn.
+5.2
+Semantics
+In the following natural semantics, we will use the convention
+that a lower-case letter represents an element of the set
+or syntactic category represented by the upper-case equivalent
+. For example, P is the set of all policies and p is a policy.
+Let D be the set of all decisions (D = {permit, deny, na}).
+The core of the semantics of CX ACML compares requests
+to targets. We will denote this relation by qt for request
+q and target t. The natural semantics of Table 1 defines .
+Next we define
+· . Table 2 gives the result of evaluating
+rules. The following tables defines
+· over policies. Table 3
+deals with two cases where a policy does not apply to a
+request.
+Finally, we must define the policy combinators:
+Permit Overrides in Table 4, Deny Overrides in Table 5,
+and First Applicable in Table 6.
+5.3
+Analysis
+The syntax and semantics of CXACML defines
+L
+CXACML
+=
+(P, Q, G, N, · ). The syntax determines P and Q where
+the same set of requests is used for every policy (and thus,
+we treat Q as a set of requests). From the semantics, G =
+{permit}, N = {na, deny}. CXACML allows for explicit
+denials and the checking of the implicit absence of attributes.
+Theorem 5.2. L
+CXACML
+is deterministic.
+Proof. Inspection of the inference rules for atomic policies
+(Table 2) shows that only one of them can hold at a
+time. Thus, atomic policies are deterministic.
+Table 4 combined with Table 3 gives the semantics of the
+policy combinator Permit Overrides.
+The antecedents of
+all these inference rules are disjoint, that is, at most one
+them can hold for any policy and request. Thus, Permit
+Overrides is deterministic. The same argument holds for
+Deny Overrides and First Applicable using Tables 5 and 6.
+Thus, all the combinators are deterministic.
+Thus, one may view a CXACML policy as a function from
+requests to decisions with
+· in place of · . Further inspection
+establishes that
+· is a total function.
+For two requests q = (s r a e) and q = (s r a e ), let
+q
+p
+q (for every policy p) if s
+s , r
+r , a
+a , and
+e
+e where
+is defined in Table 1.
+Theorem 5.3. CXACML is not safe with respect to .
+Proof. Consider the policy p shown in Example 5.1 and
+the requests q = (() ((name log)) () ()) and
+q = (((role dr)) ((name log)) () ()). Clearly q
+p
+q .
+Yet p (q) = permit
+deny = p (q )
+Theorem 5.4. L
+CXACML
+has independent composition.
+Proof. A combination algorithm c and target t together
+determine a policy combinator. For each pair of values for c
+and t, the needed function
+t
+c
+: Q  D
+
+D exists to provide
+the meaning of the policy (Policy c t p p
+
+) and satisfy
+Equation 2. For Permit Overrides (when c = PermitOver,
+or PO for short), the function
+t
+PO
+(q)(d d
+
+) is equal to
+na
+if
+q /
+t
+permit
+else if
+d = permit
+t
+PO
+(q)(d
+
+) = permit
+deny
+else if
+d = deny
+t
+PO
+(q)(d
+
+) = deny
+na
+otherwise
+The function
+t
+DO
+(q)(d d
+
+) for Deny Overrides is equal to
+na
+if
+q /
+t
+deny
+else if
+d = deny
+t
+DO
+(q)(d
+
+) = deny
+permit
+else if
+d = permit
+t
+DO
+(q)(d
+
+) = permit
+na
+otherwise
+For First Applicable,
+t
+FA
+(q)(d d
+
+) is
+165
+(
+a
+1
+)
+(l
+
+1
+)
+(
+a
+2
+)
+(l
+
+2
+)
+(
+a
+3
+)
+(l
+
+3
+)
+(
+a
+4
+)
+(l
+
+4
+)
+((
+a
+1
+) (
+a
+2
+) (
+a
+3
+) (
+a
+4
+))
+((l
+
+1
+) (
+l
+
+2
+) (
+l
+
+3
+) (
+l
+
+4
+))
+i s.t. l
+i
+(
+a
+
+)
+(
+a
+
+)
+(l
+1
+l
+2
+. . . l
+n
+)
+i j s.t. a
+i
+= a
+j
+(
+a
+1
+a
+2
+. . . a
+n
+)
+(
+a
+1
+a
+2
+. . . a
+m
+)
+Table 1: The Match Relationship
+q /
+t
+q (Rule t f) na
+qt
+q (Rule t Permit) permit
+qt
+q (Rule t Deny) deny
+Table 2:
+· on Rules
+q (Policy c t) na
+q /
+t
+q (Policy c t p
+
+)
+na
+Table 3: Default na Inference Rules
+qt
+i s.t. q p
+i
+permit
+q (Policy PermitOver t p
+1
+p
+2
+. . . p
+n
+)
+permit
+qt
+i s.t. q p
+i
+deny
+j, ¬(q p
+j
+permit)
+q (Policy PermitOver t p
+1
+p
+2
+. . . p
+n
+)
+deny
+qt
+i, q p
+i
+na
+q (Policy PermitOver t p
+1
+p
+2
+. . . p
+n
+)
+na
+Table 4: Inference Rules for Permit Overrides
+qt
+i s.t. q p
+i
+deny
+q (Policy DenyOver t p
+1
+p
+2
+. . . p
+n
+)
+deny
+qt
+i s.t. q p
+i
+permit
+j, ¬(q p
+j
+deny)
+q (Policy DenyOver t p
+1
+p
+2
+. . . p
+n
+)
+permit
+qt
+i, q p
+i
+na
+q (Policy DenyOver t p
+1
+p
+2
+. . . p
+n
+)
+na
+Table 5: Inference Rules for Deny Overrides
+qt
+q p
+1
+permit
+q (Policy FirstApp t p
+1
+p
+2
+. . . p
+n
+)
+permit
+qt
+q p
+1
+deny
+q (Policy FirstApp t p
+1
+p
+2
+. . . p
+n
+)
+deny
+qt
+q p
+1
+na
+q (Policy FirstApp t p
+2
+, . . . , p
+n
+)
+d
+q (Policy FirstApp t p
+1
+p
+2
+. . . p
+n
+)
+d
+Table 6: Inference Rules for First Applicable
+na
+if
+q /
+t
+d
+else if
+d = permit  d = deny
+t
+FA
+(q)(d
+
+)
+otherwise
+where
+t
+PO
+(
+) =
+t
+DO
+(
+) =
+t
+FA
+(
+) = na for the empty sequence
+.
+Theorem 5.5. L
+CXACML
+is not monotonic.
+Proof. Consider the policy p in Example 5.1 and the
+policy p that would be p without the first rule. Let the request
+q be (((role dr)) ((name log)) () ()). p (q) =
+permit, but p (q) = deny. Thus, adding a rule to p results
+in a request going from being granted to not being
+granted.
+ADAPTATIONS OF FIRST-ORDER LOGIC
+Whereas XACML is an attempt to create a policy language
+from whole cloth, other languages are adaptations
+of first-order logic.
+Halpern and Weissman present several
+schemata for such languages [9]. Here we present and
+analyze the languages produced by two of their schemata,
+Lithium and
+L
+5
+.
+For the ease presentation, first, we define the language
+schemata FOL, a more readily identifiable restriction of first-order
+logic. To ensure efficiency (and decidability!), the languages
+of
+L
+5
+and Lithium use additional context-sensitive
+constraints to restrict FOL. We discuss these restrictions
+after giving a semantics to FOL. (The semantics of L
+5
+and
+Lithium will be the same as that of FOL, restricted to subsets
+of the language.)
+The schemata FOL is a restriction of many-sorted first-order
+logic. Each language of FOL corresponds to giving
+the logic a different vocabulary  (the parameters including
+quantifier symbols, predicate symbols, constant symbols,
+and function symbols). We assume that  includes the sorts
+S for subjects, R for resources, A for actions, and the predicate
+symbol Permit of the sort S × R × A  {T, F}.
+5
+
+may also include sorts to represent environmental data such
+as the current time and location.
+6.1
+Syntax of
+FOL
+A standard policy under the vocabulary  is an expression
+with one of the following forms:
+(
+
+y
+1
+x
+1
+,
+. . .,
+y
+m
+x
+m
+(
+1
+. . .
+n
+Permit(s, r, a)))
+(
+
+y
+1
+x
+1
+,
+. . .,
+y
+m
+x
+m
+(
+1
+. . .
+n
+¬Permit(s, r, a)))
+where each x
+i
+names a variable over the sort identified by
+y
+i
+, s is a term over the sort S, r is a term over the sort R,
+a is a term over the sort A, and each
+j
+is a literal over
+that may include the variables x
+1
+, . . . , x
+m
+.
+The policies of the language FOL() are the standard policies
+under  and conjunctions of policies:
+P ::= StandardPolicy | (and P
+
+)
+Example 6.1. Let the vocabulary  contain
+1. the sorts S = {amy, bob, joe},
+R = {grades, courses}, and A = {assign, enroll};
+5
+Halpern and Weissman treat the Permit predicate as taking
+two arguments, a subject and a resource-action, instead
+of three.
+166
+2. the predicates Permit : S × R × A  {T, F}, faculty :
+S  {T, F}, and student : S  {T, F}.
+FOL( ) includes the following policy:
+(and (
+
+S
+x (faculty(x)
+Permit(x, grades, assign)))
+(
+
+S
+x (student(x)
+¬Permit(x, grades, assign)))
+(
+
+S
+x (
+¬faculty(x) Permit(x, courses, enroll))))
+where S identifies the sort S. As the semantics will soon
+show, this policy has the same meaning as policy
+p from
+Section 2 does under Interpretation 3.
+The requests of FOL() have the form (s, r, a, e) where
+s  S is the subject making the request; r  R is the requested
+resource; a  A is the action the subject would like
+to preform on the resource; and e is a conjunction of ground
+literals and universal formulas of the form
+
+y
+1
+x
+1
+,
+. . . ,
+y
+m
+x
+m
+(
+1
+. . .
+n
+
+n+1
+)
+where each x
+i
+names a variable over the sort identified by y
+i
+and each
+i
+is a literal over  that may include the variables
+x
+l
+, . . . , x
+m
+. The expression e provides information about s,
+r, a, and the environment.
+Example 6.2. The four-tuple
+(bob, courses, enroll,
+student(bob)
+faculty(amy) ¬ student(amy))
+is a request of FOL( ) where  is defined in Example 6.1.
+6.2
+Semantics of
+FOL
+The semantics of a policy follows from interpreting it as a
+formula in many-sorted first-order logic. The policy combinator
+and becomes conjunction. The standard policies and e
+are interpreted as the corresponding logic formulas. A policy
+p defines a relation p between requests and {permit, deny}
+as follows:
+(
+s, r, a, e) p permit
+iff
+p  e
+Permit(
+s, r, a)
+(
+s, r, a, e) p deny
+iff
+p  e
+¬Permit(s, r, a)
+where
+is interpreted as the standard "proves" relation for
+many-sorted first-order logic over .
+To define a deterministic and total version of FOL, we
+expand the set of decisions to D = {na, permit, deny, error}
+and define p ((s, r, a, e)) to be
+error
+if pe
+Permit(
+s, r, a) and pe ¬Permit(s, r, a)
+permit if pe
+Permit(
+s, r, a) and pe ¬Permit(s, r, a)
+deny if pe
+Permit(
+s, r, a) and pe ¬Permit(s, r, a)
+na
+if pe
+Permit(
+s, r, a) and pe ¬Permit(s, r, a)
+Since a policy composed of sub-policies, each composed of
+standard policies, is semantically equivalent to a policy composed
+of all the standard policies without the intermediate
+sub-policies, we will henceforth treat all policies as either a
+standard policy or a conjunction of standard policies.
+6.3
+Analysis of
+FOL
+The language FOL() defines the deterministic and total
+policy language (P, Q, G, N, · ). The syntax determines P
+and Q where Q may be treated as a set of requests since for
+all policies p and p , Q
+p
+= Q
+p
+. The semantics requires that
+G = {permit} and N = {na, deny, error}. The languages of
+FOL has the policy combinator and. FOL allows for explicit
+denials and checking for the explicit absence of attributes.
+Given two requests q = (s, r, a, e) and q = (s , r , a , e ),
+if s = s , r = r , or a = a , we consider the two requests incomparable
+. If s = s , r = r , and a = a , then we would like
+to order requests according to their information content.
+One might conclude that q
+p
+q if e
+=
+e. However,
+suppose e = , where  is logical contradiction. Then
+e contains no information and yet it implies e. Similarly, if
+p  e =
+, then e contains no information with respect
+to p. Thus, we define
+p
+as follows:
+Let (s, r, a, e)
+p
+(
+s , r , a , e ) iff
+1. s = s , r = r , and a = a ; and
+2. p  e implies p  e but not , or p  e implies .
+Theorem 6.3. FOL() is safe with respect to
+for any
+vocabulary .
+Proof. Assume FOL() is not safe. Then there must
+exist p  P and q, q
+Q such that q
+p
+q and p (q)
+p (q ). Let q = (s, r, a, e) and q = (s, r, a, e ). Since
+permit is the only granting decision, p (q) = permit and
+thus p  e
+Permit(
+s, r, a). Since N = {na, deny, error},
+p (q ) must be either na, deny, or error.
+Since q
+p
+q , two cases arise:
+1. pe implies pe but not : Since pe = pe and
+pe
+Permit(
+s, r, a), pe
+Permit(
+s, r, a). Thus,
+p (q ) is either permit or error. However, if p (q ) =
+error, then pe = , a contradiction. Furthermore,
+p (q ) = permit /
+N is also a contradiction.
+2. p  e implies : In this case, p (q) = error = permit,
+a contradiction.
+We can thus conclude that FOL() must be safe.
+Theorem 6.4. FOL() does not have independent composition
+for some .
+Proof. Consider the policy p
+a
+:
+(and (
+
+S
+x, student(x)
+Permit(x, log, read))
+(
+
+S
+x,
+¬student(x) Permit(x, log, read)))
+the policy p
+b
+:
+(and (
+
+S
+x, student(x)
+Permit(x, log, edit))
+(
+
+S
+x,
+¬student(x) Permit(x, log, edit)))
+and request q = (bob, log, read, T). On q, p
+a
+produces the
+decision of permit while its sub-policies yield na. However, p
+b
+produces the decision of na while its sub-policies also yield
+na on q. Thus, the required function
+and
+would have to
+satisfy
+permit =
+and
+(q)(na na) = na
+A contradiction, and hence
+and
+cannot exist.
+Theorem 6.5. FOL() is not monotonic for some .
+Proof. Consider the policy p
+c
+:
+(and (
+
+S
+x, student(x)
+Permit(x, log, read))
+(
+
+S
+x, student(x)
+¬Permit(x, log, read)))
+with and without the second sub-policy, and the request
+(bob, log, read, student(bob)). In the absence of the second
+sub-policy, the decision is permit, whereas p
+c
+produces
+error.
+167
+6.4
+Analysis of Lithium
+Halpern and Weissman restrict FOL to create the language
+they dub Lithium.
+6
+A slightly modified form follows.
+Lithium relies heavily on the notion of "bipolarity". A
+literal
+of f is labeled bipolar in f relative to the equality
+statements in e if the following holds: there exists a term ¬
+in f and variable substitutions  and  such that it follows
+from e that  =  .
+Lithium also makes use of the notion of equality-safety.
+(p, e
+0
+, e
+1
+) is equality-safe if
+1. e
+1
+p when written in CNF (i.e., of the form c
+1
+. . .
+c
+n
+where each c
+j
+has the form
+
+y
+1
+x
+1
+,
+. . . ,
+y
+m
+x
+m
+(
+)
+where  is a qualifier-free disjunction of literals) has
+no clause with a disjunct of the form t = t , and
+2. it is not the case that f
+0
+t = t where f
+0
+is the
+conjunction of the equality statements in e
+0
+,
+where t and t are closed terms such that (1) they both
+appear in e
+0
+; and (2) either t is a sub-term of t , or both t
+and t mention function symbols.
+Like FOL, Lithium is a set of languages each with a different
+vocabulary. Let Li() be the instance of Lithium using
+the vocabulary .
+Li() has the same set of policies as
+FOL(). However, each policy p of Li() has a different set
+of requests for which it is defined (a different value for Q
+p
+).
+A request (s, r, a, e
+0
+e
+1
+) of
+FOL() is in Q
+p
+iff:
+1. e
+0
+is a basic environment (a conjunction of ground
+terms),
+2. e
+1
+is a conjunction of universally quantified formulas,
+3. (p, e
+0
+, e
+1
+) is equality-safe, and
+4. every conjunct of e
+1
+p has at most one literal that is
+bipolar in e
+1
+p relative to the equality statements in
+e
+0
+.
+Lithium is safe since its requests are a subset of those of
+FOL.
+Theorem 6.6. Lithium does not have independent composition
+for some .
+Proof. Consider the policies p
+a
+and p
+b
+and the request
+given with them in the proof of Theorem 6.4. The request
+is in Q
+p
+a
+. To show this, we check that the request satisfies
+all four of the requirements for a request to be in Q
+p
+a
+given above.
+Since e
+0
+e
+1
+= T, the first three requirements
+hold. The last requirement holds since student(x)
+and
+¬student(x) are the only bipolars and they are each in
+a different conjunct.
+By similar reasoning, the request is also in Q
+p
+b
+. Thus, the
+proof follows as before.
+6.5
+Analysis of
+L
+5
+In their work, Halpern and Weissman define a further restriction
+of FOL, which they call L
+5
+.
+Like Lithium,
+L
+5
+() includes all the policies of FOL()
+with each policy having a different set of requests for which
+it is defined. For a policy p of L
+5
+(), Q
+p
+consists of all the
+requests (s, r, a, e) of FOL() such that:
+6
+The name Lithium only appears in the 2006 version of their
+work [9].
+1. e is a basic environment,
+2. equality is not used in e or p,
+3. for every atomic policy p in p, all variables appearing
+in p appears as an argument to Permit in p , and
+4. there are no bipolars in p relative to the empty set of
+equality statements.
+As with Lithium,
+L
+5
+() is safe since it is a subset of a safe
+language.
+Halpern and Weissman have proven the following theorem
+(Proposition 4.2 in their updated document [9]):
+Theorem 6.7. Let p be a compound policy and (s, r, a, e)
+be a request of
+L
+5
+. Then e  p
+Permit(
+s, r, a) iffthere is
+a sub-policy p of p such that e  p
+Permit(
+s, r, a).
+Using the same approach as given in their proof, one can
+generalize this proof to include statements of the form ep
+¬Permit(s, r, a) also.
+Theorem 6.8. L
+5
+() has independent composition for all
+.
+Proof. Allowing p
+i
+to range over the sub-policies of p,
+the above result yields:
+p (q) =
+8
+&gt;
+&gt;
+&gt;
+&lt;
+&gt;
+&gt;
+&gt;
+:
+error
+i, j, p
+i
+(q) = permit  p
+j
+(q) = deny
+permit else if i, p
+i
+(q) = permit
+deny
+else if
+i, p
+i
+(q) = deny
+deny
+otherwise
+From this, it is easy to construct an appropriate value for
+and
+(q)(d
+1
+, d
+2
+, . . . , d
+n
+):
+error
+if
+i, j, d
+i
+= permit  d
+j
+= deny
+permit
+else if
+i, d
+i
+= permit
+deny
+else if
+i, d
+i
+= deny
+deny
+otherwise
+Notice that
+and
+does not use the value of q: it merely composes
+the results from its sub-policies.
+A policy author concerned solely with expressive power
+would select Lithium over
+L
+5
+. However, the choice becomes
+more complicated when concerned about the ability to reason
+about policies, because only
+L
+5
+features independent
+composition. We hope that elucidating this trade-off with a
+combination of proof and illustrative examples, as we have
+done above, will help authors choose better between the policy
+languages they use, even when the languages are within
+the same family.
+RELATED WORK
+De Capitani di Vimercati et al. discuss explicit denial
+and how it introduces the need for policy combinators that
+reduce the clarity of the language [4]. The authors list various
+policy combinators that are possible, many of which are
+more complex than those we present. The paper includes
+discussion of a few policy languages, including XACML and
+a language grounded in first-order logic. The paper does
+not, however, attempt to systemically compare them.
+The work of Mark Evered and Serge B¨
+ogeholz concerns
+the quality of a policy language [5].
+After conducting a
+case study of the access-control requirements of a health
+168
+information system, they proposed a list of criteria for policy
+languages.
+They state that languages should be concise,
+clear, aspect-oriented (i.e., separate from the application
+code), fundamental (i.e., integrated with the middleware,
+not an ad hoc addition), positive (i.e., lists what is allowed,
+not what is prohibited), supportive of needs-to-know, and
+efficient. Although they compare four languages based on
+these criteria, they do not formalize the criteria.
+Some authors have considered formal treatments of programming
+language expressiveness [6, 11]. Felleisen's is the
+closest in spirit to ours. His framework examines the ability
+to translate the features of one language in the other with
+only local transformations. That work does not, however,
+directly address reasoning.
+DISCUSSION
+This paper presents our analysis framework and its findings
+. Some differences between languages lie in the realms
+of decision sets, policy combinators, and checking for the
+absence of attributes, but these are clear from the language
+definitions. Our framework highlights the following more
+subtle, semantic differences:
+Independence Core XACML and
+L
+5
+feature independent
+composition of polices into compound policies, and
+thus allow for reasoning about a policy by reasoning
+about the sub-policies separately.
+Lithium, in contrast
+, does not exhibit this property, and therefore potentially
+requires reasoning about a policy all at once.
+Safety
+L
+5
+and Lithium provide safety for the most natural
+definition of the "contains more information" ordering.
+Core XACML, in contrast, does not, which implies
+that information missing from a Core XACML request
+could result in unintended access being granted.
+These differences are not orthogonal. Clearly, the combinators
+selected determine whether the language will have
+independent composition.
+Furthermore, implicit checking
+of attributes will result in the loss of safety.
+These properties may guide policy language designers.
+For example, suppose a designer wishes to create a safe
+variant of XACML. One way to achieve this would be to
+eliminate rules that deny access and thus the decision of
+deny. (We provide further details in an extended version of
+this work [15].)
+As noted in Section 5, the comparison framework must be
+generalized to treat language with more exotic constructs
+like obligations. More importantly, we need to perform user
+studies to determine whether, and how well, our properties
+correlate with policy comprehension by humans. Lastly, this
+framework should be coupled with one for measuring the
+expressive power of a policy language before fair judgment
+may be passed on languages.
+ACKNOWLEDGMENTS
+We thank Joe Halpern and Vicky Weissman for useful conversations
+and for sharing their ongoing work. We also thank
+Konstantin Beznosov, Kathi Fisler, and Steve Reiss. This
+work was partially supported by NSF grant CPA-0429492 to
+Brown University and by the Army Research Office through
+grant number DAAD19-02-1-0389 ("Perpetually Available
+and Secure Information Systems") to Carnegie Mellon Uni-versity's
+CyLab.
+REFERENCES
+[1] A. Anderson. Core and hierarchical role based access
+control (RBAC) profile of XACML, version 2.0.
+Technical report, OASIS, Sept. 2004.
+[2] M. Y. Becker and P. Sewell. Cassandra: Flexible trust
+management, applied to electronic health records. In
+IEEE Computer Security Foundations Workshop,
+pages 139­154, 2004.
+[3] E. Bertino, P. Samarati, and S. Jajodia.
+Authorizations in relational database management
+systems. In ACM Conference on Computer and
+Communications Security, pages 130­139, 1993.
+[4] S. De Capitani di Vimercati, P. Samarati, and
+S. Jajodia. Policies, models, and languages for access
+control. In Databases in Networked Information
+Systems: 4th International Workshop, volume 3433 of
+Lecture Notes in Computer Science. Springer-Verlag,
+Mar. 2005.
+[5] M. Evered and S. B¨
+ogeholz. A case study in access
+control requirements for a health information system.
+In Workshop on Australasian Information Security,
+Data Mining and Web Intelligence, and Software
+Internationalisation, pages 53­61, 2004.
+[6] M. Felleisen. On the expressive power of programming
+languages. Science of Computer Programming,
+17:35­75, 1991.
+[7] K. Fisler, S. Krishnamurthi, L. A. Meyerovich, and
+M. C. Tschantz. Verification and change-impact
+analysis of access-control policies. In International
+Conference on Software Engineering, pages 196­205,
+May 2005.
+[8] M. M. Greenberg, C. Marks, L. A. Meyerovich, and
+M. C. Tschantz. The soundness and completeness of
+Margrave with respect to a subset of XACML.
+Technical Report CS-05-05, Department of Computer
+Science, Brown University, Apr. 2005.
+[9] J. Halpern and V. Weissman. Using first-order logic to
+reason about policies. In IEEE Computer Security
+Foundations Workshop, pages 187­201, 2003. Updated
+2006 version available at http://www.citebase.org/
+cgi-bin/citations?id=oai:arXiv.org:cs/0601034.
+[10] S. Jajodia, P. Samarati, V. S. Subrahmanian, and
+E. Bertino. A unified framework for enforcing multiple
+access control policies. In ACM SIGMOD
+International Conference on Management of Data,
+pages 474­485, 1997.
+[11] J. C. Mitchell. On abstraction and the expressive
+power of programming languages. Science of
+Computer Programming, 212:141­163, 1993.
+[12] OASIS. eXtensible Access Control Markup Language
+(XACML) version 2.0. OASIS Standard, Feb. 2006.
+[13] C. Powers and M. Schunter. Enterprise privacy
+authorization language (EPAL 1.2). W3C Member
+Submission, Nov. 2003.
+[14] R. S. Sandhu, E. J. Coyne, H. L. Feinstein, and C. E.
+Youman. Role-based access control models. IEEE
+Computer, 29(2):38­47, 1996.
+[15] M. C. Tschantz and S. Krishnamurthi. Towards
+reasonability properties for access-control policy
+languages with extended XACML analysis. Technical
+Report CS-06-04, Department of Computer Science,
+Brown University, Apr. 2006.
+169
+

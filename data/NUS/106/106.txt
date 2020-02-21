@@ -1,0 +1,1525 @@
+Improvements of TLAESA Nearest Neighbour Search Algorithm and Extension to Approximation Search
+Abstract
+Nearest neighbour (NN) searches and k nearest neighbour
+(k-NN) searches are widely used in pattern
+recognition and image retrieval.
+An NN (k-NN)
+search finds the closest object (closest k objects) to a
+query object. Although the definition of the distance
+between objects depends on applications, its computation
+is generally complicated and time-consuming.
+It is therefore important to reduce the number of distance
+computations. TLAESA (Tree Linear Approximating
+and Eliminating Search Algorithm) is one of
+the fastest algorithms for NN searches. This method
+reduces distance computations by using a branch and
+bound algorithm. In this paper we improve both the
+data structure and the search algorithm of TLAESA.
+The proposed method greatly reduces the number of
+distance computations. Moreover, we extend the improved
+method to an approximation search algorithm
+which ensures the quality of solutions. Experimental
+results show that the proposed method is efficient and
+finds an approximate solution with a very low error
+rate.
+Introduction
+NN and k-NN searches are techniques which find the
+closest object (closest k objects) to a query object
+from a database. These are widely used in pattern
+recognition and image retrieval. We can see examples
+of their applications to handwritten character
+recognition in (Rico-Juan & Mic´o 2003) and (Mic´o
+& Oncina 1998), and so on. In this paper we consider
+NN (k-NN) algorithms that can work in any metric
+space. For any x, y, z in a metric space, the distance
+function d(·, ·) satisfies the following properties:
+d(x, y) = 0  x = y,
+d(x, y) = d(y, x),
+d(x, z)  d(x, y) + d(y, z).
+Although the definition of the distance depends on
+applications, its calculation is generally complicated
+and time-consuming. We particularly call the calculation
+of d(·, ·) a distance computation.
+Copyright c 2006, Australian Computer Society, Inc. This paper
+appeared at Twenty-Ninth Australasian Computer Science
+Conference (ACSC2006), Hobart, Tasmania, Australia, January
+2006. Conferences in Research and Practice in Information
+Technology, Vol. 48. Vladimir Estivill-Castro and Gill
+Dobbie, Ed. Reproduction for academic, not-for profit purposes
+permitted provided this text is included.
+For the NN and k-NN searches in metric spaces,
+some methods that can manage a large set of objects
+efficiently have been introduced(Hjaltason &
+Samet 2003). They are categorized into two groups.
+The methods in the first group manage objects with
+a tree structure such as vp-tree(Yianilos 1993), M-tree
+(Ciaccia, Patella & Zezula 1997), sa-tree (Navarro
+2002) and so forth. The methods in the second group
+manage objects with a distance matrix, which stores
+the distances between objects. The difference between
+two groups is caused by their approaches to
+fast searching. The former aims at reducing the com-putational
+tasks in the search process by managing
+objects effectively. The latter works toward reducing
+the number of distance computations because generally
+their costs are higher than the costs of other
+calculations. In this paper we consider the latter approach
+.
+AESA (Approximating and Eliminating Search
+Algorithm)(Vidal 1986) is one of the fastest algorithms
+for NN searches in the distance matrix group.
+The number of distance computations is bounded by
+a constant, but the space complexity is quadratic.
+LAESA (Linear AESA)(Mic´o, Oncina & Vidal 1994)
+was introduced in order to reduce this large space
+complexity. Its space complexity is linear and its
+search performance is almost the same as that of
+AESA. Although LAESA is more practical than
+AESA, it is impractical for a large database because
+calculations other than distance computations
+increase. TLAESA (Tree LAESA)(Mic´o, Oncina &
+Carrasco 1996) is an improvement of LAESA and reduces
+the time complexity to sublinear. It uses two
+kinds of data structures: a distance matrix and a binary
+tree, called a search tree.
+In this paper, we propose some improvements
+of the search algorithm and the data structures of
+TLAESA in order to reduce the number of distance
+computations. The search algorithm follows the best
+first algorithm. The search tree is transformed to a
+multiway tree from a binary tree. We also improve
+the selection method of the root object in the search
+tree. These improvements are simple but very effective
+. We then introduce the way to perform a k-NN
+search in the improved TLAESA. Moreover, we propose
+an extension to an approximation search algorithm
+that can ensure the quality of solutions.
+This paper is organized as follows. In section 2,
+we describe the details of the search algorithm and
+the data structures of TLAESA. In section 3, we propose
+some improvements of TLAESA. In section 4,
+we present an extension to an approximation search
+algorithm. In section 5, we show some experimental
+results. Finally, in section 6, we conclude this paper.
+Figure 1: An example of the data structures in
+TLAESA.
+TLAESA
+TLAESA uses two kinds of data structures: the distance
+matrix and the search tree. The distance matrix
+stores the distances from each object to some selected
+objects. The search tree manages hierarchically all
+objects. During the execution of the search algorithm,
+the search tree is traversed and the distance matrix
+is used to avoid exploring some branches.
+2.1
+Data Structures
+We explain the data structures in TLAESA. Let P
+be the set of all objects and B be a subset consisting
+of selected objects called base prototypes. The distance
+matrix M is a two-dimensional array that stores
+the distances between all objects and base prototypes.
+The search tree T is a binary tree such that each node
+t corresponds to a subset S
+t
+P . Each node t has
+a pointer to the representative object p
+t
+S
+t
+which
+is called a pivot, a pointer to a left child node l, a
+pointer to a right child node r and a covering radius
+r
+t
+. The covering radius is defined as
+r
+t
+= max
+pS
+t
+d(p, p
+t
+).
+(1)
+The pivot p
+r
+of r is defined as p
+r
+= p
+t
+. On the other
+hand, the pivot p
+l
+of l is determined so that
+p
+l
+= argmax
+pS
+t
+d(p, p
+t
+).
+(2)
+Hence, we have the following equality:
+r
+t
+= d(p
+t
+, p
+l
+).
+(3)
+S
+t
+is partitioned into two disjoint subsets S
+r
+and S
+l
+as follows:
+S
+r
+= {p  S
+t
+|d(p, p
+r
+) &lt; d(p, p
+l
+)},
+S
+l
+= S
+t
+- S
+r
+.
+(4)
+Note that if t is a leaf node, S
+t
+= {p
+t
+} and r
+t
+= 0.
+Fig. 1 shows an example of the data structures.
+2.2
+Construction of the Data Structures
+We first explain the construction process of the search
+tree T . The pivot p
+t
+of the root node t is randomly
+selected and S
+t
+is set to P . The pivot p
+l
+of the left
+child node and the covering radius r
+t
+are defined by
+Eqs. (2) and (3). The pivot p
+r
+of the right child node
+is set to p
+t
+. S
+t
+is partitioned into S
+r
+and S
+l
+by Eq.
+(4). These operations are recursively repeated until
+|S
+t
+| = 1.
+The distance matrix M is constructed by selecting
+base prototypes. This selection is important because
+Figure 2: Lower bound.
+base prototypes are representative objects which are
+used to avoid some explorations of the tree.
+The ideal selection of them is that each object is
+as far away as possible from other objects. In (Mic´o
+et al. 1994), a greedy algorithm is proposed for this
+selection. This algorithm chooses an object that maximizes
+the sum of distances from the other base prototypes
+which have already been selected. In (Mic´o &
+Oncina 1998), another algorithm is proposed, which
+chooses an object that maximizes the minimum distance
+to the preselected base prototypes. (Mic´o &
+Oncina 1998) shows that the latter algorithm is more
+effective than the former one. Thus, we use the later
+algorithm for the selection of base prototypes.
+The search efficiency depends not only on the selection
+of base prototypes but also on the number
+of them. There is a trade-off between the search
+efficiency and the size of distance matrix, i.e. the
+memory capacity. The experimental results in (Mic´o
+et al. 1994) show that the optimal number of base
+prototypes depends on the dimensionality dm of the
+space. For example, the optimal numbers are 3, 16
+and 24 if dm = 2, 4 and 8, respectively. The experimental
+results also show that the optimal number
+does not depend on the number of objects.
+2.3
+Search Algorithm
+The search algorithm follows the branch and bound
+strategy. It traverses the search tree T in the depth
+first order. The distance matrix M is referred whenever
+each node is visited in order to avoid unnecessary
+traverse of the tree T . The distance are computed
+only when a leaf node is reached.
+Given a query object q, the distance between q and
+the base prototypes are computed. These results are
+stored in an array D. The object which is the closest
+to q in B is selected as the nearest neighbour candidate
+p
+min
+, and the distance d(q, p
+min
+) is recorded as
+d
+min
+. Then, the traversal of the search tree T starts
+at the root node. The lower bound for the left child
+node l is calculated whenever each node t is reached if
+it is not a leaf node. The lower bound of the distance
+between q and an object x is defined as
+g
+x
+= max
+bB
+|d(q, b) - d(b, x)|.
+(5)
+See Fig. 2. Recall that d(q, b) was precomputed before
+the traversals and was stored in D. In addition,
+the value d(b, x) was also computed during the construction
+process and stored in the distance matrix
+M . Therefore, g
+x
+is calculated without any actual
+distance computations. The lower bound g
+x
+is not actual
+distance d(q, x). Thus, it does not ensure that the
+number of visited nodes in the search becomes minimum
+. Though, this evaluation hardly costs, hence it
+is possible to search fast. The search process accesses
+the left child node l if g
+p
+l
+g
+p
+r
+, or the right child
+node r if g
+p
+l
+&gt; g
+p
+r
+. When a leaf node is reached,
+the distance is computed and both p
+min
+and d
+min
+are
+updated if the distance is less than d
+min
+.
+q
+p
+min
+p
+t
+r
+t
+S
+t
+Figure 3: Pruning Process.
+procedure NN search(q)
+1:
+t  root of T
+2:
+d
+min
+= , g
+p
+t
+= 0
+3:
+for b  B do
+4:
+D[b] = d(q, b)
+5:
+if D[b] &lt; d
+min
+then
+6:
+p
+min
+= b, d
+min
+= D[b]
+7:
+end if
+8:
+end for
+9:
+g
+p
+t
+= max
+bB
+|(D[b] - M [b, p
+t
+])|
+10:
+search(t, g
+p
+t
+, q, p
+min
+, d
+min
+)
+11:
+return p
+min
+Figure 4: Algorithm for an NN search in TLAESA.
+We explain the pruning process. Fig. 3 shows the
+pruning situation. Let t be the current node. If the
+inequality
+d
+min
++ r
+t
+&lt; d(q, p
+t
+)
+(6)
+is satisfied, we can see that no object exists in S
+t
+which is closer to q than p
+min
+and the traversal to
+node t is not necessary. Since g
+p
+t
+d(q, p
+t
+), Eq. (6)
+can be replaced with
+d
+min
++ r
+t
+&lt; g
+p
+t
+.
+(7)
+Figs.
+4 and 5 show the details of the search
+algorithm(Mic´o et al. 1996).
+Improvements of TLAESA
+In this section, we propose some improvements of
+TLAESA in order to reduce the number of distance
+computations.
+3.1
+Tree Structure and Search Algorithm
+If we can evaluate the lower bounds g in the ascending
+order of their values, the search algorithm runs very
+fast. However, this is not guaranteed in TLAESA
+since the evaluation order is decided according to the
+tree structure. We show such an example in Fig. 6.
+In this figure, u, v and w are nodes. If g
+p
+v
+&lt; g
+p
+w
+,
+it is desirable that v is evaluated before w. But, if
+g
+p
+v
+&gt; g
+p
+u
+, w might be evaluated before v.
+We propose the use of a multiway tree and the
+best first order search instead of a binary tree and
+the depth first search. During the best first search
+process, we can traverse preferentially a node whose
+subset may contain the closest object. Moreover, we
+can evaluate more nodes at one time by using of the
+multiway tree. The search tree in TLAESA has many
+nodes which have a pointer to the same object. In the
+proposed structure, we treat such nodes as one node.
+Each node t corresponds to a subset S
+t
+P and has
+a pivot p
+t
+, a covering radius r
+t
+= max
+pS
+t
+d(p, p
+t
+) and
+pointers to its children nodes.
+procedure search(t, g
+p
+t
+, q, p
+min
+, d
+min
+)
+1:
+if t is a leaf then
+2:
+if g
+p
+t
+&lt; d
+min
+then
+3:
+d = d(q, p
+t
+) {distance computation}
+4:
+if d &lt; d
+min
+then
+5:
+p
+min
+= p
+t
+, d
+min
+= d
+6:
+end if
+7:
+end if
+8:
+else
+9:
+r is a right child of t
+10:
+l is a left child of t
+11:
+g
+p
+r
+= g
+p
+t
+12:
+g
+p
+l
+= max
+bB
+|(D[b] - M [b, p
+t
+])|
+13:
+if g
+p
+l
+&lt; g
+p
+r
+then
+14:
+if d
+min
++ r
+l
+&gt; g
+p
+l
+then
+15:
+search(l, g
+p
+l
+, p
+min
+, d
+min
+)
+16:
+end if
+17:
+if d
+min
++ r
+r
+&gt; g
+p
+r
+then
+18:
+search(r, g
+p
+r
+, p
+min
+, d
+min
+)
+19:
+end if
+20:
+else
+21:
+if d
+min
++ r
+r
+&gt; g
+p
+r
+then
+22:
+search(r, g
+p
+r
+, p
+min
+, d
+min
+)
+23:
+end if
+24:
+if d
+min
++ r
+l
+&gt; g
+p
+l
+then
+25:
+search(l, g
+p
+l
+, p
+min
+, d
+min
+)
+26:
+end if
+27:
+end if
+28:
+end if
+Figure 5: A recursive procedure for an NN search in
+TLAESA.
+Figure 6: A case in which the search algorithm in
+TLAESA does not work well.
+We show a method to construct the tree structure
+in Fig. 7. We first select randomly the pivot p
+t
+of
+the root node t and set S
+t
+to P . Then we execute the
+procedure makeTree(t, p
+t
+, S
+t
+) in Fig. 7.
+We explain the search process in the proposed
+structure. The proposed method maintains a priority
+queue Q that stores triples (node t, lower bound g
+p
+t
+,
+covering radius r
+t
+) in the increasing order of g
+p
+t
+- r
+t
+.
+Given a query object q, we calculate the distances between
+q and base prototypes and store their values in
+D. Then the search process starts at the root of T .
+The following steps are recursively repeated until Q
+becomes empty. When t is a leaf node, the distance
+d(q, p
+t
+) is computed if g
+p
+t
+&lt; d
+min
+. If t is not a leaf
+node and its each child node t satisfies the inequality
+g
+p
+t
+&lt; r
+t
++ d
+min
+,
+(8)
+the lower bound g
+p
+t
+is calculated and a triple
+(t , g
+p
+t
+, r
+t
+) is added to Q. Figs. 8 and 9 show the
+details of the algorithm.
+procedure makeTree(t, p
+t
+, S
+t
+)
+1:
+t  new child node of t
+2:
+if |S
+t
+| = 1 then
+3:
+p
+t
+= p
+t
+and S
+t
+= {p
+t
+}
+4:
+else
+5:
+p
+t
+= argmax
+pS
+t
+d(p, p
+t
+)
+6:
+S
+t
+= {p  S
+t
+|d(p, p
+t
+) &lt; d(p, p
+t
+)}
+7:
+S
+t
+= S
+t
+- S
+t
+8:
+makeTree(t , p
+t
+, S
+t
+)
+9:
+makeTree(t, p
+t
+, S
+t
+)
+10:
+end if
+Figure 7: Method to construct the proposed tree
+structure.
+procedure NN search(q)
+1:
+t  root of T
+2:
+d
+min
+= , g
+p
+t
+= 0
+3:
+for b  B do
+4:
+D[b] = d(q, b)
+5:
+if D[b] &lt; d
+min
+then
+6:
+p
+min
+= b, d
+min
+= D[b]
+7:
+end if
+8:
+end for
+9:
+g
+t
+= max
+bB
+|(D[b] - M [b, p
+t
+])|
+10:
+Q  {(t, g
+p
+t
+, r
+t
+)}
+11:
+while Q is not empty do do
+12:
+(t, g
+p
+t
+, r
+t
+)  element in Q
+13:
+search(t, g
+p
+t
+, q, p
+min
+, d
+min
+)
+14:
+end while
+15:
+return p
+min
+Figure 8: Proposed algorithm for an NN search.
+3.2
+Selection of Root Object
+We focus on base prototypes in order to reduce node
+accesses. The lower bound of the distance between a
+query q and a base prototype b is
+g
+b
+= max
+bB
+|d(q, b) - d(b, b)|
+= d(q, b).
+This value is not an estimated distance but an actual
+distance.
+If we can use an actual distance in the search process
+, we can evaluate more effectively which nodes
+are close to q. This fact means that the search is efficiently
+performed if many base prototypes are visited
+in the early stage. In other words, it is desirable that
+more base prototypes are arranged in the upper part
+of the search tree. Thus, in the proposed algorithm,
+we choose the first base prototype b
+1
+as the root object
+.
+3.3
+Extension to a k-NN Search
+LAESA was developed to perform NN searches and
+(Moreno-Seco, Mic´o & Oncina 2002) extended it so
+that k-NN searches can be executed. In this section,
+we extend the improved TLAESA to a k-NN search
+algorithm. The extension is simple modifications of
+the algorithm described above. We use a priority
+queue V for storing k nearest neighbour candidates
+and modify the definition of d
+min
+. V stores pairs
+(object p, distance d(q, p)) in the increasing order of
+procedure search(t, g
+p
+t
+, q, p
+min
+, d
+min
+)
+1:
+if t is a leaf then
+2:
+if g
+p
+t
+&lt; d
+min
+then
+3:
+d = d(q, p
+t
+) {distance computation}
+4:
+if d &lt; d
+min
+then
+5:
+p
+min
+= p
+t
+, d
+min
+= d
+6:
+end if
+7:
+end if
+8:
+else
+9:
+for each child t of t do
+10:
+if g
+p
+t
+&lt; r
+t
++ d
+min
+then
+11:
+g
+p
+t
+= max
+bB
+|(D[b] - M [b, p
+t
+])|
+12:
+Q  Q  {(t , g
+p
+t
+, r
+t
+)}
+13:
+end if
+14:
+end for
+15:
+end if
+Figure 9: A procedure used in the proposed algorithm
+for an NN search.
+procedure k-NN search(q, k)
+1:
+t  root of T
+2:
+d
+min
+= , g
+p
+t
+= 0
+3:
+for b  B do
+4:
+D[b] = d(q, b)
+5:
+if D[b] &lt; d
+min
+then
+6:
+V  V  {(b, D[b])}
+7:
+if |V | = k + 1 then
+8:
+remove (k + 1)th pair from V
+9:
+end if
+10:
+if |V | = k then
+11:
+(c, d(q, c))  kth pair of V
+12:
+d
+min
+= d(q, c)
+13:
+end if
+14:
+end if
+15:
+end for
+16:
+g
+p
+t
+= max
+bB
+|(D[b] - M [b, p
+t
+])|
+17:
+Q  {(t, g
+p
+t
+, r
+t
+)}
+18:
+while Q is not empty do
+19:
+(t, g
+p
+t
+, r
+t
+)  element in Q
+20:
+search(t, g
+p
+t
+, q, V, d
+min
+, k)
+21:
+end while
+22:
+return k objects  V
+Figure 10: Proposed algorithm for a k-NN search.
+d(q, p). d
+min
+is defined as
+d
+min
+=
+(|V | &lt; k)
+d(q, c) (|V | = k)
+(9)
+where c is the object of the kth pair in V .
+We show in Figs. 10 and 11 the details of the k-NN
+search algorithm. The search strategy essentially
+follows the algorithm in Figs. 8 and 9, but the k-NN
+search algorithm uses V instead of p
+min
+.
+(Moreno-Seco et al. 2002) shows that the optimal
+number of base prototypes depends on not only the
+dimensionality of the space but also the value of k and
+that the number of distance computations increases
+as k increases.
+Extension to an Approximation Search
+In this section, we propose an extension to an approximation
+k-NN search algorithm which ensures the
+procedure search(t, g
+p
+t
+, q, V, d
+min
+, k)
+1:
+if t is a leaf then
+2:
+if g
+p
+t
+&lt; d
+min
+then
+3:
+d = d(q, p
+t
+) {distance computation}
+4:
+if d &lt; d
+min
+then
+5:
+V  V  {(p
+t
+, d(q, p
+t
+))}
+6:
+if |V | = k + 1 then
+7:
+remove (k + 1)th pair from V
+8:
+end if
+9:
+if |V | = k then
+10:
+(c, d(q, c))  kth pair of V
+11:
+d
+min
+= d(q, c)
+12:
+end if
+13:
+end if
+14:
+end if
+15:
+else
+16:
+for each child t of t do
+17:
+if g
+p
+t
+&lt; r
+t
++ d
+min
+then
+18:
+g
+p
+t
+= max
+bB
+|(D[b] - M [b, p
+t
+])|
+19:
+Q  Q  {(t , g
+p
+t
+, r
+t
+)}
+20:
+end if
+21:
+end for
+22:
+end if
+Figure 11: A procedure used in the proposed algorithm
+for a k-NN search.
+quality of solutions. Consider the procedure in Fig.
+11. We replace the 4th line with
+if d &lt;  · d
+min
+then
+and the 17th line with
+if g
+t
+&lt; r
+t
++  · d
+min
+then
+where  is real number such that 0 &lt;   1. The
+pruning process gets more efficient as these conditions
+become tighter.
+The proposed method ensures the quality of solutions
+. We can show the approximation ratio to an
+optimal solution using . Let a be the nearest neighbour
+object and a be the nearest neighbour candidate
+object. If our method misses a and give a as
+the answer, the equation
+g(q, a)   · d(q, a )
+(10)
+is satisfied. Then a will be eliminated from targeted
+objects. Since g(q, a)  d(q, a), we can obtain the
+following equation:
+d(q, a )  1
+d(q, a).
+(11)
+Thus, the approximate solution are suppressed by
+1
+
+times of the optimal solution.
+Experiments
+In this section we show some experimental results and
+discuss them. We tested on an artificial set of random
+points in the 8-dimensional euclidean space. We also
+used the euclidean distance as the distance function.
+We evaluated the number of distance computations
+and the number of accesses to the distance matrix in
+1-NN and 10-NN searches.
+0
+50
+100
+150
+200
+250
+300
+0  10  20  30  40  50  60  70  80  90  100  110  120
+Number of Distance Computations
+Number of Base Prototypes
+TLAESA(1-NN)
+TLAESA(10-NN)
+Proposed(1-NN)
+Proposed(10-NN)
+Figure 12: Relation of the number of distance computations
+to the number of base prototypes.
+1-NN
+10-NN
+TLAESA
+40
+80
+Proposed
+25
+60
+Table 1: The optimal number of base prototypes.
+5.1
+The Optimal Number of Base Prototypes
+We first determined experimentally the optimal number
+of base prototypes.
+The number of objects
+was fixed to 10000. We executed 1-NN and 10-NN
+searches for various numbers of base prototypes, and
+counted the number of distance computations. Fig.
+12 shows the results. From this figure, we chose the
+number of base prototypes as shown in Table. 1.
+We can see that the values in the proposed method
+are fewer than those in TLAESA. This means that
+the proposed method can achieve better performance
+with smaller size of distance matrix. We used the
+values in Table. 1 in the following experiments.
+5.2
+Evaluation of Improvements
+We tested the effects of our improvements described
+in 3.1 and 3.2. We counted the numbers of distance
+computations in 1-NN and 10-NN searches for various
+numbers of objects. The results are shown in Figs.
+13 and 14. Similar to TLAESA, the number of the
+distance computations in the proposed method does
+not depend on the number of objects. In both of 1-NN
+and 10-NN searches, it is about 60% of the number of
+distance computations in TLAESA. Thus we can see
+that our improvements are very effective.
+In the search algorithms of TLAESA and the proposed
+methods, various calculations are performed
+other than distance computations. The costs of the
+major part of such calculations are proportional to
+the number of accesses to the distance matrices. We
+therefore counted the numbers of accesses to the distance
+matrices. We examined the following two cases:
+(i) TLAESA vs. TLAESA with the improvement of
+selection of the root object.
+(ii) Proposed method only with improvement of tree
+structure and search algorithm vs.
+proposed
+method only with the improvement of selection
+of the root object.
+In the case (i), the number of accesses to the distance
+matrix is reduced by 12% in 1-NN searches and 4.5%
+in 10-NN searches. In the case (ii), it is reduced by
+6.8% in 1-NN searches and 2.7% in 10-NN searches.
+0
+10
+20
+30
+40
+50
+60
+70
+80
+90
+100
+0
+2000  4000
+6000  8000  10000
+Number of Distance Computations
+Number of Objects
+TLAESA
+Proposed
+Figure 13: The number of distance computations in
+1-NN searches.
+0
+30
+60
+90
+120
+150
+180
+210
+240
+270
+300
+0
+2000  4000  6000  8000  10000
+Number of Distance Computations
+Number of Objects
+TLAESA
+Proposed
+Figure 14: The number of distance computations in
+10-NN searches.
+Thus we can see that this improvement about selection
+of the root object is effective.
+5.3
+Evaluation of Approximation Search
+We tested the performance of the approximation
+search algorithm. We compared the proposed method
+to Ak-LAESA, which is the approximation search algorithm
+proposed in (Moreno-Seco, Mic´o & Oncina
+2003).
+Each time a distance is computed in Ak-LAESA
+, the nearest neighbour candidate is updated
+and its value is stored. When the nearest neighbour
+object is found, the best k objects are chosen from the
+stored values. In Ak-LAESA, the number of distance
+computations of the k-NN search is exactly the same
+as that of the NN search.
+To compare the proposed method with Ak-LAESA
+, we examined how many objects in the approximate
+solutions exist in the optimal solutions.
+Thus, we define the error rate E as follows:
+E[%] = |{x
+i
+|x
+i
+/
+Opt, i = 1, 2, · · · , k}|
+k
+× 100 (12)
+where {x
+1
+, x
+2
+, · · · , x
+k
+} is a set of k objects which are
+obtained by an approximation algorithm and Opt is
+a set of k closest objects to the query object.
+Fig. 15 shows the error rate when the value of  is
+changed in 10-NN searches. Fig. 16 also shows the relation
+of the number of distance computations to the
+value of  in 10-NN searches. In the range   0.5,
+the proposed method shows the lower error rate than
+0
+10
+20
+30
+40
+50
+60
+70
+80
+90
+100
+0
+0.2
+0.4
+0.6
+0.8
+1
+Error Rate
+[%]
+
+Ak-LAESA
+Proposed
+Figure 15: Error rate in 10-NN searches.
+0
+20
+40
+60
+80
+100
+120
+140
+160
+0
+0.2
+0.4
+0.6
+0.8
+1
+Number of distance computations
+
+Ak-LAESA
+Proposed
+Figure 16: Relation of the number of distance computations
+to the value of  in 10-NN searches.
+Ak-LAESA. In particular, the error rate of the proposed
+method is almost 0 in range   0.9. From two
+figures, we can control the error rate and the number
+of distance computations by changing the value of .
+For example, the proposed method with  = 0.9 reduces
+abount 28.6% of distance computations and its
+error rate is almost 0.
+Then we examined the accuracy of the approximate
+solutions.
+We used  = 0.5 for the proposed
+method because the error rate of the proposed
+method with  = 0.5 is equal to the one of Ak-LAESA
+. We performed 10-NN searches 10000 times
+for each method and examined the distribution of kth
+approximate solution to kth optimal solution. We
+show the results in Figs. 17 and 18. In each figure,
+x axis represents the distance between a query object
+q and the kth object in the optimal solution. y
+axis shows the distance between q and the kth object
+in the approximate solution. The point near the
+line y = x represents that kth approximate solution is
+very close to kth optimal solution. In Fig. 17, many
+points are widely distributed. In the worst case, some
+appriximate solutions reach about 3 times of the optimal
+solution. From these figures, we can see that
+the accuracy of solution by the proposed method is
+superior to the one by Ak-LAESA. We also show the
+result with  = 0.9 in Fig. 19. Most points exist near
+the line y = x.
+Though Ak-LAESA can reduce drastically the
+number of distance computations, its approximate solutions
+are often far from the optimal solutions. On
+the other hand, the proposed method can reduce the
+number of distance computations to some extent with
+0
+0.2
+0.4
+0.6
+0.8
+1
+1.2
+1.4
+1.6
+0
+0.2
+0.4
+0.6
+0.8
+Distance to the
+k
+ th Approximate Solution
+Distance to the k th Optimal Solution
+Figure 17: The distribution of the approximate solution
+by Ak-LAESA to the optimal solution.
+0
+0.2
+0.4
+0.6
+0.8
+1
+1.2
+1.4
+1.6
+0
+0.2
+0.4
+0.6
+0.8
+Distance to the
+k
+ th Approximate Solution
+Distance to the k th Optimal Solution
+Figure 18: The distribution the approximate solution
+by the proposed method with  = 0.5 to the optimal
+solution.
+very low error rate. Moreover, the accuracy of its approximate
+solutions is superior to that of Ak-LAESA.
+Conclusions
+In this paper, we proposed some improvements of
+TLAESA. In order to reduce the number of distance
+computations in TLAESA, we improved the search
+algorithm to best first order from depth first order
+and the tree structure to a multiway tree from a binary
+tree. In the 1-NN searches and 10-NN searches
+in a 8-dimensional space, the proposed method reduced
+about 40% of distance computations. We then
+proposed the selection method of root object in the
+search tree. This improvement is very simple but is
+effective to reduce the number of accesses to the distance
+matrix. Finally, we extended our method to an
+approximation k-NN search algorithm that can ensure
+the quality of solutions. The approximate solutions
+of the proposed method are suppressed by
+1
+
+times of the optimal solutions. Experimental results
+show that the proposed method can reduce the number
+of distance computations with very low error rate
+by selecting the appropriate value of , and that the
+accuracy of the solutions is superior to Ak-LAESA.
+From these viewpoints, the method presented in this
+paper is very effective when the distance computations
+are time-consuming.
+0
+0.2
+0.4
+0.6
+0.8
+1
+1.2
+1.4
+1.6
+0
+0.2
+0.4
+0.6
+0.8
+Distance to the
+k
+ th Approximate Solution
+Distance to the k th Optimal Solution
+Figure 19: The distribution the approximate solution
+by the proposed method with  = 0.9 to the optimal
+solution.
+References
+Ciaccia, P., Patella, M. & Zezula, P. (1997), M-tree:
+An efficient access method for similarity search
+in metric spaces, in `Proceedings of the 23rd
+International Conference on Very Large Data
+Bases (VLDB'97)', pp. 426­435.
+Hjaltason, G. R. & Samet, H. (2003), `Index-driven
+similarity search in metric spaces', ACM Transactions
+on Database Systems 28(4), 517­580.
+Mic´o, L. & Oncina, J. (1998), `Comparison of fast
+nearest neighbour classifiers for handwritten
+character recognition', Pattern Recognition Letters
+19(3-4), 351­356.
+Mic´o, L., Oncina, J. & Carrasco, R. C. (1996), `A
+fast branch & bound nearest neighbour classifier
+in metric spaces', Pattern Recognition Letters
+17(7), 731­739.
+Mic´o, M. L., Oncina, J. & Vidal, E. (1994), `A new
+version of the nearest-neighbour approximating
+and eliminating search algorithm (AESA) with
+linear preprocessing time and memory require-ments'
+, Pattern Recognition Letters 15(1), 9­17.
+Moreno-Seco, F., Mic´o, L. & Oncina, J. (2002),
+`Extending LAESA fast nearest neighbour algorithm
+to find the k-nearest neighbours', Lecture
+Notes in Computer Science - Lecture Notes in
+Artificial Intelligence 2396, 691­699.
+Moreno-Seco, F., Mic´o, L. & Oncina, J. (2003), `A
+modification of the LAESA algorithm for ap-proximated
+k-NN classification', Pattern Recognition
+Letters 24(1-3), 47­53.
+Navarro, G. (2002), `Searching in metric spaces
+by spatial approximation', The VLDB Journal
+11(1), 28­46.
+Rico-Juan, J. R. & Mic´o, L. (2003), `Comparison
+of AESA and LAESA search algorithms using
+string and tree-edit-distances', Pattern Recognition
+Letters 24(9-10), 1417­1426.
+Vidal, E. (1986), `An algorithm for finding nearest
+neighbours in (approximately) constant average
+time', Pattern Recognition Letters 4(3), 145­157.
+Yianilos, P. N. (1993), Data structures and algorithms
+for nearest neighbor search in general
+metric spaces, in `SODA '93: Proceedings of the
+fourth annual ACM-SIAM Symposium on Discrete
+algorithms', pp. 311­321.

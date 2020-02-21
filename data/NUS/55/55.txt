@@ -1,0 +1,1693 @@
+Consistent Query Answering under Key and Exclusion Dependencies: Algorithms and Experiments
+ABSTRACT
+Research in consistent query answering studies the definition
+and computation of "meaningful" answers to queries
+posed to inconsistent databases, i.e., databases whose data
+do not satisfy the integrity constraints (ICs) declared on
+their schema. Computing consistent answers to conjunctive
+queries is generally coNP-hard in data complexity, even in
+the presence of very restricted forms of ICs (single, unary
+keys). Recent studies on consistent query answering for
+database schemas containing only key dependencies have an-alyzed
+the possibility of identifying classes of queries whose
+consistent answers can be obtained by a first-order rewriting
+of the query, which in turn can be easily formulated in
+SQL and directly evaluated through any relational DBMS.
+In this paper we study consistent query answering in the
+presence of key dependencies and exclusion dependencies.
+We first prove that even in the presence of only exclusion
+dependencies the problem is coNP-hard in data complexity
+, and define a general method for consistent answering of
+conjunctive queries under key and exclusion dependencies,
+based on the rewriting of the query in Datalog with negation
+. Then, we identify a subclass of conjunctive queries
+that can be first-order rewritten in the presence of key and
+exclusion dependencies, and define an algorithm for computing
+the first-order rewriting of a query belonging to such a
+class of queries. Finally, we compare the relative efficiency of
+the two methods for processing queries in the subclass above
+mentioned. Experimental results, conducted on a real and
+large database of the computer science engineering degrees
+of the University of Rome "La Sapienza", clearly show the
+computational advantage of the first-order based technique.
+Categories and Subject Descriptors
+H.2.3 [Database Management]:
+Languages--query languages
+; F.2.0 [Analysis of Algorithms and Problem Complexity
+]: General.
+Permission to make digital or hard copies of all or part of this work for
+personal or classroom use is granted without fee provided that copies are
+not made or distributed for profit or commercial advantage and that copies
+bear this notice and the full citation on the first page. To copy otherwise, to
+republish, to post on servers or to redistribute to lists, requires prior specific
+permission and/or a fee.
+CIKM'05, October 31­November 5, 2005, Bremen, Germany.
+Copyright 2005 ACM 1-59593-140-6/05/0010 ...
+$
+5.00.
+General Terms
+Theory, Algorithms, Experimentation.
+
+INTRODUCTION
+Suppose to have a database whose data violate the integrity
+constraints (ICs) declared on its schema. What are
+the answers that have to be returned to queries posed to
+such a database?
+The standard approach to this problem
+is through data cleaning, i.e., by explicitly modifying
+the data in order to eliminate violation of ICs: only when
+data are "repaired", i.e., are consistent with the ICs, queries
+can be answered. However, in many situations it would be
+much more desirable to derive significant information from
+the database even in the presence of data inconsistent with
+the ICs. Indeed, in many application scenarios, the explicit
+repair of data is not convenient, or even not possible.
+This happens, for instance, in data integration applications,
+which provide a unified, virtual view of a set of autonomous
+information sources [5].
+This alternative approach is the one followed by research
+in consistent query answering, which studies the definition
+(and computation) of "meaningful" answers to queries posed
+to databases whose data do not satisfy the ICs declared on
+the database schema [1, 14, 4]. All these approaches are
+based on the following principle: schema is stronger than
+data. In other words, the database schema (i.e., the set of integrity
+constraints) is considered as the actually reliable information
+(strong knowledge), while data are considered as
+information to be revised (weak knowledge). Therefore, the
+problem amounts to deciding how to "repair" (i.e., change)
+data in order to reconcile them with the information expressed
+in the schema. Therefore, the intuitive semantics of
+consistent query answering can be expressed as follows: a
+tuple t is a consistent answer to a query q in an inconsistent
+database D if t is an answer to q in all the repairs of D,
+i.e., in all the possible databases obtained by (minimally)
+modifying the data in D to eliminate violations of ICs.
+Example 1. Let D = {r(a, b)} be a database whose
+schema contains the declaration of a key dependency on the
+first attribute of r. Since the database instance does not violate
+the key dependency on r, the only repair of the database
+792
+is D itself. Hence, the following query q(X, Y ) :­ r(X, Y )
+has the consistent answer t = a, b . Now, let D be the
+database instance obtained by adding the fact r(a, c) to D.
+D is inconsistent with the key dependency, and has two possible
+repairs: {r(a, b)} and {r(a, c)}. Since there is no tuple
+which is an answer to q in both repairs, it follows that there
+are no consistent answers to the query q in D . In contrast,
+observe that the query q (X) :­ r(X, Y ) has the answer a
+both in D and in D , which can be therefore considered consistent
+.
+Recent studies in this area have established declarative semantic
+characterizations of consistent query answering over
+relational databases, decidability and complexity results for
+consistent query answering, as well as techniques for query
+processing [1, 6, 14, 4, 3, 5]. In particular, it has been shown
+that computing consistent answers of conjunctive queries
+(CQs) is coNP-hard in data complexity, i.e., in the size of
+the database instance, even in the presence of very restricted
+forms of ICs (single, unary keys).
+¿From the algorithmic viewpoint, the approach mainly
+followed is query answering via query rewriting: (i) First,
+the query that must be processed (usually a conjunctive
+query) is reformulated in terms of another, more complex
+query. Such a reformulation is purely intensional, i.e., the
+rewritten query is independent of the database instance; (ii)
+Then, the reformulated query is evaluated over the database
+instance. Due to the semantic nature and the inherent complexity
+of consistent query answering, Answer Set Programming
+(ASP) is usually adopted in the above reformulation
+step [14, 3, 5], and stable model engines like DLV [15] can
+be used for query processing.
+An orthogonal approach to consistent query answering is
+the one followed by recent theoretical works [1, 6, 13], whose
+aim is to identify subclasses of CQs whose consistent answers
+can be obtained by rewriting the query in terms of a first-order
+(FOL) query. The advantage of such an approach is
+twofold: first, this technique allows for computing consistent
+answers in time polynomial in data complexity (i.e., for such
+subclasses of queries, consistent query answering is compu-tationally
+simpler than for the whole class of CQs); second,
+consistent query answering in these cases can be performed
+through standard database technology, since the FOL query
+synthesized can be easily translated into SQL and then evaluated
+by any relational DBMS. On the other hand, this approach
+is only limited to polynomial subclasses of the problem
+. In particular, Fuxman and Miller in [13] have studied
+databases with key dependencies, and have identified a
+broad subclass of CQs that can be treated according to the
+above strategy.
+In this paper we study consistent query answering in the
+presence of key dependencies and exclusion dependencies, a
+well-known class of ICs. Notice that exclusion dependencies
+are not only typical of relational database schemas, but are
+also relevant and very common in languages for conceptual
+modeling, e.g., ontology languages [2]: indeed such dependencies
+allow for modeling partitioning/disjointness of entities
+. This makes the study of exclusion dependencies particularly
+important for the broad applicability of consistent
+query answering.
+Our contribution can be summarized as follows:
+1. We prove that consistent answering of conjunctive
+queries for databases with only exclusion dependencies
+is coNP-hard in data complexity, i.e., the problem
+presents the same complexity lower bound already
+known for databases with only key dependencies [6, 4].
+2. We define a method for consistent query answering
+under key dependencies and exclusion dependencies
+based on the rewriting of the query in Datalog
+¬
+[10], a
+well-known extension of Datalog that allows for using
+negation in the body of program rules. The rewriting
+extends the one defined in [5] to the presence of
+exclusion dependencies. The rewriting is used by INFOMIX
+,
+1
+a system for the integration of inconsistent
+data, based on the use of the DLV system.
+3. We extend the work of [13] to the presence of exclusion
+dependencies in the database schema. In particular
+, we identify the class of KE-simple queries (a
+subclass of CQs) that can be first-order rewritten in
+the presence of both key dependencies and exclusion
+dependencies, and define an algorithm for computing
+the first-order rewriting of a query belonging to such
+a class of queries. We point out that our algorithm,
+though inspired by the one of [13], in the presence of
+only key dependencies applies to a broader class of
+queries than the class considered first-order rewritable
+in [13]. Therefore, the technique of the present paper
+is relevant also for consistent query answering under
+only key dependencies.
+4. We compare the relative efficiency of these two methods
+for processing KE-simple queries. To this aim,
+we have realized a software module that implements
+the above two rewriting methods.
+Then, we have
+compared query answering based on the rewriting in
+Datalog
+¬
+and evaluation in the DLV system [15] with
+the method based on first-order rewriting and query
+evaluation on MySQL DBMS. We have conducted our
+experiments on a real and large database of the computer
+science engineering degrees of the University of
+Rome "La Sapienza".
+Our experimental results clearly show, for KE-simple
+queries, the computational advantage of the specialized first-order
+based technique over the more general one based on
+Datalog
+¬
+. In particular, the results indicate that the advantage
+of the first-order based technique grows with the number
+of database tuples that violate the ICs. Such results thus
+provide, in a general sense, an experimental validation of the
+first-order based approach: its computational advantage is
+not only theoretical, but also can be effectively measured
+when applied to practical, realistic scenarios. However, it
+turns out that the general method based on Datalog
+¬
+, although
+not specifically tailored for KE-simple queries, proves
+particularly efficient in the presence of few data inconsistencies
+.
+In the next section, we briefly introduce the formal framework
+of consistent query answering. In Section 3, we prove
+coNP-hardness of consistent query answering under only exclusion
+dependencies, and present our Datalog
+¬
+rewriting
+and our algorithm for first-order rewriting in the presence
+of key and exclusion dependencies. In Section 4, we present
+our experimental results, and in Section 5 we address related
+work and conclude the paper.
+1
+http://sv.mat.unical.it/infomix.
+793
+INCONSISTENT DATABASES AND CONSISTENT ANSWERS
+Syntax. A database schema S is a triple A, K, E , where:
+· A is a relational signature.
+· K is a set of key dependencies over A. A key dependency
+(KD) over A is an expression of the form
+key(r) = {i
+1
+, . . . , i
+k
+}, where r is a relation of A, and,
+if n is the arity of r, 1  i
+j
+n for each j such that
+1  j  k. We assume that at most one KD is specified
+over a relation r.
+· E is a set of exclusion dependencies over A. An exclusion
+dependency (ED) over A is an expression of the
+form r
+1
+[i
+1
+, . . . , i
+k
+]  r
+2
+[j
+1
+, . . . , j
+k
+] = , where r
+1
+, r
+2
+are
+relations of A, and, if n
+1
+and n
+2
+are the arities of r
+1
+and r
+2
+respectively, for each
+such that 1
+k,
+1  i  n
+1
+and 1  j  n
+2
+.
+A term is either a variable or a constant symbol. An
+atom is an expression of the form p(t
+1
+, . . . , t
+n
+) where p is a
+relation symbol of arity n and t
+1
+, . . . , t
+n
+is a sequence of n
+terms (either variables or constants). An atom is called fact
+if all the terms occurring in it are constants. A database
+instance D for S is a set of facts over A. We denote as r
+D
+the set {t | r(t)  D}.
+A conjunctive query of arity n is an expression of the form
+h(x
+1
+, . . . , x
+n
+) :­ a
+1
+, . . . , a
+m
+, where the atom h(x
+1
+, . . . , x
+n
+),
+is called the head of the query (denoted by head(q)), and
+a
+1
+, . . . , a
+m
+, called the body of the query (and denoted by
+body(q)), is a set of atoms, such that all the variables occurring
+in the query head also occur in the query body. In a
+conjunctive query q, we say that a variable is a head variable
+if it occurs in the query head, while we say that a
+variable is existential if it only occurs in the query body.
+Moreover, we call an existential variable shared if it occurs
+at least twice in the query body (otherwise we say that it
+is non-shared). A FOL query of arity n is an expression
+of the form {x
+1
+, . . . , x
+n
+| (x
+1
+, . . . , x
+n
+)}, where x
+1
+, . . . , x
+n
+are variable symbols and  is a first-order formula with free
+variables x
+1
+, . . . , x
+n
+.
+Semantics. First, we briefly recall the standard evaluation
+of queries over a database instance. Let q be the CQ
+h(x
+1
+, . . . , x
+n
+) :­ a
+1
+, . . . , a
+m
+and let t = c
+1
+, . . . , c
+n
+be a tuple
+of constants. A set of facts I is an image of t w.r.t. q
+if there exists a substitution  of the variables occurring in
+q such that (head(q)) = h(t) and (body(q)) = I. Given a
+database instance D, we denote by q
+D
+the evaluation of q
+over D, i.e., q
+D
+is the set of tuples t such that there exists
+an image I of t w.r.t. q such that I  D.
+Given a FOL query q and a database instance D, we denote
+by q
+D
+the evaluation of q over D, i.e., q
+D
+= {t
+1
+, . . . , t
+n
+|
+D |= (t
+1
+, . . . , t
+n
+)}, where each t
+i
+is a constant symbol and
+(t
+1
+, . . . , t
+n
+) is the first-order sentence obtained from  by
+replacing each free variable x
+i
+with the constant t
+i
+.
+Then, we define the semantics of queries over inconsistent
+databases.
+A database instance D violates the
+KD key(r) = {i
+1
+, . . . , i
+k
+} iff there exist two distinct facts
+r(c
+1
+, . . . , c
+n
+), r(d
+1
+, . . . , d
+n
+) in D such that c
+i
+j
+= d
+i
+j
+for
+each j such that 1  j  k. Moreover, D violates the
+ED r
+1
+[i
+1
+, . . . , i
+k
+]  r
+2
+[j
+1
+, . . . , j
+k
+] =  iff there exist two facts
+r
+1
+(c
+1
+, . . . , c
+n
+), r
+2
+(d
+1
+, . . . , d
+m
+) in D such that c
+i
+= d
+j
+for
+each
+such that 1   k.
+Let S = A, K, E be a database schema. A database
+instance D is legal for S if D does not violate any KD in K
+and does not violate any ED in E.
+A set of ground atoms D is a repair of D under S iff: (i)
+D  D; (ii) D is legal for S; (iii) for each D such that
+D  D  D, D is not legal for S. In words, a repair for
+D under S is a maximal subset of D that is legal for S.
+Let q be a CQ. A tuple t is a consistent answer to q in D
+under S iff, for each repair D of D under S, t  q
+D
+.
+Example 2. Consider
+the
+database
+schema
+S
+=
+A, K, E ,
+where A comprises the relations
+Journal (title, editor),
+ConfPr (title, editor)
+and
+Editor (name, country),
+K
+comprises
+the
+dependencies
+key(Journal)
+=
+{1},
+key(ConfPr )
+=
+{1},
+key(Editor )
+=
+{1},
+E
+comprises the dependency
+Journal [1]  ConfPr [1] = .
+Consider the database
+instance D described below
+{Journal(TODS, ACM), Journal(TODS, IEEE),
+Editor (ACM, USA), ConfPr (PODS05, ACM),
+ConfPr (PODS05, SV), Editor (IEEE, USA)}.
+It is easy to see that D is not consistent with the KDs on
+Journal and ConfPr of S. Then, the repairs of D under S
+are:
+{Journal(TODS, ACM), ConfPr (PODS05, ACM),
+Editor (ACM, USA), Editor (IEEE, USA)}
+{Journal(TODS, ACM), ConfPr (PODS05, SV),
+Editor (ACM, USA), Editor (IEEE, USA)}
+{Journal(TODS, IEEE), ConfPr (PODS05, ACM),
+Editor (ACM, USA), Editor (IEEE, USA)}
+{Journal(TODS, IEEE), ConfPr (PODS05, SV),
+Editor (ACM, USA), Editor (IEEE, USA)}.
+Let q(x, z)
+:­
+Journal (x, y), Editor (y, z) be a user
+query.
+The consistent answers to q in D under S are
+{ TODS, USA }.
+QUERY ANSWERING
+Computational Complexity. The problem of computing
+consistent answers to conjunctive queries over inconsistent
+databases in the presence of KDs (under the repair
+semantics introduced in Section 2) is coNP-hard in data
+complexity [4, 6]. In the following, we prove that such a
+problem is coNP-hard in data complexity also for schemas
+in which only EDs occur
+2
+.
+Theorem 3. Let S = A, , E be a database schema containing
+only EDs, D a database instance for S, q a CQ of
+arity n over S, and t an n-tuple of constants. The problem
+of establishing whether t is a consistent answer to q in D
+under S is coNP-hard with respect to data complexity.
+Proof (sketch). We prove coNP-hardness by reducing the
+3-colorability problem to the complement of our problem.
+Consider a graph G = V, E with a set of vertices V and
+edges E. We define a relational schema S = A, , E where
+A consists of the relation edge of arity 2, and the relation col
+of arity 5, and E contains the dependencies col[3]col[4] = ,
+col[3]  col[5] = , col[4]  col[5] = . The instance D is
+defined as follows:
+D = {col(n, 1, n,
+
+,
+
+), col(n, 2,
+
+, n,
+
+), col(n, 3,
+
+,
+
+, n)|
+n  V }  {edge(x, y)| x, y  E}.
+2
+We consider the decision problem associated to query answering
+(see e.g., [6])
+794
+Where each occurrence of the meta-symbol
+denotes
+a different
+constant not occurring elsewhere in the database. Intuitively
+, to represent the fact that vertex n  V is assigned
+with color i  {1, 2, 3}, D assigns to col a tuple in which i
+occurs as second component and n occurs as first and also
+as 2 + i-th component. The EDs of S impose that consistent
+instances assign no more than one color to each node.
+Finally, we define the query
+q
+
+edge(x, y), col(x, z, w
+1
+, w
+2
+, w
+3
+), col(y, z, w
+4
+, w
+5
+, w
+6
+).
+On the basis of the above construction it is possible to show
+that G is 3-colorable (i.e., for each pair of adjacent vertices,
+the vertices are associated with different colors) if and only if
+the empty tuple
+is not a consistent answer to q in D under
+S (i.e., the boolean query q has a negative answer).
+Datalog
+¬
+Rewriting. We now provide a sound and
+complete query rewriting technique for consistent query answering
+in the presence of key and exclusion dependencies.
+To this aim, we make use of Datalog
+¬
+, i.e., Datalog enriched
+with (unstratified) negation, under stable model semantics
+[10]. From a computational point of view, Datalog
+¬
+is coNP-complete
+with respect to data complexity, and therefore is
+well suited for dealing with the high computational complexity
+of our problem.
+The rewriting that we present in the following extends the
+one proposed in [4] for CQs specified over database schemas
+with KDs, in order to properly handle the presence of EDs.
+The rewriting is employed in the system INFOMIX. Anal-ogously
+to other proposals that solve consistent query answering
+via query rewriting (although for different classes
+of constraints and query languages, see, e.g., [14, 3]), the
+basic idea of the technique is to encode the constraints of
+the relational schema into a Datalog
+¬
+program, such that
+the stable models of the program yield the repairs of the
+database instance D.
+Definition 4. Given a CQ
+3
+q and a schema S, the
+Datalog
+¬
+program (q, S) is defined as the following set of
+rules
+4
+:
+1. the rule corresponding to the definition of q;
+2. for each relation r  S, the rules
+r(~
+x, ~
+y)
+:­
+r
+D
+(~
+x, ~
+y) , not r(~
+x, ~
+y)
+r(~
+x, ~
+y)
+:­
+r
+D
+(~
+x, ~
+y) , r(~
+x, ~
+z) , y
+1
+= z
+1
+· · ·
+r(~
+x, ~
+y)
+:­
+r
+D
+(~
+x, ~
+y) , r(~
+x, ~
+z) , y
+m
+= z
+m
+where: in r(~
+x, ~
+y) the variables in ~
+x correspond to the
+attributes constituting the key of the relation r; ~
+y =
+y
+1
+, . . . , y
+m
+and ~
+z = z
+1
+, . . . , z
+m
+.
+3. for
+each
+exclusion
+dependency
+(r[i
+1
+, . . . , i
+k
+]  s[j
+1
+, . . . , j
+k
+]) =  in E, with r = s, the
+rules:
+r(~
+x, ~
+y)
+:­
+r
+D
+(~
+x, ~
+y) , s(~
+x, ~
+z)
+s(~
+x, ~
+y)
+:­
+s
+D
+(~
+x, ~
+y) , r(~
+x, ~
+z)
+3
+The present rewriting is not actually restricted to CQs,
+since it can be immediately extended to general Datalog
+¬
+queries.
+4
+Without loss of generality, we assume that the attributes
+in the key precede all other attributes in r, that i
+1
+= j
+1
+=
+1, . . . , i
+k
+= j
+k
+= k,
+1
+= 1, . . . ,
+h
+= h, and m
+1
+= h +
+1, . . . , m
+h
+= h + h.
+where ~
+x = x
+1
+, . . . , x
+k
+, i.e., the variables in ~
+x correspond
+to the sequence of attributes of r and s involved
+in the ED.
+4. for
+each
+exclusion
+dependency
+r[
+1
+, . . . ,
+h
+]
+r[m
+1
+, . . . , m
+h
+] =  in E, the rules:
+r(~
+x, ~
+y, ~
+z)
+:­
+r
+D
+(~
+x, ~
+y, ~
+z) , r(~
+y, ~
+w
+1
+, ~
+w
+2
+) ,
+r(~
+x, ~
+y, ~
+z)
+:­
+r
+D
+(~
+x, ~
+y, ~
+z) , r( ~
+w
+1
+, ~
+x, ~
+w
+2
+) ,
+r(~
+x, ~
+x, ~
+z)
+:­
+r
+D
+(~
+x, ~
+x, ~
+z).
+Furthermore, we denote with  (D) the database instance
+obtained from D by replacing each predicate symbol r with
+r
+D
+.
+Informally, for each relation r, (q, S) contains (i) a relation
+r
+D
+that represents r
+D
+; (ii) a relation r that represents
+a subset of r
+D
+that is consistent with the KD for r and the
+EDs that involve r; (iii) an auxiliary relation r that represents
+the "complement" of r, i.e., the subset of r
+D
+that
+together with r results inconsistent with the EDs and KDs
+on the schema. Notice that the extension of r depends on
+the choice made for r (and vice-versa), and that such choices
+are made in a non-deterministic way (enforced by the use of
+the unstratified negation). The above rules force each stable
+model M of (q, S)   (D) to be such that r
+M
+is a maximal
+subset of tuples from r
+D
+that are consistent with both the
+KD for r and the EDs in E that involve r.
+Example 2.(contd.) The Datalog
+¬
+rewriting (q, S) of the
+query q(x, z) :­ Journal(x, y), Editor (y, z) is the following
+program:
+q(x, z)
+:­
+Journal(x, y), Editor (y, z)
+Journal(x, y)
+:­
+Journal
+D
+(x, y) , not Journal(x, y)
+Editor (x, y)
+:­
+Editor
+D
+(x, y) , not Editor (x, y)
+ConfPr (x, y)
+:­
+ConfPr
+D
+(x, y) , not ConfPr (x, y)
+Journal(x, y)
+: Journal
+D
+(x, y) , Journal(x, z) , z = y
+Editor (x, y)
+: Editor
+D
+(x, y) , Editor (x, z) , z = y
+ConfPr (x, y)
+: ConfPr
+D
+(x, y) , ConfPr (x, z) , z = y
+Journal(x, y)
+: Journal
+D
+(x, y) , ConfPr (x, z)
+ConfPr (x, y)
+: ConfPr
+D
+(x, y) , Journal(x, z)
+The first rule of the rewriting encodes the query. The second
+, third and fourth rule establish the relationship between
+each relation and the corresponding complementary predicate
+. The fifth, sixth, and seventh rule encode the KDs of
+S, whereas the last two rules encode the ED.
+We now state correctness of our encoding with respect to
+the semantics of consistent query answering.
+Theorem 5. let S = A, K, E be a database schema, D
+be a database instance for S, and q be a CQ over S. A tuple
+t is a consistent answer to q in D under S iff t  q
+M
+for
+each stable model M of (q, S)   (D).
+From the above theorem and Theorem 3 it follows that the
+consistent query answering problem under KDs and EDs is
+coNP-complete in data complexity.
+FOL Rewriting. Let us now consider a different approach
+to consistent query answering, which aims at identifying
+subclasses of queries for which the problem is tractable.
+This is the line followed in [1, 6, 13]. In particular, in [13]
+the authors define a subclass of CQs, called C
+tree
+, for which
+795
+they prove tractability of consistent query answering in the
+presence of KDs, and provide a FOL rewriting technique.
+The class C
+tree
+is based on the notion of join graph: a join
+graph of a query q is the graph that contains (i) a node N
+i
+for every atom in the query body, (ii) an arc from N
+i
+to N
+j
+iff an existential shared variable occurs in a non-key position
+in N
+i
+and occurs also in N
+j
+, (iii) an arc from N
+i
+to N
+i
+iff an
+existential shared variable occurs at least twice in N
+i
+, and
+one occurrence is in a non-key position. According to [13],
+C
+tree
+is the class of conjunctive queries (a) without repeated
+relation symbols, (b) in which every join condition involves
+the entire key of at least one relation and (c) whose join
+graph is acyclic. As pointed out in [13], this class of queries
+is very common, since cycles are rarely present in queries
+used in practice. However, no repeated symbols may occur
+in the queries, and queries must have joins from non-key
+attributes of a relation to the entire key of another one.
+We now extend the work of [13] as follows:
+· We refine the class C
+tree
+by allowing join conditions
+in which not necessarily the entire key of one relation
+has to be involved, but it is sufficient that, for each
+pair of attributes, at least one attribute must belong
+to a key (i.e., we allow for joins involving portions of
+key). In such a way, we obtain a new class, called C
++
+tree
+,
+larger than C
+tree
+, for which consistent query answering
+is polynomial in the presence of KDs. In other words,
+C
++
+tree
+is the class of conjunctive queries for which only
+condition (a) and (c) above hold.
+· We refine the class C
++
+tree
+in order to obtain a class of
+queries, called KE-simple, for which consistent query
+answering is polynomial in the presence of both KDs
+and also EDs.
+· We provide a new algorithm for computing the FOL
+rewriting for KE-simple queries. In the algorithm, we
+exploit the notion of join graph of [13], but we enrich
+the structure of the graph by associating to each node
+an adornment which specifies the different nature of
+terms in the atoms (see below), in order to deal with
+KE-simple queries.
+Let us describe in detail our technique. Henceforth, given a
+CQ q, we denote by R
+q
+the set of relation symbols occurring
+in body(q). Given a database schema S = A, K, E and a CQ
+q, we denote by O
+E
+(q) the set of relation symbols O
+E
+(q) =
+{s | r[j
+1
+, . . . , j
+k
+]  s[
+1
+, . . . ,
+k
+] =   E and r  R
+q
+}. In
+words, O
+E
+(q) contains each relation symbol s  A such that
+there exists an exclusion dependency between s and r in E,
+where r is a relation symbol occurring in body(q).
+Definition 6. Let S = A, K, E be a database schema.
+A conjunctive query q is KE-simple if q  C
++
+tree
+, and
+· there exists no pair of relation symbols r, s in O
+E
+(q)
+such that there exists an exclusion dependency between
+r and s in E,
+· there exists no relation symbol r in O
+E
+(q) such that
+there exists r[i
+1
+, . . . , i
+k
+]  s[j
+1
+, . . . , j
+k
+] =  in E, and
+either key(r)
+{i
+1
+, . . . , i
+k
+} or key(s)
+{j
+1
+, . . . , j
+k
+},
+where s is a relation symbol in R
+q
+.
+In words, a query q is KE-simple if it belongs to the class
+C
++
+tree
+, and if both there are no EDs between relations that
+are in O
+E
+(q), and each ED between a relation r  R
+q
+and
+a relation s  O
+E
+(q) does not involve non-key attributes of
+r or s. Notice that this last condition does not limit the
+applicability of our approach in many practical cases. For
+example, in relational databases obtained from ER-schemas,
+EDs are typically specified between keys.
+For KE-simple CQs, we present in the following a query
+rewriting algorithm which, given a query q, produces a FOL
+rewriting, whose evaluation over any database instance D
+for the database schema S returns the consistent answers to
+q in D under S. The basic idea of the algorithm is to specify
+a set of conditions, expressible in FOL, that, if verified over
+a database instance D, for a given tuple t, guarantee that
+in any repair of D there is an image of t w.r.t q, i.e., t is
+a consistent answer to q in D. We point out that, for non-KE
+-simple CQs, such conditions cannot be specified in FOL.
+Observe that, in our approach, the FOL rewriting is then in
+turn translated into SQL, and query evaluation is performed
+by means of standard DBMS query answering techniques.
+This further encoding does not present particular difficulties,
+and due to space limit we omit such transformation.
+In order to construct our join graph we need the following
+definition.
+Definition 7. Let S = A, K, E be a database schema,
+q be a CQ, and a = r(x
+1
+, . . . , x
+n
+) be an atom (of arity n)
+occurring in R
+q
+. Then, let key(r) = {i
+1
+, . . . , i
+k
+} belong to
+K, and let 1  i  n. The type of the i-th argument of a in
+q, denoted by type(a, i, q) is defined as follows:
+1. If i
+1
+i  i
+k
+, then:
+· if x
+i
+is a head variable of q, a constant, or an existential
+shared variable, then type(a, i, q) = KB;
+· if x
+i
+is an existential non-shared variable of q,
+then type(a, i, q) = KU.
+2. Otherwise (i /
+{i
+1
+, . . . , i
+k
+}):
+· if x
+i
+is a head variable of q or a constant, then
+type(a, i, q) = B;
+· if x
+i
+is an existential shared variable of q, then
+type(a, i, q) = S;
+· if x
+i
+is an existential non-shared variable of q,
+then type(a, i, q) = U.
+Terms typed by KB or B are called bound terms, otherwise
+they are called unbound. We call the typing of a in q
+the expression of the form r(x
+1
+/t
+1
+, . . . , x
+n
+/t
+n
+), where each
+t
+i
+is the type of the argument x
+i
+in q.
+The following algorithm KEFolRewrite computes the FOL
+rewriting to a KE-simple conjunctive query q. In the algorithm
+, JG(q) denotes the join graph of q, in which each node
+N
+i
+is labelled with the typing of the corresponding atom a
+i
+in q. Furthermore, roots(JG(q)) denotes the set of nodes
+that are roots in JG(q) (notice that for KE-simple queries
+the join graph is a forest, since it is acyclic).
+Algorithm KEFolRewrite(q, S)
+Input: KE-simple CQ q (whose head variables are x
+1
+, . . . , x
+n
+);
+schema S = A, K, E
+Output: FOL query (representing the rewriting of q)
+begin
+796
+Algorithm FolTree(N ,E)
+Input: node N of JG(q); set of EDs E
+Output: FOL formula
+begin
+let a = r(x
+1
+/t
+1
+, . . . , x
+n
+/t
+n
+) be the label of N ;
+for i := 1 to n do
+if t
+i
+{KB, B} then v
+i
+:= x
+i
+else v
+i
+:= y
+i
+, where y
+i
+is a new variable
+if each argument of a is of type B or KB then f
+1
+:= r(x
+1
+, . . . , x
+n
+)
+else begin
+let i
+1
+, . . . , i
+m
+be the positions of the arguments of a of type S, U, KU;
+f
+1
+:= y
+i
+1
+, . . . , y
+i
+m
+. r(v
+1
+, . . . , v
+n
+)
+end;
+for each ED r[j
+1
+, . . . , j
+k
+]  s[
+1
+, . . . ,
+k
+] =   E do
+begin
+let m be the arity of s;
+for i := 1 to m do
+if i  {
+1
+, . . . ,
+k
+} then if i =
+c
+then z
+i
+= v
+j
+c
+else z
+i
+= y
+i
+where y
+i
+is a new variable;
+let y
+i
+1
+, . . . , y
+i
+k
+be the new variables above introduced;
+f
+1
+= f
+1
+¬y
+i
+1
+, . . . , y
+i
+k
+. s(z
+1
+, . . . , z
+m
+)
+end
+if there exists no argument in a of type B or S then return f
+1
+else begin
+let p
+1
+, . . . , p
+c
+be the positions of the arguments of a of type U, S or B;
+let
+1
+, . . . ,
+h
+be the positions of the arguments of a of type B;
+for i := 1 to c do
+if t
+p
+i
+= S then z
+p
+i
+:= x
+p
+i
+else z
+p
+i
+:= y
+i
+, where y
+i
+is a new variable
+for i := 1 to n do
+if t
+i
+{KB, KU} then w
+i
+:= v
+i
+else w
+i
+:= z
+i
+;
+f
+2
+:= z
+p
+1
+, . . . , z
+p
+c
+. r(w
+1
+, . . . , w
+n
+)
+
+
+N jgsucc(N )
+FolTree(N )
+
+
+i{
+1
+,...,
+h
+}
+w
+i
+= x
+i
+return f
+1
+f
+2
+end
+end
+Figure 1: The algorithm FolTree
+compute JG(q);
+return {x
+1
+, . . . , x
+n
+|
+N roots(JG(q))
+FolTree(N, E)}
+end
+Basically, the algorithm builds the join graph of q and
+then builds the first-order query by invoking the algorithm
+FolTree on all the nodes that are roots of the join graph.
+The algorithm FolTree is defined in Figure 1. Roughly
+speaking, the algorithm FolTree(N, E) returns a first-order
+formula that constitutes the encoding of the whole subtree
+of the join graph of the query whose root is the node N .
+To do that, the algorithm computes two subformulas f
+1
+and
+f
+2
+. The formula f
+1
+contains an atom whose predicate is
+the predicate r labelling the node N , in which the unbound
+variables of r are renamed with new existentially quantified
+variables. Furthermore, f
+1
+contains an atom of the form
+¬y
+i
+1
+, . . . , y
+i
+k
+. s(z
+1
+, . . . , z
+m
+) for each ED that involves r and
+a relation s. Intuitively, when evaluated over a database instance
+D, each such atom checks that there are no facts of
+the form s(t
+s
+)  D that violate the ED together with a fact
+of the form r(t
+r
+)  D, which is in an image I of a tuple
+t w.r.t. the input query q, i.e., the atom guarantees that I
+is not contradicted w.r.t. the ED. The formula f
+2
+is empty
+only when all non-key arguments of the atom r are existential
+non-shared variables (i.e., of type U ). Otherwise, the
+formula f
+2
+is a universally quantified implication. In such
+an implication, the antecedent is an atom whose predicate
+is r, and the consequent is a conjunction of equality conditions
+and other subformulas: more precisely, there is an
+equality condition for each non-key argument in r of type
+B, and a subformula for each successor N of N in the join
+graph of q, computed by recursively invoking FolTree on N .
+Intuitively, f
+2
+enforces the joins between r and each atom
+labelling the successors of r in the join graph of q. At the
+same time f
+2
+ensures that, when evaluated over a database
+instance D, if there exists a fact of the form r(t
+r
+)  D that
+violates the KD specified on r together with a fact of the
+form r(t
+r
+)  D, which is in the image of a tuple t w.r.t. q,
+r(t
+r
+) belongs to another image of t w.r.t. q. In other words,
+the atom guarantees that in any repair there exists an image
+of t (w.r.t. the KD on r). Such a check is iterated for other
+KDs by recursively invoking FolTree. The following example
+illustrates the way the algorithm works.
+Example 2.(contd.) It is easy to verify that the query
+q(x, z) :­ Journal(x, y), Editor (y, z) is KE-simple.
+Journal(x/KB, y/S) (N 1) - (N 2) Editor (y/KB, z/B)
+Now, by applying the algorithm KEFolRewrite and FolTree
+we obtain:
+KEFolRewrite(q)
+=
+{x, z | FolTree(N 1)}
+FolTree(N 1)
+=
+y
+2
+. Journal(x, y
+2
+)  ¬y
+2
+. ConfPr (x, y
+2
+)
+y. Journal(x, y)  (FolTree(N 2))
+FolTree(N 2)
+=
+Editor (y, z)  y
+2
+. Editor (y, y
+2
+)  y
+2
+= z.
+797
+relations
+integrity constraints
+faculty/3
+exam plan/10
+key(f aculty) = {1, 2}
+key(plan status) = {1}
+course assignment/3
+degree/5
+key(exam plan) = {1}
+key(positioning) = {1}
+positioning/2
+course/4
+key(university) = {1}
+key(prof data) = {1}
+plan status/2
+key(exam type) = {1}
+key(degree) = {1}
+prof data/3
+key(course) = {1}
+key(exam) = {2}
+university/3
+key(master exam) = {1}
+bachelor exam/2
+key(bachelor exam) = {1}
+master exam/2
+course assignment[2]  professor [1] =
+exam type/2
+master exam[1]  bachelor exam[1] =
+exam/4
+course[3, 4]  bachelor exam[1, 2] =
+Figure 2: A portion of the test database schema
+By evaluating the rewriting over D we get { TODS, USA },
+i.e., the set of consistent answers to q in D under S.
+Next, we state soundness and completeness of the algorithm.
+Theorem 8. Let S = A, K, E be a database schema,
+q be a KE-simple conjunctive query over S, and q
+r
+be the
+FOL rewriting returned by KEFolRewrite(q). Then, for every
+database instance D for S, a tuple t is a consistent answer
+to q in D under S iff t  q
+D
+r
+.
+As a corollary, consistent query answering for KE-simple
+conjunctive queries over database schemas with KDs and
+EDs is polynomial in data complexity.
+EXPERIMENTS
+We now present some experimental results comparing the
+FOL and the Datalog
+¬
+rewriting previously described. To
+perform the experiments, we implemented a rewriting module
+that translates CQs issued over the database schema into
+both FOL queries and Datalog
+¬
+queries. FOL queries are
+in turn translated by the module into SQL queries. Then,
+we ran the SQL queries on a MySQL 4.1.10 instance of the
+test database, while we executed Datalog
+¬
+queries on DLV
+[15]. The experiments were conducted on a double processor
+machine, with 3 GHz Pentium IV Xeon CPU and 2 GB of
+main memory, running the Linux operating system.
+The test database holds information about the computer
+science engineering degrees of the university of Rome "La
+Sapienza" and contains 27 tables with an overall size of over
+200.000 tuples. In Figure 2, we present the portion of the
+test database schema that is relevant for the queries (in the
+figure, "r/n" indicates that relation r is of arity n).
+Due to space limits, we only report details about three of
+the queries we tested:
+Q
+0
+=
+q(C) : -f aculty(C, U, INGEGNERIA ).
+Q
+2
+=
+q(S, D, P ) : -positioning(P S, P ), plan status(ST, DE),
+exam plan(C, S, P S, DT, ST, 1 , U 1, U 2, U 3, U 4).
+Q
+3
+=
+q(N, D, N P, CP ) : -master exam(C, N, T, 5 ),
+exam type(T, D),
+The queries have been posed on various instances of the
+test database with an increasing number of pairs of tuples
+violating some ICs. Figure 3, shows experimental results.
+In the charts 3(a), 3(b) and 3(c), the execution time of the
+SQL encoding and of the Datalog
+¬
+program are compared
+for queries Q
+0
+, Q
+2
+, and Q
+3
+. As expected, from a certain
+inconsistency level on, the execution time of the Datalog
+¬
+encoding has an exponential blow-up; in contrast, the execution
+time for the SQL encoding is constant on the average,
+and for Q
+3
+(Figure 3(b)) it decreases: although this might
+be surprising, it turns out that some inconsistency allows the
+SQL engine to prune the search space for query answering.
+Moreover, the chart presented in Figure 3(d) compares, on
+a logarithmic scale, the execution time of all queries at the
+highest inconsistency level. It shows that the SQL encoding
+is always more efficient when the degree of data inconsistency
+grows; however, it turns out that the method based
+on Datalog
+¬
+and DLV proves particularly efficient in the
+presence of few data inconsistencies.
+CONCLUSIONS
+The present work provides a general experimental validation
+of the first-order rewriting approach to the optimization
+of consistent query answering. Of course, the applicability
+of our technique is limited to the class of KE-simple queries.
+For general CQs, the use of a more expressive, and compu-tationally
+harder, query language like Datalog
+¬
+is necessary.
+Very recently, the first prototype implementations of consistent
+query answering have appeared, and the first efforts
+towards optimization of query processing are emerging.
+Within INFOMIX, several optimizations are currently under
+development to improve consistent query answering for
+more expressive classes of queries [9, 8]. In this respect,
+binding propagation techniques based on magic sets might
+significantly reduce execution time for Datalog
+¬
+programs
+on DLV [11], even if the coNP structure of the Datalog
+¬
+encoding suggests that the efficiency of the SQL rewriting
+can be hardly reached (especially for a large number of inconsistencies
+).
+The ConQuer system [12] implements an extension of the
+technique of [13] which allows to rewrite in SQL queries
+belonging to the class C
+tree
+enriched with aggregates. Experiments
+show that the overhead of evaluating rewritten
+queries is not onerous if compared with evaluation of the
+original query over the inconsistent database. Therefore,
+[12] focuses on comparing standard query answering and
+consistent query answering, while our experiments compare
+two different query answering techniques. In this respect,
+we point out that optimization of our SQL rewriting was
+outside the scope of the present paper.
+Finally, Hippo [7] is a system for consistent answering of
+union of conjunctive queries without existential variables in
+the presence of denial constraints. Hence, this approach
+is different from our in terms of both query language and
+integrity constraints allowed. Moreover, Hippo techniques
+are not based on rewritings.
+As future work, we aim at extending our approach to other
+forms of ICs (e.g., foreign keys) and at optimizing the SQL
+rewriting produced by KEFolRewrite.
+798
+(a) Q
+0
+execution time
+(b) Q
+3
+execution time
+(c) Q
+2
+execution time
+(d) SQL vs. Datalog¬
+Figure 3: Experimental Results
+ACKNOWLEDGMENTS
+This research has been partially supported by the Project
+INFOMIX (IST-2001-33570) funded by the EU.
+
+REFERENCES
+[1] Marcelo Arenas, Leopoldo E. Bertossi, and Jan
+Chomicki. Consistent query answers in inconsistent
+databases. In Proc. of PODS'99, pages 68­79, 1999.
+[2] Franz Baader, Diego Calvanese, Deborah McGuinness,
+Daniele Nardi, and Peter F. Patel-Schneider, editors.
+The Description Logic Handbook: Theory,
+Implementation and Applications. Cambridge
+University Press, 2003.
+[3] Loreto Bravo and Leopoldo Bertossi. Logic
+programming for consistently querying data
+integration systems. In Proc. of IJCAI 2003, pages
+10­15, 2003.
+[4] Andrea Cal`i, Domenico Lembo, and Riccardo Rosati.
+On the decidability and complexity of query
+answering over inconsistent and incomplete databases.
+In Proc. of PODS 2003, pages 260­271, 2003.
+[5] Andrea Cal`i, Domenico Lembo, and Riccardo Rosati.
+Query rewriting and answering under constraints in
+data integration systems. In Proc. of IJCAI 2003,
+pages 16­21, 2003.
+[6] Jan Chomicki and Jerzy Marcinkowski. On the
+computational complexity of minimal-change integrity
+maintenance in relational databases. In Inconsistency
+Tolerance, pages 119­150, 2005.
+[7] Jan Chomicki, Jerzy Marcinkowski, and Slawomir
+Staworko. Computing consistent query answers using
+conflict hypergraphs. In Proc. of CIKM 2004, pages
+417­426, 2004.
+[8] Chiara Cumbo, Wolfgang Faber, Gianluigi Greco, and
+Nicola Leone. Enhancing the magic-set method for
+disjunctive datalog programs. In Proc. ICLP 2004),
+pages 371­385, 2004.
+[9] Thomas Eiter, Michael Fink, Gianluigi Greco, and
+Domenico Lembo. Efficient evaluation of logic
+programs for querying data integration systems. In
+Proc. of ICLP'03, pages 163­177, 2003.
+[10] Thomas Eiter, Georg Gottlob, and Heikki Mannilla.
+Disjunctive Datalog. ACM Trans. on Database
+Systems, 22(3):364­418, 1997.
+[11] Wolfgang Faber, Gianluigi Greco, and Nicola Leone.
+Magic sets and their application to data integration.
+In Proc. of ICDT 2005, pages 306­320, 2005.
+[12] Ariel Fuxman, Elham Fazli, and Ren´ee J. Miller.
+Conquer: Efficient management of inconsistent
+databases. In Proc. of SIGMOD 2005, pages 155­166,
+2005.
+[13] Ariel Fuxman and Ren´ee J. Miller. First-order query
+rewriting for inconsistent databases. In Proc. of
+ICDT 2005, pages 337­351, 2005.
+[14] Gianluigi Greco, Sergio Greco, and Ester Zumpano. A
+logical framework for querying and repairing
+inconsistent databases. IEEE Trans. on Knowledge
+and Data Engineering, 15(6):1389­1408, 2003.
+[15] Nicola Leone, Gerald Pfeifer, Wolfgang Faber,
+Thomas Eiter, Georg Gottlob, Simona Perri, and
+Francesco Scarcello. The DLV system for knowledge
+representation and reasoning. ACM Trans. on
+Computational Logic, 2005. To appear.
+799
+

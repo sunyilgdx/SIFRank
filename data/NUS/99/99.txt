@@ -1,0 +1,674 @@
+Handoff Trigger Table for Integrated 3G/WLAN Networks
+ABSTRACT
+Vertical handoff is a switching process between heterogeneous
+wireless networks in a hybrid 3G/WLAN network.
+Vertical handoffs fromWLAN to 3G network often fail due
+to the abrupt degrade of the WLAN signal strength in the
+transition areas. In this paper, a Handoff Trigger Table is
+introduced to improve the performance of vertical handoff.
+Based on this table, a proactive handoff scheme is proposed.
+Simulation results show that with the proposed scheme, the
+vertical handoff decisions will be more efficient so that dropping
+probability can be decreased dramatically.
+Categories and Subject Descriptors
+C.4 [Performance of Systems]: Design Studies; C.2.1
+[Network Architecture and Design]: Wireless Communications
+--Integrated 3G/WLAN Networks
+General Terms
+Performance
+
+INTRODUCTION
+With the emergence of different wireless technologies, which
+are developed for different purposes, the integration of these
+wireless networks has attracted much attention from both
+academia and industry. Among them, the integration of 3G
+cellular networks and wireless local access networks (WLAN)
+has become a very active area in the development toward the
+Permission to make digital or hard copies of all or part of this work for
+personal or classroom use is granted without fee provided that copies are
+not made or distributed for profit or commercial advantage and that copies
+bear this notice and the full citation on the first page. To copy otherwise, to
+republish, to post on servers or to redistribute to lists, requires prior specific
+permission and/or a fee.
+IWCMC'06, July 3­6, 2006, Vancouver, British Columbia, Canada.
+Copyright 2006 ACM 1-59593-306-9/06/0007 ...
+$
+5.00.
+next generation wireless networks. WLAN access technology
+can offer high-speed data connections in a small coverage
+with relatively low cost. On the other hand, cellular
+networks can offer connectivity over several square kilometers
+but with relatively low data rate. Taking advantages
+of both networks will bring great benefits to both service
+providers and users.
+One of the desired features of such a heterogeneous wireless
+network is to support seamless global roaming or vertical
+handoff. Traditionally, handoff is performed within the
+same wireless system, which is called horizontal handoff.
+In contrast, a vertical handoff takes place between different
+wireless networks [2]. In an integrated 3G/WLAN network
+, there are two directions in vertical handoff, one is from
+WLANs to 3G networks and the other is from3G Networks
+to WLANs. In the first direction, the objective for handoff
+is to maintain the connectivity, i.e., switching to the cellular
+network before the WLAN link breaks while trying to stay in
+the WLAN as long as possible because of its relatively high
+bandwidth and low cost. Since a WLAN has smaller coverage
+and is usually covered by a 3G network, when the mobile
+terminal (MT) steps out of the WLAN area, the decay of
+the signal fromthe WLAN should be accurately detected. A
+timely decision of handoff should be made properly, and the
+MT should switch the connection to the appropriate 3G network
+successfully. In the second direction, the objective of
+handoff is usually to improve QoS and acquire higher bandwidth
+with lower cost. In this paper, we will focus on the
+first direction, which is the handoff fromthe WLAN to the
+3G network.
+For a WLAN, signal power is limited, which causes the
+signal strength to be quite easily influenced by physical obstruction
+and blocks. For example, if the MT passes some
+blocks or moves into the elevator, there will be an abrupt
+drop in its received WLAN signal strength. In this case,
+the MT may not have enough time to finish the WLAN-to
+-3G-Network vertical handoff procedure before the link to
+WLAN breaks. Therefore, how to effectively detect the signal
+decay to trigger the handoff becomes a very important
+issue.
+In this paper, we propose to maintain a Handoff Trigger
+Table (HTT) at the Access Point (AP) to record some
+location information on transition areas in which vertical
+575
+handoffs occur. With the information of the HTT, a proactive
+handoff scheme is proposed to enable the MTs to start
+the vertical handoff procedure early enough to finish the
+vertical handoff procedure, thus the handoff call dropping
+probability can be decreased dramatically.
+The rest of this paper is organized as follows. In Section 2,
+some related work is discussed. In Section 3, we propose a
+Handoff Trigger Table to assist making handoff decisions.
+The handoff schem e based on this table is also presented.
+Section 4 gives simulation results to demonstrate the better
+performance of the proposed scheme in comparison with the
+traditional one. Section 5 concludes the paper.
+RELATED WORK
+In traditional handoff schemes, the received signal strength
+(RSS) has been used as an indicator for making handoff decisions
+. Some of the traditional approaches are as follows:
+[5]
+· RSS: handoff takes place if the RSS of a candidate
+point of attachment is larger than the RSS of the current
+point of attachm ent (RSS
+new
+&gt; RSS
+current
+);
+· RSS plus threshold: handoff is made if the RSS of a
+candidate point of attachment is larger than that of the
+current point of attachment and the latter is less than a
+certain pre-defined threshold T (RSS
+new
+&gt; RSS
+current
+and RSS
+current
+&lt; T );
+· RSS plus hysteresis: a handoff takes place if the RSS
+of the candidate point of attachment is larger than the
+RSS of the current one with a pre-defined hysteresis
+margin H (RSS
+new
+&gt; RSS
+current
++ H);
+· Algorithm plus dwell timer: sometimes a dwell timer
+can be added to the above algorithms. This timer is
+started when one of the above conditions happens, and
+the handoff takes place if the condition is met for the
+entire dwell timer interval.
+For the vertical handoff process, it may not be very reliable
+to make handoff decisions based only on the RSS of the point
+of attachment (e.g., AP of the WLAN) and the candidate
+point of attachment (e.g., base station of the 3G network)
+because of the asymmetric nature of the handoff problem
+[6].
+As mentioned before, the handoff from WLAN to 3G network
+is expected to be efficient and effective. Some methods
+have been proposed to achieve this goal. One of them
+is the Fast Fourier Transform(FFT)-based decay detection
+[1]. This approach tries to estimate the signal decay, and
+will trigger the handoff after the signal is confirmed to be
+decreased to a certain threshold. However, this approach
+has high calculation complexity with the need of frequent
+sampling, and suffers from estimation errors. In [2], handoff
+triggering nodes are used to notify the mobile terminal to
+start the handoff. These special nodes are data stations installed
+in WLAN/cellular transition regions where vertical
+handoffs occur. When an MT moves close to it, the handoff
+triggering node will send a handoff trigger command to trigger
+the link layer handoff. Using handoff trigger node can
+be good at triggering the handoffs, but if they are needed in
+many places within a WLAN, it will be costly to set up many
+trigger nodes. In addition, if there are new blocks appearing
+in the WLAN, it is hard to determine where the additional
+trigger nodes should be installed. Therefore, this approach
+is not very flexible. The Fuzzy logic based handoff algorithm
+[3][4] is proposed to assist making handoff decisions.
+This algorithmdecreases handoff delay and the number of
+unnecessary handoffs by changing the RSS average window
+according to the MT speed. It is worth mentioning that
+some fuzzy logic based algorithms are complex and may not
+be easy to be implemented in practical systems.
+HANDOFF TRIGGER TABLE FOR 3G/ WLAN NETWORKS
+Recently, WLAN has been expected to provide user location
+information [6]-[10], which is helpful for making vertical
+handoffs. We propose to use a Handoff Trigger Table (HTT)
+to store such location information at the AP and utilize it to
+trigger the WLAN-to-3G vertical handoff explicitly. Based
+on this table, a proactive handoff scheme is proposed to assist
+MTs to handoff in the right places at the right time.
+With this scheme, handoff decisions can be more efficient
+and handoffs are more likely to succeed compared with the
+traditional schemes which trigger the handoff mainly based
+on the received signal strength at the MTs.
+3.1
+Handoff Trigger Table
+A typical integrated 3G/WLAN network is shown in Fig. 1.
+The HTT is normally implemented at the APs of WLAN
+and used to record the user location information which will
+be helpful to make handoff decisions as explained later. An
+example of the HTT is given in Table 1.
+Table 1: An example of HandoffTrigger Table
+X
+1
++ D &gt; x &gt; X
+1
+- D
+Y
+1
++ D &gt; y &gt; Y
+1
+- D
+X
+2
++ D &gt; x &gt; X
+2
+- D
+Y
+2
++ D &gt; y &gt; Y
+2
+- D
+· · ·
+· · ·
+X
+n
++ D &gt; x &gt; X
+n
+- D Y
+n
++ D &gt; y &gt; Y
+n
+- D
+In the HTT, the information of the locations where an
+MT needs to handoff is given. We defined Black Holes (BH)
+the small areas in which the received signal strength at an
+MT decreases abruptly and the link to the AP breaks in a
+very short time. In such BHs, if the MT does not switch
+the connection to the 3G network, it will not be able to
+keep the connectivity to its correspondence node. Each BH
+is proposed to be covered by a slightly larger area, namely,
+proactive area. When MTs move into a proactive area, the
+AP will send a message to notify the MT to start proactive
+handoff (detailed in Section 3.2), regardless of the current
+received signal strength at the MT. In Table 1, (X
+i
+, Y
+i
+, i =
+1, 2, · · · , n) are the location coordinates of the center of the
+BHs, and D is the distance between the center of the black
+hole and proactive area edges. (X
+n
++ D &gt; x &gt; X
+n
+-D, Y
+n
++
+D &gt; y &gt; Y
+n
+- D) is an example of possible ways to describe
+the proactive area. Note that other types of proactive areas
+such as circles can also be adopted. Fig. 1 illustrates the
+above two concepts, wherein A, B and C are three BHs
+within the WLAN, and A', B', C' are the corresponding
+proactive areas.
+The HTT will be initialized when the AP is installed in
+the WLAN, then it will be dynamically updated. In the initial
+stage, MTs will handoff in a traditional way, i.e., handoff
+576
+Figure 1: An example of WLAN with Black Holes
+when the received signal strength decreases to a threshold.
+In addition, the MT sends out a handoff notification to the
+AP, and the AP will record the coordinates of this handoff
+location into the HTT. Usually BH is not a dot, but
+a small area. Therefore, for each BH, the HTT will store
+many coordinates of points where vertical handoffs occur,
+then the AP will try to merge these coordinates to form a
+corresponding proactive area and put it into the HTT. After
+the initialization stage, the HTT will only contain the description
+of proactive areas instead of individual coordinates
+of BHs. Meanwhile, the AP will often check the HTT to decide
+whether any MT enters the proactive areas. When a
+new BH appears, the AP will be able to record its proactive
+area into the HTT after some vertical handoffs take place
+near this BH, similar to the initial stage. When a BH disappears
+due to some reasons (e.g., restructure in the WLAN),
+there will be no vertical handoffs occur in the corresponding
+proactive area. As a result, the AP will remove the entry
+of this proactive area fromthe HTT after some predefined
+time, which can be decided by the system administrator.
+With the above methods, the HTT is maintained dynamically
+and can adaptive to the change of the environment.
+3.2
+Proactive Handoff Scheme
+Based on the Handoff Trigger Table, we propose a proactive
+handoff scheme to achieve better handoff performance.
+In the traditional scheme, the handoff decision mechanism
+is that a handoff will be triggered when the current RSS is
+lower than a threshold (THm) or RSS from the candidate
+network is higher than a threshold (THw). The procedure
+is illustrated in Fig. 2.
+In the proposed scheme, we divide the handoff into two
+stages, a proactive handoff stage and a handoff stage. In the
+proactive handoff stage, when an MT moves into a proactive
+area, the AP will send it a proactive handoff message.
+Following that the MT will send out a binding update message
+to the AP and start this network layer handoff. The
+procedure is given in Fig. 3.
+When an MT enters the WLAN, the RSSs in sampling
+intervals will be measured and their averages are computed.
+At the same time, the AP will check if the MT is in any
+proactive area. If yes, it will send a control message Pre-Handoff
+-CMD to the MT. After receiving this message, the
+MT will start to send the cellular network a message to request
+a connection. When the signal decreases to a certain
+threshold R
+t
+, the link-layer handoff starts, and the MT will
+Handoff execution
+RSS&lt;Rt
+No
+Yes
+Start handoff
+Averaging
+Measurements
+Figure 2:
+Traditional handoffscheme for Hybrid
+Networks
+Measurements
+Averaging
+Handoff Trigger
+Table
+Handoff execution
+RSS&lt;Rt
+Pre-handoff
+Yes
+No
+Figure 3: Proactive handoffscheme for Hybrid Networks
+switch the connection to the cellular network. When the
+received signal strength decreases to R
+t
+, but the MT still
+does not receive the Pre-Handoff-CMD, it will send a message
+to informthe AP to add this location coordinate into
+the HTT. The threshold R
+t
+is a design parameter that can
+be set by the administrator to best enable vertical handoff
+procedure under the WLAN-specific physical situation.
+PERFORMANCE EVALUATION
+In this section, we compare the performance of the proposed
+vertical handoff scheme with HTT and the traditional
+handoff scheme by simulation. Consider the simplified network
+model for 3G/WLAN networks shown in Fig. 1. We
+assume that the 3G network covers the WLAN area. The
+RSS of the WLAN signal at an MH is assumed as a function
+of the distance d between the MH and the AP[11]:
+RSS(d) = P T · L · 10n log(d) + f(µ, ) dBm , where P T
+is the transmitted power, L is a constant signal power loss,
+n is the path loss exponent, and f(µ, ) represents shadow
+fading modeled as zero mean Gaussian random variable with
+mean µ and standard deviation . In the WLAN, there are
+a number of BHs, in which the RSS will decrease to almost
+zero immediately and the MT will have to handoff to the
+3G networks.
+577
+The popular Random Waypoint mobility model [12] is
+used to simulate the mobility of the MTs in the WLAN.
+At the beginning, the MTs' positions in the WLAN are uniformly
+distributed. Each MT will move at a random speed
+V , which is uniformly distributed in [V min, V max], and in
+a randomdirection. After randomtime T m, the MT will
+stop and stay for randomtime T s, with both T m and T s
+uniformly distributed in [0, 2s]. The MT will continue the
+movement as described above. Any MT that moves out of
+the WLAN will be eliminated, and a new MT will be gener-ated
+in the WLAN with a randomly chosen location. Some
+other parameters used in the simulations are given in Table
+2.
+Table 2: Parameters for the numerical examples
+Parameter
+Value
+PT
+100mW
+R
+t
+-85dbm
+n
+3.3
+
+7dB
+Handoff time
+2s
+Velocity range
+0 ­ 2 m /sec
+Number of BHs
+3
+WLAN area
+100m
+× 100m
+We define the transition time as the time from when an
+MT starts handoff to the moment it moves into a BH, and
+handoff time as the time from when an MT sends out the
+binding update message to the moment it receives the first
+package fromthe Base Station.
+The drop of a call only
+happens when the transition time is less than the handoff
+time.
+In Figs. 4, 5 and 6, we present the dropping probability
+of the proposed scheme and the traditional handoff scheme
+based on different proactive distance, D, and two values of
+user mobility rate, V , respectively. Fig. 4 illustrates the
+0
+0.5
+1
+1.5
+2
+0
+0.05
+0.1
+0.15
+0.2
+0.25
+0.3
+0.35
+0.4
+0.45
+User Mobility rate
+Drop Probablity
+Traditional Method
+D=0.4 HTT Method
+D=0.5 HTT Method
+Figure 4: Effect of user mobility
+effect of user mobility on the connection dropping probability
+. In this figure, the dropping probabilities for proactive
+distance D = 0.4 and D = 0.5, are given. In these results
+, handoff time is 2s. From the figure, we can see that
+the handoff probability has been reduced with the explicit
+handoff trigger in the proposed scheme, because mobile terminals
+can have more time to execute the handoff. When
+the proactive distance increases, the dropping probability
+decreases. This is due to the fact that when the proactive
+distance is larger, the time for the MT to execute the handoff
+will be longer. We can also see that when the MTs move
+faster, dropping probability will increase as well, because
+shorter time is made available for the MT to execute the
+vertical handoff given the same D. Compared with the HTT
+scheme, the traditional scheme is more sensitive to the user
+mobility rate, and the dropping probability increases rapidly
+as the mobility increases.
+
+0.1
+0.15
+0.2
+0.25
+0.3
+0.35
+0.4
+0.45
+0.5
+0
+0.05
+0.1
+0.15
+0.2
+0.25
+0.3
+0.35
+0.4
+0.45
+Distance of prehandoff
+D
+r
+oppi
+ng P
+r
+obabl
+i
+t
+y
+V=0.5 Traditional Method
+V=0.5 HTT Method
+V=1 Traditional Method
+V=1 HTT Method
+Figure 5: Effect of proactive distance
+Fig. 5 shows that as the proactive distance increases, the
+dropping probability of HTT scheme decreases very fast and
+it is quite sensitive to the distance increasing. When the user
+mobility rate increases, the dropping probability will also
+increase, which conforms with the results in Fig. 4. Fig. 6
+shows the impact of the handoff time (in practical value
+range) on the dropping probability. With a given transition
+time, if the handoff time increases, the dropping probability
+will be higher, as expected.
+Fig. 7 shows that the impact of the distance between AP
+and BH on the dropping probability. The signal strength
+decays with the distance to the AP in WLANs. In the proposed
+scheme, MTs start network layer handoff in advance
+according to the parameter D and regardless of the RSS, so
+the performance of the proposed scheme is independent from
+the distance d between the BH and the AP. However, for a
+given RSS threshold, the performance of traditional handoff
+scheme relies heavily on d, and it has better performance
+for the BHs which are far fromthe AP. This is because the
+signal strength is relatively high near the AP, and MT will
+normally find that its RSS is above the threshold. As the
+MT enters the BH, the signal strength degrades so abruptly
+that the MT does not have enough time to do handoff, which
+leads to high dropping probability. In contrast, the RSS of
+an MT moving around a BH that is far from the AP will
+be relatively low and may be close to the threshold, hence
+a handoff decision may be easily triggered before the MT
+enters the BH. In this case, the MT gets longer time to conduct
+the handoff procedure so a relatively lower dropping
+probability can be achieved.
+578
+
+1.8
+2
+2.2
+2.4
+2.6
+2.8
+3
+0.1
+0.2
+0.3
+0.4
+0.5
+0.6
+0.7
+0.8
+Handoff time(s)
+D
+r
+oppi
+ng P
+r
+o
+bab
+l
+i
+t
+y
+Traditional Method
+HTT Method
+Figure 6: Effect of Vertical handoff time
+
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+0
+0.1
+0.2
+0.3
+0.4
+0.5
+0.6
+0.7
+0.8
+0.9
+Distance between AP and BH
+Dr
+oppi
+ng P
+r
+obabl
+i
+t
+y
+Traditional Method
+D=0.4 HTT Method
+D=0.5 HTT Method
+Figure 7: Effect of distance between AP and BH
+FromFig. 7, we can also see that for the proposed scheme,
+the proactive distance D should be set properly. Similar
+requirement applies to the setting of the threshold in the
+traditional scheme. If D or the threshold is set to be high,
+there will be many unnecessary handoffs although the dropping
+probability will decrease. On the other hand, if D or
+the threshold is too low, the dropping probability will increase
+.
+However, the dependence on d of the traditional
+handoff scheme cannot be eliminated by simply adjusting
+the threshold, which makes the selection of a proper threshold
+in the traditional scheme even more difficult.
+We further study the performance of the two schemes in
+the WLAN with different number of BHs. The locations
+of the BHs are set to be uniformly distributed within the
+WLAN. FromFig. 8, it can be seen that for both schemes
+the dropping probability is not sensitive to the number of
+BHs when their locations are uniformly distributed. The
+case for BHs with non-uniformdistribution is left as future
+work.
+2
+4
+6
+8
+10
+12
+14
+16
+18
+0.01
+0.015
+0.02
+0.025
+0.03
+0.035
+0.04
+0.045
+Number of BHs
+Dropping Probablity
+Traditional Method
+D=0.4 HTT Method
+Figure 8: Effect of number of BHs
+CONCLUSIONS
+In this paper, vertical handoffs fromWLAN to 3G cellular
+network has been investigated. To support making proper
+handoff decisions, a Handoff Trigger Table (HTT) has been
+proposed to be implemented at the AP of WLAN to record
+the location information of BHs.
+Based on this table, a
+proactive handoff scheme has been proposed. Simulation
+results have been given to show that with the information
+in the HTT, the vertical handoff decisions can be made more
+efficiently and dropping probability can be decreased signif-icantly
+. Possible future work include making the proactive
+distance D a variable for different environments and further
+investigating the unnecessary handoff events in different prehandoff
+schemes. The HTT scheme can also be used in sys-temdiscovery
+to assist reducing MH power consumption.
+ACKNOWLEDGEMENTS
+This work has been supported jointly by the Natural Sciences
+and Engineering Research Council (NSERC) of Canada
+under Strategic Grant No. 257682 and Research in Motion
+(RIM).
+REFERENCES
+[1] Q. Zhang, C. Guo, Z. Guo and W. Zhu, "Efficient
+mobility management for vertical handoff between
+WWAN and WLAN", IEEE Communications
+Magazine Vol. 41, Issue 11, Nov. 2003, pp. 102­108.
+[2] W.-T. Chen; J.-C. Liu; H.-K. Huang, "An adaptive
+scheme for vertical handoff in wireless overlay
+networks", Proceedings of International Conference on
+Parallel and Distributed Systems 2004, 7-9 July 2004,
+pp. 541­548.
+[3] P. Khadivi, T.D. Todd and D. Zhao, "Handoff trigger
+nodes for hybrid IEEE 802.11 WLAN/cellular
+networks", Proc. QSHINE 2004, pp. 164­170.
+[4] A. Majlesi and B.H. Khalaj, "An adaptive fuzzy logic
+based handoff algorithmfor interworking between
+WLANs and mobile networks", Proc. PIMRC'02,
+Sept. 2002, pp. 2446­2451.
+[5] K. Pahlavan, et al., "Handoff in hybrid mobile data
+579
+networks", IEEE Personal Communications, Vol.7,
+No.2, April 2000, pp. 34­47.
+[6] J.-Z. Sun, J. Sauvola and D. Howie, "Features in
+future: 4G visions froma technical perspective", Proc.
+GLOBECOM'01, Nov. 2001, pp. 3533­3537.
+[7] P. Bahl and V. Padmanabhan, "RADAR: An
+in-building RF-based user location and tracking
+system", Proc. IEEE INFOCOM'00, Tel-Aviv, Israel,
+2000, pp. 775­784.
+[8] P.Krishnan, A.S. Krishnakumar, W.-H. Ju, C.
+Mallows, and S. Ganu, "A systemfor LEASE:
+location estimationassisted by stationary emitters for
+indoor RF wireless networks", Proc. IEEE
+INFOCOM'04, Hongkong, 2004, pp. 1001­1011.
+[9] K.-I. Itoh, S. Watanabe, J.-S. Shih, and T. Sato,
+"Performance of handoff algorithm based on distance
+and RSSI measurements", IEEE Trans. Vehic.
+Technol., Vol. 51, No. 6, Nov. 2002, pp.1460 - 1468.
+[10] J. Makela, M. Ylianttila and K. Pahlavan, "Handoff
+decision in multi-service networks", Proc. PIMRC'00,
+Sept. 2000, pp. 655­659.
+[11] A.H. Zahran and B. Liang, "Performance evaluation
+framework for vertical handoff algorithms in
+heterogeneous networks", Proc ICC 2005, May 2005,
+pp. 173­178
+[12] C Bettstetter, H Hartenstein and X Perez-Costa,
+"Stochastic properties of the randomwaypoint
+mobility model", Wireless Networks, Vol. 10, No. 5,
+Sept. 2004, pp. 555­567.
+580
+

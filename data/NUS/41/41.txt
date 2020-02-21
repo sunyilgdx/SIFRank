@@ -1,0 +1,1691 @@
+Autonomous and Distributed Node Recovery in Wireless Sensor Networks
+ABSTRACT
+Intrusion or misbehaviour detection systems are an important
+and widely accepted security tool in computer and wireless
+sensor networks. Their aim is to detect misbehaving or
+faulty nodes in order to take appropriate countermeasures,
+thus limiting the damage caused by adversaries as well as by
+hard or software faults. So far, however, once detected, misbehaving
+nodes have just been isolated from the rest of the
+sensor network and hence are no longer usable by running
+applications. In the presence of an adversary or software
+faults, this proceeding will inevitably lead to an early and
+complete loss of the whole network.
+For this reason, we propose to no longer expel misbehaving
+nodes, but to recover them into normal operation. In this
+paper, we address this problem and present a formal specification
+of what is considered a secure and correct node
+recovery algorithm together with a distributed algorithm
+that meets these properties. We discuss its requirements
+on the soft- and hardware of a node and show how they can
+be fulfilled with current and upcoming technologies. The
+algorithm is evaluated analytically as well as by means of
+extensive simulations, and the findings are compared to the
+outcome of a real implementation for the BTnode sensor
+platform. The results show that recovering sensor nodes is
+an expensive, though feasible and worthwhile task. Moreover
+, the proposed program code update algorithm is not
+only secure but also fair and robust.
+Categories and Subject Descriptors
+C.2.0 [Computer-communication networks]: General-Security
+and protection
+General Terms
+Algorithms, Reliability, Security
+Permission to make digital or hard copies of all or part of this work for
+personal or classroom use is granted without fee provided that copies are
+not made or distributed for profit or commercial advantage and that copies
+bear this notice and the full citation on the first page. To copy otherwise, to
+republish, to post on servers or to redistribute to lists, requires prior specific
+permission and/or a fee.
+SASN'06,
+October 30, 2006, Alexandria, Virginia, USA.
+Copyright 2006 ACM 1-59593-554-1/06/0010 ...
+$
+5.00.
+
+INTRODUCTION
+Wireless sensor networks (WSNs) consist of many wireless
+communicating sensor nodes. Essentially, these are mi-crocontrollers
+including a communication unit and a power
+supply, as well as several attached sensors to examine the
+environment. Sensor nodes typically have very limited computing
+and storage capacities and can only communicate
+with their direct neighbourhood. In addition, WSNs have
+to work unattended most of the time as their operation area
+cannot or must not be visited. Reasons can be that the area
+is inhospitable, unwieldy, or ecologically too sensitive for human
+visitation; or that manual maintenance would just be
+too expensive.
+More and more, WSN applications are supposed to operate
+in hostile environments, where their communication
+might be overheard and nodes can be removed or manipu-lated
+. Regarding attacks on sensor networks, one differentiates
+between so called outsider and insider attacks <A href="41.html#9">[21]. In
+the former, a potential attacker tries to disclose or influence
+a confidential outcome without participating in its computation
+; for instance, by intercepting, modifying, or adding
+messages. In the latter, by contrast, an attacker appears as
+an adequate member of the WSN by either plausibly impersonating
+regular nodes or by capturing and compromising
+them.
+Cryptographic methods, such as encrypting or signing
+messages, are an effective protection against attacks from
+outside the network, but are of only limited help against
+insider attacks. Once an adversary possesses one or several
+valid node identities (including the associated keys), it
+can actively participate in the operations of the WSN and
+influence the computed results.
+Intrusion or misbehaviour detection systems (IDS), on the
+other hand, are an important and widely accepted security
+tool against insider attacks <A href="41.html#9">[18, 21].
+They allow for the
+detection of malicious or failed nodes and the application
+of appropriate countermeasures. So far, however, once detected
+, misbehaving nodes have just been isolated from the
+rest of the network and hence are no longer usable by running
+applications. In the presence of an adversary or software
+faults, this proceding will inevitably result in an early
+and complete loss of the whole network. Therefore, not only
+the detection of misbehaving nodes is important, but also
+the selection and application of effective countermeasures.
+Their aim must not be to simply expel suspected nodes but
+to recover them into correct operation. In combination, the
+advantages of an IDS together with the appropriate recov-113
+ery measures are manifold. Not only do they help in case of
+program faults (e.g., deadlocks or crashes) but even if an attacker
+manages to capture a node and to abuse it for his own
+purposes, there is a chance that the aberrant behaviour of
+this node will be detected and the node be recovered, thus
+nullifying the attack. However, due to the size of sensor
+networks, both the IDS functionality as well as the recovery
+measures should be autonomously executed by the involved
+nodes in a distributed and cooperative manner and without
+the need for central instances with extended functionality.
+Motivated by the above mentioned insights, this paper focuses
+on autonomous an distributed node recovery in wireless
+sensor networks and proposes three alternative countermeasures
+to node expelling; namely to switch a node off,
+to restart it, and to update its program code. We formally
+specify what we consider a secure and correct recovery algorithm
+, present a distributed algorithm which meets these
+properties, and reason why it can help to extend the overall
+lifetime of a sensor network. In addition, we discuss the limitations
+of the proposed countermeasures, show which hard-and
+software parts of a corrupted node must still work correctly
+to make them applicable, and explain how this can
+be achieved with current and upcoming technologies. More
+precisely, the contributions of this paper are as follows:
+· We propose to no longer expel misbehaving nodes, but
+to either (i) switch them off, (ii) restart them, or (iii)
+update their program code.
+· We give a formal specification of a secure and correct
+recovery algorithm.
+· We present a provably secure and robust distributed
+node recovery algorithm.
+· We discuss the requirements on the soft- and hardware
+of a node in order to make the countermeasures applicable
+and show how they can be fulfilled with current
+and upcoming technologies.
+The algorithm is evaluated analytically as well as by means
+of extensive simulations and the findings are compared to
+the outcome of a real implementation for the BTnode sensor
+platform. The results show that recovering sensor nodes
+is an expensive, though feasible and worthwhile task. Moreover
+, the proposed program code update algorithm is not
+only provably secure but also fair and robust. It distributes
+the update load equally over all participating nodes and terminates
+as long as at least one of them remains correct.
+The rest of this paper is organised as follows. Section <A href="41.html#2">1.1
+presents the related work in the area of intrusion detection
+and node recovery in wireless sensor networks. Section <A href="41.html#3">2
+states the required definitions and assumptions. Section <A href="41.html#4">3
+specifies the proposed recovery algorithm whose correctness
+is proven in section <A href="41.html#6">4. The algorithm is evaluated in section
+<A href="41.html#6">5 and section <A href="41.html#8">6 concludes the paper.
+1.1
+Related Work
+In this section, we present related work in the area of intrusion
+detection in wireless sensor networks. Additionally,
+related work regarding program code updates in sensor networks
+is also discussed, as we propose program code updates
+as a mean to recover nodes.
+Intrusion Detection
+In recent years, intrusion detection systems for wireless sensor
+networks have become a major research issue and several
+approaches have been proposed. However, to our best
+knowledge, the only countermeasure applied so far was to
+(logically) exclude malicious nodes.
+Khalil, Bagchi, and Nina-Rotaru present a distributed
+IDS where nodes monitor the communication among their
+neighbours <A href="41.html#9">[14]. For each monitored node a malignity counter
+is maintained and incremented whenever the designated node
+misbehaves. Once a counter exceeds a predefined threshold,
+an according alert is sent to all neighbours and if enough
+alerts are received the accused node is revoked from the
+neighbourhood list. Hsin and Liu suggest a two-phase timeout
+system for neighbour monitoring which uses active probing
+to reduce the probability of false-positives <A href="41.html#9">[10].
+A rule-based IDS, which proceeds in three phases, is proposed
+by da Silva et al. <A href="41.html#9">[5]. In the first phase, messages are
+overheard and the collected information is filtered and ordered
+. In the second phase, the detection rules are applied
+to the gathered data and each inconsistency counted as a
+failure. Finally, in the third phase, the number or failures is
+compared to the expected amount of occasional failures and
+if too high an intrusion alert is raised.
+Inverardi, Mostarda and Navarra introduce a framework
+which enables the automatic translation of IDS specifications
+into program code <A href="41.html#9">[12]. The so generated code is then
+installed on the sensor nodes in order to locally detect violations
+of the node interaction policies. In the approach by
+Herbert et al. <A href="41.html#9">[6], predefined correctness properties (invariants
+) are associated with conditions of individual nodes or
+the whole network and program code to verify these invariants
+is automatically inserted during compilation.
+A reputation-based IDS framework for WSNs where sensor
+nodes maintain a reputation for other nodes is presented
+by Ganeriwal and Srivastava <A href="41.html#9">[8]. It uses a Bayesian formula-tion
+for reputation representation, update, and integration.
+Program Code Update
+The main difference between the already available reprogramming
+algorithms and the proposed recovery measures
+are that the former focus on the propagation of new program
+releases among all nodes of the network, whereas the
+aim of the latter is the local and autonomous update of a
+single node. Furthermore, most reprogramming mechanisms
+do not care about security at all, or rely on expensive public
+key cryptography.
+Kulkarni and Wang propose a multihop reprogramming
+service for wireless sensor networks which uses a sender selection
+algorithm to avoid collisions <A href="41.html#9">[16]. Impala, a middleware
+system for managing sensor systems is presented
+by Liu and Martonosi <A href="41.html#9">[17]. Its modular architecture supports
+updates to the running system. An application consists
+of several modules which are independently transferred;
+an update is complete if all its modules have been received.
+Jeong and Culler introduce an efficient incremental network
+programming mechanism <A href="41.html#9">[13]. Thanks to the usage of the
+Rsync algorithm, only incremental changes to the new program
+must be transferred.
+A secure dissemination algorithm to distribute new program
+releases among nodes is presented by Dutta et al. <A href="41.html#9">[7].
+Program binaries are propagated as a sequence of data blocks
+of which the first is authenticated with the private key of
+114
+the base station and the subsequent ones by means of a
+hash chain. In order to improve the fault tolerance of the
+sensor network, nodes use a grenade timer to reboot period-ically
+. During the boot process neighboring nodes are asked
+whether a new program release is available and if so, its
+download is initiated.
+DEFINITIONS
+In this section, we define our assumptions regarding the
+observation of nodes and the network communication model.
+We specify the capabilities of a potential adversary, explain
+what we consider a correct recover algorithm, and discuss
+the requirements on the hard- and software of a sensor node.
+2.1
+Intrusion and Misbehaviour Detection
+Troughout this paper, we assume that the network is divided
+into N
+C
+so called observation clusters C
+i
+= (V
+i
+, E
+i
+),
+0  i &lt; N
+C
+of size n, n = |V
+i
+|. Within a cluster each node
+is connected to each other (v
+i
+, v
+j
+V
+k
+, v
+i
+= v
+j
+: {v
+i
+, v
+j
+}
+E
+k
+) and observes the behaviour of its cluster neighbours.
+For the actual monitoring of the neighbours an arbitrary
+IDS can be used, as long as each node ends up with an
+(individual) decision about whether a certain node behaves
+correct or malicious. The set of malicious nodes in a cluster
+is denoted by M
+i
+and their number by t, t = |M
+i
+|  n.
+2.2
+Network Model
+In the following, p
+s
+(p
+r
+) denotes the probability that the
+sending (receiving) of a message fails. Thus, for 0  p
+s
+, p
+l
+&lt;
+1 the resulting probability for an unsuccessful transmission
+(packet loss ratio, PLR) is
+p
+l
+:= 1 - (1 - p
+s
+)(1 - p
+r
+) = p
+s
++ p
+r
++ p
+s
+p
+r
+Additionally, we assume that there exists a constant upper
+bound
+p
+O(1) on the transmission time of a message.
+2.3
+Adversary Model
+We consider an omnipresent but computationally bounded
+adversary who can perform both outsider as well as insider
+attacks. This means that a potential adversary is able to intercept
+and create arbitrary messages but unable to decrypt
+or authenticate messages for which he does not possess the
+required keys. We further assume that nodes can be either
+logically (i.e., by exploiting a software bug) or physically
+captured. However, the time to compromise a node physically
+is considered non-negligible (i.e., it takes some time to
+move from node to node and to perform the physical manipulations
+) and to not significantly decrease with the number
+of already captured nodes.
+2.4
+Hard- and Software Requirements
+To all presented recovery measures applies that they are
+only applicable if at least the therefore needed systems of
+the corrupt node ­ in the following denoted as the recovery
+system ­ still work correctly. In order to achieve this, one
+has to make sure that the recovery system is logically and,
+if feasible, physically protected.
+Logical Protection of the Recovery System
+Logical protection means that it should not be possible for a
+running application to prevent the execution of the recovery
+procedures. That is, if the program code running on a node
+has crashed or been corrupted by an adversary (e.g., by exploiting
+a security hole), this should not affect the integrity
+and availability of the recovery system.
+One mechanism to achieve this is to set up a hardware
+interrupt which cannot be suppressed or redirected by the
+application and by locating the dedicated interrupt routine
+in a write protected memory area. Consequently, on each
+interrupt request, control is handed over to the immutable
+interrupt routine an thus to the recovery system. A simple
+variant of this mechanism in which a grenade timer period-ically
+reboots the system and the bootloader is located in
+read only memory (ROM) is used by Dutta et al. <A href="41.html#9">[7]. Another
+approach would be to misuse some additionally available
+MCUs <A href="41.html#9">[23], for example the ARM CPU on the ARM-based
+Bluetooth module on the BTnode.
+Some of these
+MCUs are powerful enough to take on additional tasks like
+monitoring the main MCUs activities or rewriting the application
+memory. In case of the BTnode that extra MCU
+is directly responsible for communication and thus it would
+be guaranteed that it has access to all received packets as
+well.
+On more advanced systems, mechanisms as provided by
+Intel's protected mode (e.g., isolated memory areas, privilege
+levels, etc.) could be used to protect the recovery system
+more efficiently. Current technologies such as ARM's
+TrustZone <A href="41.html#9">[1] for embedded devices or Intel's LaGrande technology
+<A href="41.html#9">[11] go even further and enable a comprehensive protection
+of the CPU, memory, and peripherals from software
+attacks.
+Physical Protection of the Recovery System
+The physical protection of current sensor node platforms
+is very poor because of their focus on simple maintenance
+<A href="41.html#9">[9]. However, although it is generally agreed that entirely
+tamper-proof sensor nodes would be too expensive, current
+trends in the hardware development of embedded devices indicate
+that some level of physical protection will be available
+in the near future <A href="41.html#9">[20, 15]. Security mechanisms regarding
+the packaging of sensor nodes as, for instance, those proposed
+by FIPS 140-2 level 2 <A href="41.html#9">[19] could already significantly
+increase the cost for an adversary. For integrity and not
+confidentiality is the main concern with the recovery module
+, it has only to be protected against manipulations but
+not against unintended disclosure or side-channel attacks.
+In fact, it would be sufficient to have mechanisms which
+render a node useless if the case of the recovery system was
+opened; complete tamper resistance is not required.
+2.5
+Correct Node Recover Algorithms
+A node recovery algorithm for a cluster C
+i
+= (V
+i
+, E
+i
+) is
+considered correct if the following liveness and safety properties
+hold:
+L1 If all correct nodes (V
+i
+\ M
+i
+) accuse a node m  V
+i
+to
+be faulty or malicious, its recovery process will finally
+be initiated with high probability.
+L2 Once the recovery process for a node m  V
+i
+has been
+initiated, it will eventually terminate as long as there
+remain at least k  1 correct nodes  V
+i
+\ M
+i
+.
+S1 If no more than
+n-1
+3
+correct nodes (i.e., a minority)
+accuse another correct node v  V
+i
+\ M
+i
+the recovery
+process will not be initiated.
+115
+S2 After the recovery process, a node m  V
+i
+must either
+(i) be halted, (ii) contain the same program code as
+before, or (iii) contain the correct program code.
+The two liveness properties L1 and L2 ensure that each malicious
+node is recovered if its aberrant behaviour is detected
+by enough neighbours. Safety property S1 is required to
+make sure that a node is only recovered if a majority of correct
+nodes accuses it and property S2 ensures that things
+are not worsened by applying the recovery process.
+DISTRIBUTED NODE RECOVERY
+In this section, we present a distributed node recovery
+algorithm which is autonomously executed within an observation
+cluster. The supported recovery measures are: node
+shutdown, node restart, and program code update. As long
+as the recovery module of an otherwise faulty or malicious
+node is still intact, it is tried to recover it by restarting it or
+updating its program code; or to at least eliminate its interfering
+influence by turning it off. If a node does not respond
+to any of these measures, it is still possible to logically expell
+it; preferably by means of a reliable majority decision <A href="41.html#9">[22]
+to avoid inconsistencies among the cluster members.
+3.1
+Description of the Recovery Procedure
+The proposed recovery algorithm consists of two phases.
+In the first, so called accusation phase, nodes accuse all
+neighbours which are regarded as being malicious. If a node
+is accused by at least two third of its neighbours it initiates
+the second, so called recovery phase, during which the actual
+countermeasures are executed. To simplify the cooperative
+program code update, the program memory of a node is divided
+into F frames f
+i
+, 0  i &lt; F of size f s. Additionally,
+for each frame f
+i
+its corresponding hash value h
+i
+:= h(f
+i
+) is
+computed.
+Accusation Phase
+Recovery Phase
+Round 1
+Round 2
+Round 3
+Figure 1: Schematic depiction of a recovery procedure which
+performs a program update as the countermeasure.
+Accusation Phase
+Nodes which conclude that one of their neighbours behaves
+maliciously, send it an authenticated accusation mes<A href="41.html#4">sage
+<A href="41.html#4">1
+<A href="41.html#4">.
+The proposed countermeasure depends on the observed aberration
+and can be either of type shutdown, reset, or update,
+if the node should be halted, restarted, or its program code
+updated, respectively. Accusation messages have to be ac-knowledged
+and are resent up to r times otherwise.
+1
+For simplicity, it is assumed that nodes can accuse their
+neighbours at any time. However, if the recovery module
+is only active from time to time, nodes could of course also
+actively ask for (pending) accusations.
+In case that a program update is requested, the accusation
+messages also include a list of the sender's F frame hash
+values h
+i
+. They represent the current state of its program
+memory and are required to deduce the correct program
+code. Therefore, for each frame f
+i
+not only its hash value h
+i
+but also a counter c
+i
+, which is initialised with zero, is stored.
+Upon reception of a accusation message, each included hash
+value is compared to the already stored one and if they are
+equal, c
+i
+is incremented by one. If they differ and c
+i
+&gt; 0 the
+counter is decremented by one; otherwise (i.e., they are not
+equal and c
+i
+= 0) the stored hash value is replaced with the
+received value. This procedure ensures that, for 3t &lt; n - 1,
+every h
+i
+will contain the hash value of the correct program
+code frame after
+2(n-1)
+3
+accusations have been received
+(see Proof <A href="41.html#6">4).
+Recovery Phase
+When a node m has received
+2(n-1)
+3
+accusations of a certain
+recovery type, the corresponding measure is initiated.
+In the non trivial case of a distributed program code update
+, the correct program code has therefore to be down-loaded
+from the neighboring nodes. Otherwise, the node is
+just rebooted or shutdown and no further communication or
+coordination is required.
+The autonomous program code transfer is performed in
+rounds of which each starts with the broadcasting of an authenticated
+update request message by the accused node m.
+Essentially, the message contains a list of so called frame
+descriptors (u
+i
+, Q
+i
+), consisting of a node id u
+i
+and a set of
+requested frame numbers Q
+i
+:= {r
+0
+, r
+1
+, . . . , r
+|Q|-1
+}. Upon
+reception of a valid request, a node v seeks for descriptors
+which contain its own id (i.e., u
+i
+= v). If present, for each
+requested frame number r
+j
+Q
+i
+the corresponding program
+code frame is sent back to m with an update message. All
+received program code fragments f
+i
+, in turn, are verified by
+m using the stored hash values h
+i
+. Valid code fragments are
+copied into the program <A href="41.html#4">memory
+<A href="41.html#4">2
+and the frame marked as
+updated. If for a duration of
+round
+no update messages arrive
+although there are still some outstanding frames, a new
+update request message is broadcasted and the next round
+initiated. As soon as all frames have been received, the node
+is rebooted and thus the new program code activated.
+In order to distribute the transfer load equally among all
+participating nodes and to ensure that the update procedure
+terminates if at least one correct node is available, the
+frame descriptors are determined as follows: First, the n - 1
+participating nodes are ordered such that id(v
+0
+) &lt; id(v
+1
+) &lt;
+. . . &lt; id(v
+n-2
+). Next, the F memory frames are divided into
+n - 1 sectors of length l :=
+F
+n-1
+. Finally, to each node one
+such fragment is assigned per update round in a round robin
+fashion. Thus, in round i node v
+j
+, is responsible for the segment
+s := j + i mod (n - 1), that is, for the frames sl to
+min((s + 1)l - 1, F - 1). In the first round, for example,
+the first node is responsible for the first l frames, the second
+node for the second l frames and so on. In the second round,
+however, the assignment is rotated by one and thus the outstanding
+frames of the first sector are now requested from
+the second node. This process has to be continued until all
+required frames have been received.
+2
+On most sensor node platforms, new code is not directly
+written into program memory but into a therefore available
+Flash memory and installed during a subsequent reboot.
+116
+Extensions and Optimisations
+Even though not all but only the subset of modified program
+code frames has to be requested, updating a node is
+still a time consuming and expensive task. Consequently,
+the amount of update load that a specific node can cause
+should be restricted, for instance by limiting the number of
+update messages that are sent to it. To further reduce the
+load for the participating nodes, the F hash values h
+i
+in
+an accusation message can be replaced by the hash value
+h := h(h
+0
+||h
+1
+|| . . . ||h
+F -1
+).
+Once the correct value h has
+been determinded using the corresponding counter c in analogy
+to the above mentioned algorithm, the actual hash values
+can be requested from the neighbours in a second step
+and verified with h. In order to decrease the total number
+of required accusation messages, more than one recovery
+measure per message should be allowed. Alternatively, the
+measures could be hierarchically organised, having the type
+update also counting as a reboot or shutdown request.
+3.2
+Algorithms
+Listing 1: Algorithm for an accusing node v.
+v a r
+a c c r e t r i e s [ n - 1 ] : = {0, . . . ,0}
+a c c f a i l e d [ n - 1 ]
+: = {false, . . . ,false}
+n u m u p d a t e s [ n - 1 ] : = {0, . . . ,0}
+upon m i s b e h a v i o r
+d e t e c t i o n
+o f n o d e m
+c h o o s e an a p p r o p r i a t e
+a c c u s a t i o n -t y p e a
+m
+i f a
+m
+= acc update
+s e n d
+a c c u s a t i o n , v, m, , a
+m
+, {h(f
+0
+), . . . , h(f
+F -1
+)}
+t o m
+e l s e
+s e n d
+a c c u s a t i o n , v, m, , a
+m
+t o m
+s t a r t
+t i m e r A
+m
+upon r e c e p t i o n
+o f
+a c c u s a t i o n a c k , m, , a
+f r o m m
+s t o p
+t i m e r A
+m
+a c c r e t r i e s [ m ] := 0
+upon t i m e o u t
+o f
+t i m e r A
+m
+i f
+a c c r e t r i e s [ m ] &lt; max acc retries
+a c c r e t r i e s [ m ] := a c c r e t r i e s [ m ] + 1
+s e n d
+a c c u s a t i o n , v, m, , a
+m
+, {h(f
+0
+), . . . , h(f
+F -1
+)}
+t o m
+s t a r t
+t i m e r A
+m
+e l s e
+a c c f a i l e d [ m ] := true
+upon r e c e p t i o n
+o f
+u p d a t e r e q u e s t , m, , R
+f r o m m
+i f
+n u m u p d a t e s [ m ] &lt; m a x u p d a t e s and
+(u, {r
+0
+, . . . , r
+k
+})  R
+n u m u p d a t e s [ m ] := n u m u p d a t e s [ m ] + 1
+r
+i
+, 0  i  k s e n d
+u p d a t e , v, m, r
+i
+, f
+r
+i
+t o m
+Listing 2: Algorithm for the accused node m.
+v a r
+u p d a t i n g
+:= false
+n u m a c c r e s e t
+:= 0
+n u m a c c u p d a t e
+:= 0
+n u m a c c s h u t d o w n := 0
+s t a r t n o d e
+:= 0
+a c c r e s e t r e c v d [ n - 1 ]
+:= {0, . . . ,0}
+a c c u p d a t e r e c v d [ n - 1 ]
+:= {0, . . . ,0}
+a c c s h u t d o w r e c v d [ n - 1 ] := {0, . . . ,0}
+f r a m e u p d a t e d [ F - 1 ] := {false, . . . ,false}
+f r a m e d i g e s t [ F - 1 ]
+:= {h(f
+0
+), . . . , h(f
+F -1
+)}
+f r a m e c o u n t [ F - 1 ]
+:= {0, . . . ,0}
+upon r e c e p t i o n
+o f
+a c c u s a t i o n , v, m, ,acc reset
+f r o m v
+s e n d
+a c c u s a t i o n a c k , m, ,acc reset
+t o v
+i f
+n o t u p d a t i n g and n o t
+a c c r e s e t r e c v d [ v ]
+a c c r e s e t r e c v d [ v ] := true
+n u m a c c r e s e t : = n u m a c c r e s e t + 1
+i f
+n o t u p d a t i n g and n u m a c c r e s e t
+2(n-1)
+3
+r e s e t
+n o d e
+upon r e c e p t i o n
+o f
+a c c u s a t i o n , v, m, ,acc shutdown
+f r o m v
+s e n d
+a c c u s a t i o n a c k , m, ,acc shutdown
+t o v
+i f
+n o t u p d a t i n g and n o t a c c s h u t d o w n r e c v d [ v ]
+a c c s h u t d o w n r e c v d [ v ] := true
+n u m a c c s h u t d o w n : = n u m a c c s h u t d o w n + 1
+i f
+n o t u p d a t i n g and n u m a c c s h u t d o w n
+2(n-1)
+3
+shutdown n o d e
+f u n c t i o n
+s e t u p u p d a t e r e q u e s t ( )
+k := 0
+R := {}
+f o r 0  i &lt; n , i = m
+w := ( s t a r t n o d e + i) mod n
+Q := {}
+f o r 0  j &lt;
+F
+n
+i f
+n o t f r a m e u p d a t e d [ k ]
+Q := Q  {k}
+k := k + 1
+i f Q = {}
+R := R  {(w, Q)}
+s t a r t n o d e := s t a r t n o d e + 1
+r e t u r n R
+upon r e c e p t i o n
+o f
+a c c u s a t i o n , v, m, ,acc update
+, {h
+0
+, . . . , h
+F -1
+}
+f r o m v
+s e n d
+a c c u s a t i o n a c k , m, ,acc update
+t o v
+i f
+n o t u p d a t i n g and n o t
+a c c u p d a t e r e c v d [ v ]
+a c c u p d a t e r e c v d [ v ] := true
+n u m a c c u p d a t e : = n u m a c c u p d a t e + 1
+f o r 0  i &lt; F
+i f
+f r a m e d i g e s t [ i ] = h
+i
+f r a m e c o u n t [ i ] := f r a m e c o u n t [ i ] + 1
+e l s e
+i f
+f r a m e c o u n t [ i ] &gt; 0
+f r a m e c o u n t [ i ] := f r a m e c o u n t [ i ] - 1
+e l s e
+f r a m e d i g e s t [ i ] := h
+i
+i f
+n o t u p d a t i n g and n u m a c c u p d a t e
+2(n-1)
+3
+R : = s e t u p u p d a t e r e q u e s t ( )
+b r o a d c a s t
+u p d a t e r e q u e s t , m, , R
+s t a r t
+t i m e r U
+u p d a t i n g = true
+upon t i m e o u t
+o f
+t i m e r U
+R : = s e t u p u p d a t e r e q u e s t ( )
+b r o a d c a s t
+u p d a t e r e q u e s t , m, , R
+s t a r t
+t i m e r U
+upon r e c e p t i o n
+o f
+u p d a t e , v, m, i, f
+f r o m v
+r e s e t
+t i m e r U
+117
+i f h(f ) = f r a m e d i g e s t [ i ] and n o t
+f r a m e u p d a t e d [ i ]
+u p d a t e memory f r a m e i
+f r a m e u p d a t e d [ i ] := true
+i f i, 0  i &lt; F
+f r a m e u p d a t e d [ i ]
+r e s e t
+n o d e
+PROOF OF CORRECTNESS
+In this section, we proof the correctness of the proposed
+algorithm with respect to the specifications of section <A href="41.html#3">2.
+Theorem 1. Given the network and adversary model specified
+in section <A href="41.html#3">2, the proposed recovery algorithm is correct
+and fulfils the properties L1, L2, S1, and S2 if the recovery
+module of the accused node m is intact, if h() is a secure
+hashfunction, and if less than one third of the participating
+nodes are malicious (i.e., 3t &lt; n - 1).
+In order to prove Theorem <A href="41.html#6">1 we have to show that the
+properties L1, L2, S1, and S2 hold. We therefore first prove
+some helper Lemmas.
+Lemma 1. If all correct nodes accuse a node m, its recovery
+process will be initiated with high probability.
+Proof. The probability that less than
+2(n-1)
+3
+accusations
+are received is equal to the probability that more than
+n-1
+3
+messages are either not sent or lost. Assuming that the t
+malicious nodes do not participate in the distributed update,
+at least
+n-1
+3
+-t+1 accusations must get lost. Given 0  p
+l
+&lt;
+1, the probability for this is  (p
+r
+l
+)
+n-1
+3
+-t+1
++ (p
+r
+l
+)
+n-1
+3
+-t+2
++
+. . .+(p
+r
+l
+)
+n-1
+
+2(n-1)+3t
+3
+(p
+r
+l
+)
+n-1
+3
+-t+1
+. It holds that c &gt; 1 :
+r  1 such that
+2(n-1)+3t
+3
+,,
+p
+n-1
+3
+-t+1
+l
+«
+r
+&lt; n
+-c
+. Thus, the
+node m gets
+2(n-1)
+3
+accusations w.h.p. and the recovery
+process is initiated.
+Lemma 2. Once the recovery process for a node m has
+been initiated it will eventually terminate as long as there
+remain at least k  1 correct nodes.
+Proof. In order that a frame is updated in a specific
+round, the dedicated request as well as its actual transmission
+must succeed.
+The probability that this is the case
+is (1 - p
+l
+)
+2
+. With only one correct node (k = 1) the expected
+number of update rounds per frame a can be described
+as a Markov chain described by the expression a =
+(a + 1)(1 - (1 - p
+l
+)
+2
+) + (1 - p
+l
+)
+2
+with the solution a =
+1
+(1-p
+l
+)
+2
+.
+The overall expected number of rounds is thus
+aF =
+F
+(1-p
+l
+)
+2
+O(1). In each round at most one request and
+F updates are transmitted, leading to an upper bound for
+its duration of (F + 1)
+p
+O(1). Altogether, the expected
+worst case duration is
+F (F +1)
+(1-p
+l
+)
+2
+
+p
+O(1).
+Lemma 3. If no more than
+n-1
+3
+correct nodes accuse another
+correct node v  M the recovery process will not be
+initiated.
+Proof. From each node only one accusation is accepted
+and thus the number of valid accusations is at most
+n-1
+3
++t &lt;
+2(n-1)
+3
+.
+Lemma 4. At the start of a program code update the target
+node m has stored the correct hash value h
+i
+for all frames,
+given that all correct nodes have loaded the same program
+code.
+Proof. Let's assume that there is a hash value h
+i
+which
+is not correct when the program code update starts. As a
+stored hash value is only substituted if the dedicated counter
+c
+i
+is zero, the node must have received at least as many
+wrong values as correct ones. From each node only one accusation
+is accepted, thus of the a
+2(n-1)
+3
+received values
+at most t &lt;
+n-1
+3
+are false.
+It follows that at least
+a - t &gt;
+2(n-1)
+3
+n
+-1
+3
+=
+n-1
+3
+&gt; t values must be correct,
+which contradicts the assumption that at least as many false
+as correct hash values were received.
+The properties L1, L2, and S1 are proven by Lemma <A href="41.html#6">1,
+<A href="41.html#6">2, and <A href="41.html#6">3, respectively.
+If the accused node is turned off
+or restarted, property S2 holds by definition. Otherwise, if
+the program code is updated, Lemma <A href="41.html#6">4 and property L2
+guarantee that only correct code frames are installed and
+that the procedure finally terminates.
+EVALUATION
+In this section we provide an analytical evaluation of the
+proposed algorithm and present the findings of extensive
+simulations as well as of a real implementation for the BTnodes
+.
+The evaluated metrics are: (a) number of update
+rounds, (b) update load for the accused nodes, (c) update
+load for the other participating nodes, and (d) update duration
+.
+5.1
+Analytical Evaluation
+Number of Update Rounds
+In order to update a frame it is required that the dedicated
+request as well as the actual frame itself are successfully
+transmitted. The expected fraction of erroneous updates is
+therefore 1 - (1 - p
+l
+)
+2
+. If one further assumes that the t
+malicious nodes do not participate in the program update,
+the fraction increases to 1 n
+-1-t
+n-1
+(1 - p
+l
+)
+2
+. Thus, the expected
+number of outstanding frames after the first and second
+update round are E
+f
+(1) = F (1 n
+-1-t
+n-1
+(1 - p
+l
+)
+2
+) and
+E
+f
+(2) = E
+f
+(1)(1-n
+-1-t
+n-1
+(1-p
+l
+)
+2
+) = F (1-n
+-1-t
+n-1
+(1-p
+l
+)
+2
+)
+2
+,
+respectively. In general, the expected number of outstanding
+frames after i &gt; 0 rounds is:
+E
+f
+(i)
+=
+E
+f
+(i - 1)
+,,
+1 - n - 1 - t
+n - 1
+(1 - p
+l
+)
+2
+«
+=
+F
+,,
+1 - n - 1 - t
+n - 1
+(1 - p
+l
+)
+2
+«
+i
+Consequently, the expected number of update rounds is
+E
+r
+
+log(0.5) - log(F )
+log(1 n
+-1-t
+n-1
+(1 - p
+l
+)
+2
+)
+For reliable connections (p
+l
+= 0) we get E
+r
+
+log(0.5)-log(F )
+log(1/3)
+
+O(1).
+In a worst case scenario a continuous sequence of
+frames is assigned to the t malicious nodes and thus at least
+t + 1, that is O(t) = O(n) rounds are required. Moreover,
+for a fixed p
+l
+, the expected number of rounds is (almost)
+independent of the cluster size n as
+2
+3
+&lt;
+n-1-t
+n-1
+1 for a
+fixed t, 0  t &lt;
+n-1
+3
+.
+118
+Update Load
+The expected amount of data (in bytes) to transfer for the
+accused node is
+E
+tm
+=
+E
+r
+-1
+X
+i=0
+,,
+C
+req
++ C
+mac
+(n - 1) + C
+sel
+(n - 1) E
+f
+(i)
+F
+«
+
+(C
+req
++ C
+mac
+(n - 1) + C
+sel
+(n - 1))E
+r
+and
+E
+tv
+=
+E
+r
+-1
+X
+i=0
+E
+f
+(i)
+n - 1 (1 - p
+l
+) (C
+update
++ f s)
+
+F
+n - 1 (1 - p
+l
+) (C
+update
++ f s) E
+r
+for the other participating nodes. In the above expressions
+(n - 1)
+E
+f
+(i)
+F
+is the expected number of addressed nodes and
+E
+f
+(i)
+n-1
+(1 - p
+l
+) expresses the expected number of successfully
+requested frames per node.
+Update Duration
+The total number of sent messages E
+m
+is bound by (F +
+1)E
+r
+O(E
+r
+) as there are only one request and no more
+that F update messages per round.
+Thus, the expected
+value of E
+m
+is in O(1) for reliable connections and in O(n)
+in the worst case. More precisely, the expected number of
+messages is given by
+E
+m
+=
+E
+r
+-1
+X
+i=0
+,,
+1 + E
+f
+(i)
+n - 1 (1 - p
+l
+)
+«
+= E
+r
++ (n - 1 - t)E
+tv
+C
+update
++ f s
+Neglecting the delays caused by the involved software routines
+, a good approximation for the update duration can be
+achieved by considering the overall transfer time and the
+delays caused by the round timeouts. The expected time to
+transfer all messages is
+E
+tm
++(n-1-t)E
+tv
+B
++ E
+m
+
+mac
+whereas
+the overhead of the round timer is given by (E
+r
+- 1)
+round
+,
+resulting in a total update duration of
+E
+d
+
+E
+tm
++ (n - 1 - t)E
+tv
+B
++ E
+m
+
+mac
++ (E
+r
+- 1)
+round
+Parametrisation
+For the comparison of the analytical results with the simulation
+and implementation of the algorithm, the following
+parameters were used:
+Baudrate
+B
+19.2 kBit/s
+B-MAC preamble
+
+mac
+100 ms
+Round timeout
+
+round
+3 s
+Request header size
+C
+req
+12 Bytes
+Update header size
+C
+update
+11 Bytes
+Frame selector site
+C
+sel
+10 Bytes
+MAC size
+C
+mac
+20 Bytes
+Frame size
+f s
+1024 Bytes
+5.2
+Simulation
+The simulation of the algorithm was carried out with the
+Java based JiST/SWANS simulator <A href="41.html#9">[2]. In order to make the
+results comparable to the real BTnode implementation, the
+radio module was set up according to the characteristics of
+0
+10
+20
+30
+40
+50
+60
+70
+80
+0
+0.1
+0.2
+0.3
+0.4
+0.5
+0.6
+0.7
+packet loss ratio
+Expected number of update rounds
+F=100, n=10, t=0 (analytic)
+F=100, n=10, t=2 (analytic)
+F=100, n=10, t=0 (simulated)
+F=100, n=10, t=2 (simulated)
+Figure 2: Expected number of rounds to update a node.
+0
+50
+100
+150
+200
+250
+300
+350
+400
+450
+0
+0.1
+0.2
+0.3
+0.4
+0.5
+0.6
+0.7
+packet loss ratio
+Expected duration (in sec.) to update a node
+F=100, n=10, t=0 (analytic)
+F=100, n=10, t=2 (analytic)
+F=100, n=10, t=0 (simulated)
+F=100, n=10, t=2 (simulated)
+Figure 3: Expected duration to update a node.
+the Chipcon CC1000 transceiver <A href="41.html#9">[4] and B-MAC was chosen
+as the data link layer protocol. The complete parametrisa-tion
+of the simulation is given in the table below:
+Transmission frequency
+868 MHz
+Transmission power
+5 dBm
+Receiver sensitivity
+-100 dBm
+Memory size
+100 kByte
+Number of nodes
+10
+Deployment area
+20 x 20 m (u.r.d.)
+5.3
+Implementation
+In addition to the above mentioned simulations, the algorithm
+was also implemented for the BTnodes, a wireless
+sensor platform running NutOS <A href="41.html#9">[3]. A detailed description
+of the created software is omitted due to space reasons but
+can be found in <A href="41.html#9">[22]. The implementation was evaluated by
+randomly distributing a cluster of 10 nodes in a field of 20
+x 20 m, whereupon each node in turn initiated a complete
+program update. Altogether, over 100 recovery procedures
+where measured.
+5.4
+Results
+The packet loss ratio has, as expected, a significant effect
+on all evaluated metrics and each of them increases exponen-tially
+if the ratio worsens. The number of nodes, in contrast,
+119
+0
+2
+4
+6
+8
+10
+12
+14
+16
+18
+0
+0.1
+0.2
+0.3
+0.4
+0.5
+0.6
+0.7
+packet loss ratio
+Expected amount of data to transfer (in kBytes) for the updating node
+F=100, n=10, t=0 (analytic)
+F=100, n=10, t=2 (analytic)
+F=100, n=10, t=0 (simulated)
+F=100, n=10, t=2 (simulated)
+Figure 4: Expected update load for the accused node.
+0
+5
+10
+15
+20
+25
+30
+35
+40
+45
+50
+0
+0.1
+0.2
+0.3
+0.4
+0.5
+0.6
+0.7
+packet loss ratio
+Expected amount of data to transfer (in kBytes) for the participating nodes
+F=100, n=10, t=0 (analytic)
+F=100, n=10, t=2 (analytic)
+F=100, n=10, t=0 (simulated)
+F=100, n=10, t=2 (simulated)
+Figure 5: Expected update load for the participating nodes.
+has for a fixed packet loss ratio almost no negative impact
+on the evaluated metrics, showing that the algorithm itself
+scales well. Furthermore, the results show that the update
+algorithm is fair and equally distributes the update load over
+all participating nodes.
+Update Rounds and Update Duration
+Whilst the expected number of update rounds (see Figure
+<A href="41.html#7">2) is only of secondary importance, the update duration (see
+Figure <A href="41.html#7">3) is of major interest for the feasibility of the algorithm
+. The faster a node recovery is completed, the sooner
+the network is operable again. Even though the update duration
+almost triples from 50 to 150 s if the packet loss ratio
+increases from 0 to 40 percent, it is still in a range which
+most WSN application should be able to cope with.
+Update Load
+In a cluster of 10 nodes the update load for the accused node
+(see Figure <A href="41.html#8">4) is 0.5 to 3.5 kByte for 0  p
+l
+0.4 and thus
+considerably smaller than for the other participating nodes
+(see Figure <A href="41.html#8">5) with a load of 12 to 24 kByte. However, the
+latter is, as expected, inverse proportional to the cluster size
+(see Figure <A href="41.html#8">7): the larger a cluster and the lower the number
+of malicious nodes, the smaller the expected update load per
+participating node.
+0
+50
+100
+150
+200
+250
+5
+10
+15
+20
+25
+30
+number of nodes
+Expected duration (in sec.) to update a node
+F=100, plr=0.1, t=0
+F=100, plr=0.5, t=0
+F=100, plr=0.1, t=n/3
+F=100, plr=0.5, t=n/3
+Figure 6: Influence of the cluster size on the update duration
+.
+0
+10
+20
+30
+40
+50
+60
+70
+80
+90
+5
+10
+15
+20
+25
+30
+number of nodes
+Expected amount of data to transfer (in kBytes) for the participating nodes
+F=100, plr=0.1, t=0
+F=100, plr=0.5, t=0
+F=100, plr=0.1, t=n/3
+F=100, plr=0.5, t=n/3
+Figure 7: Influence of the cluster size on the expected update
+load for the participating nodes.
+Implementation
+In the experiments conducted with the BTnode implementation
+, the average number of update rounds was five, the
+update duration about 100 s (  10 s), and the load for
+the participating nodes about 15 kByte (  1 kByte). Applied
+to the analytical model this would mean that the gross
+packet loss ratio was roughly 20%.
+SUMMARY AND CONCLUSIONS
+In this paper, we presented an autonomous and distributed
+recovery algorithm for sensor networks. The algorithm allows
+for bringing malicious or failed nodes back into normal
+operation or, at least, for securely shutting them down. Particularly
+in remote or unwieldy areas, such as deserts, the
+bottom of the sea, mountains, or even on planets in outer
+space, where redeployment is expensive and sensor nodes
+cannot easily be exchanged or maintained, the application
+of a node recovery system is most likely to extend the lifetime
+of the whole network.
+The results of the simulation and analytical analysis were
+confirmed by the real BTnode implementation. They show
+that recovering sensor nodes is ­ as any form of reprogramming
+­ an expensive, though feasible task. Moreover, the
+proposed program code update algorithm is not only prov-120
+ably secure but also fair and robust. It distributes the update
+load equally over all participating nodes and terminates
+as long as at least one of the nodes remains correct.
+To all presented recovery measures applies that they are
+only applicable if at least the therefore needed systems of
+the corrupt node still work correctly. However, although it is
+generally agreed that entirely tamper-proof sensor nodes are
+too expensive, current trends in the hardware development
+of embedded devices indicate that at least some logical and
+physical protection (e.g., CPUs which support isolated memory
+areas or automatic memory erason if a node is tempered
+with) will be available in the near future. We discussed how
+these upcoming technologies can be exploited to protect the
+recovery mechanisms of a sensor node and what is already
+feasible with existing systems.
+REFERENCES
+[1] T. Alves and D. Felton. TrustZone: Integrated
+Hardware and Software Security. ARM Ltd, July 2004.
+[2] R. Barr, Z. J. Haas, and R. van Renesse. Jist: an
+efficient approach to simulation using virtual
+machines: Research articles. Softw. Pract. Exper.,
+35(6):539­576, 2005.
+[3] J. Beutel, O. Kasten, and M. Ringwald. Poster
+abstract: Btnodes ­ a distributed platform for sensor
+nodes. In Proceedings of the 1st International
+Conference on Embedded Networked Sensor Systems,
+pages 292 ­ 293, Los Angeles, California, USA, Jan.
+2003. ACM Press. http://www.btnode.ethz.ch/.
+[4] Chipcon AS, Oslo, Norway. Single Chip Very Low
+Power RF Transceiver, Rev. 2.1, Apr. 2002.
+http://www.chipcon.com/.
+[5] A. P. R. da Silva, M. H. T. Martins, B. P. S. Rocha,
+A. A. F. Loureiro, L. B. Ruiz, and H. C. Wong.
+Decentralized intrusion detection in wireless sensor
+networks. In Q2SWinet '05: Proceedings of the 1st
+ACM international workshop on Quality of service &
+security in wireless and mobile networks, pages 16­23,
+New York, NY, USA, 2005. ACM Press.
+[6] S. B. Douglas Herbert, Yung-Hsiang Lu and Z. Li.
+Detection and repair of software errors in hierarchical
+sensor networks. To appear in IEEE conference on
+Sensor Networks and Ubiquitous Trustworthy
+Computing (SUTC), June 2006.
+[7] P. K. Dutta, J. W. Hui, D. C. Chu, and D. E. Culler.
+Towards secure network programming and recovery in
+wireless sensor networks. Technical Report
+UCB/EECS-2005-7, Electrical Engineering and
+Computer Sciences University of California at
+Berkeley, Oct. 2005.
+[8] S. Ganeriwal and M. B. Srivastava. Reputation-based
+framework for high integrity sensor networks. In
+SASN '04: Proceedings of the 2nd ACM workshop on
+Security of ad hoc and sensor networks, pages 66­77,
+New York, NY, USA, 2004. ACM Press.
+[9] C. Hartung, J. Balasalle, and R. Han. Node
+compromise in sensor networks: The need for secure
+systems. Technical Report CU-CS-990-05, Department
+of Computer Science, University of Colorado, Jan.
+2005.
+[10] C. Hsin and M. Liu. A distributed monitoring
+mechanism for wireless sensor networks. In WiSE '02:
+Proceedings of the 3rd ACM workshop on Wireless
+security, pages 57­66, New York, NY, USA, 2002.
+ACM Press.
+[11] Intel Corporation. LaGrande Technology Architectural
+Overview, Sept. 2003.
+[12] P. Inverardi, L. Mostarda, and A. Navarra.
+Distributed IDSs for enhancing security in mobile
+wireless sensor networks. AINA, 2:116­120, 2006.
+[13] J. Jeong and D. Culler. Incremental network
+programming for wireless sensors. In Proceedings of
+the First IEEE Communications Society Conference
+on Sensor and Ad-Hoc Communications and Networks
+(SECON), 2004.
+[14] I. Khalil, S. Bagchi, and C. Nina-Rotaru. Dicas:
+Detection, diagnosis and isolation of control attacks in
+sensor networks. securecomm, 00:89­100, 2005.
+[15] P. Kocher, R. Lee, G. McGraw, and A. Raghunathan.
+Security as a new dimension in embedded system
+design. In DAC '04: Proceedings of the 41st annual
+conference on Design automation, pages 753­760, New
+York, NY, USA, 2004. ACM Press.
+Moderator-Srivaths Ravi.
+[16] S. S. Kulkarni and L. Wang. Mnp: Multihop network
+reprogramming service for sensor networks. icdcs,
+00:7­16, 2005.
+[17] T. Liu and M. Martonosi. Impala: a middleware
+system for managing autonomic, parallel sensor
+systems. SIGPLAN Not., 38(10):107­118, 2003.
+[18] S. Northcutt and J. Novak. IDS: Intrusion
+Detection-Systeme. mitp Verlag Bonn, 2001.
+[19] N. B. of Standards. Security Requirements for
+Cryptographic Modules. National Bureau of Standards,
+Dec. 2002.
+[20] S. Ravi, A. Raghunathan, P. Kocher, and
+S. Hattangady. Security in embedded systems: Design
+challenges. Trans. on Embedded Computing Sys.,
+3(3):461­491, 2004.
+[21] E. Shi and A. Perrig. Designing secure sensor
+networks. IEEE Wireless Communication Magazine,
+11(6):38­43, Dec. 2004.
+[22] M. Strasser. Intrusion detection and failure recovery in
+sensor networks. Master's thesis, Department of
+Computer Science, ETH Zurich, 2005.
+[23] H. Vogt, M. Ringwald, and M. Strasser. Intrusion
+detection and failure recovery in sensor nodes. In
+Tagungsband INFORMATIK 2005, Workshop
+Proceedings, LNCS, Heidelberg, Germany, Sept. 2005.
+Springer-Verlag.
+121
+

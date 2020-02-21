@@ -1,0 +1,1130 @@
+Using Case-Based Reasoning in Traffic Pattern Recognition for Best Resource Management in 3G Networks
+ABSTRACT
+With the underlying W-CDMA technique in 3G networks, 
+resource management is a very significant issue as it can directly 
+influence the system capacity and also lead to system QoS. 
+However, the resource can be dynamically managed in order to 
+maintain the QoS according to the SLA. In this paper, CBR is used 
+as part of an intelligent-based agent management system. It uses 
+information from previously managed situations to maintain the 
+QoS in order to meet the SLA. The results illustrate the 
+performance of an agent in traffic pattern recognition in order to 
+identify the specific type of problem and finally propose the right 
+solution.
+
+Categories and Subject Descriptors
+C.2.3
+[Computer-Communication Networks]: Network
+Operations - network management, network monitoring.   
+I.6.6 [Simulation and Modeling]: Simulation Output Analysis.
+
+General terms
+Algorithms, Management, Performance
+
+INTRODUCTION
+The third generation (3G) cellular system has been developed to
+satisfy increasing customer demands for higher bit-rate access in
+order to provide wireless Internet access anytime and anywhere. In
+addition, 3G networks will integrate different type of services like
+voice, data, and video.
+With W-CDMA, all users share the same spectrum and use codes
+to identify themselves. Hence the whole bandwidth can be reused
+in every cell. The system is considered a soft capacity system as all
+users simultaneously transmit so increasing the interference seen by
+others. The system capacity is, therefore, limited by the total
+interference that occurs from other users (in the case of the network
+being uplink-capacity limited) or other base stations (in the case of
+the network being downlink-capacity limited) and the background
+noise. The benefit of this technique is therefore providing the
+flexible, higher bandwidth services, and maintaining the best
+system capacity. On the other hand, it leads to more complexity in
+resource management.
+Previous work [1] introduced the use of intelligent agents in
+managing the resources to meet the service level agreement (SLA)
+when congestion occurs. It shows that by using intelligent agents
+together with the assignment and admission scheme, the system
+environment can be monitored and the policy that is suitable for
+that particular situation will be selected and applied to the system.
+Also the quality of service (QoS) for each particular class of
+customer can be monitored and controlled according to the SLA. In
+[2], Case-Based Reasoning (CBR) is introduced as a mean of
+giving the agent more "intelligence". The aim of using CBR is so
+that the problem can be automatically solved by referring to a
+similar traffic pattern that the system has seen before and kept in
+the case library. The end solution from the previous case can then
+be applied immediately to give a fast and efficient response. In this
+paper, a wider range of traffic situations will be illustrated, which
+will also show the benefit of using CBR in order to identify
+different traffic patterns and to propose the best solution. In
+addition, results show the outcome of system flexibility in giving
+different priority patterns to customers according to the system
+requirements.
+The paper is organised as follows. The agent system and
+architecture for the multi-agent system are described in section 2.
+In section 3, the implementation of CBR in SLA-based control by
+the agent will be introduced. The assignment and admission
+scheme is presented in section 4 and section 5 covers the simulation
+model. Traffic pattern recognition and numerical results are
+illustrated and discussed in section 6. Lastly, the conclusions of the
+paper are in section 7.
+
+AGENT SYSTEM AND ARCHITECTURE
+Critical in a radio network is the allocation of bandwidth to radio
+cells in order to avoid local congestion or degradation of the QoS
+and it is generally the capacity of the wireless link to the user that
+
+Permission to make digital or hard copies of all or part of this work for
+personal or classroom use is granted without fee provided that copies
+are not made or distributed for profit or commercial advantage and that
+copies bear this notice and the full citation on the first page. To copy
+otherwise, or republish, to post on servers or to redistribute to lists,
+requires prior specific permission and/or a fee. 
+MSWiM'04, October 4­6, 2004, Venezia, Italy. 
+Copyright 2004 ACM 1-58113-953-5/04/0010...$5.00.
+
+252
+limits the overall system capacity, rather than any back-haul part of
+the network.
+In [3], an agent approach for a distributed resource management
+system is introduced. The main reason for using intelligent agents
+is to give greater autonomy to the base stations; this gives an
+increase in flexibility to deal with new situations in traffic load and
+to decrease the information load (the messaging resulting from
+taking, or determining control actions) on the network.
+In the past, mobile network operators have generally restricted the
+customer to only one service provider.  With the influence of the
+Internet, more widespread choice of service providers (SPs) will be
+available to 3G users. By using an agent, it would be possible to
+allow selection of SP by offering on price, QoS, or value added
+service.
+In this work, each agent uses three layers taking action and 
+decisions on different timescales: reactive, local planning and cooperative
+planning.
+As an individual connection must have the decision made in real-time
+, the reactive layer is designed for a very fast response. More 
+complex functions have been implemented at the planning layers. 
+Generally the local planning layer is concerned with long-term 
+actions within its own instance, whereas the co-operative layer is 
+concerned with long-term actions between peer agents, or with 
+other types of agent. The reactive layer is, therefore very simple, 
+implementing policies being passed down by the higher layer. This 
+is discussed in more detail later in the paper.
+CBR IN SLA-BASED CONTROL
+CBR is an Artificial intelligence (AI) approach that can allow the 
+agent to learn from past successes. It is a method that finds the 
+solution to the new problem by analysing previously solved 
+problems, called cases, or adapting old solutions to meet new 
+demands.
+
+Figure 1  Case-based reasoning process model
+(Based on the CBR cycle in [4])
+Figure 1 shows the process model of the case-based reasoning. The
+process of CBR starts when there is a new problem or new case
+happening. The first step is case retrieval, which uses the
+characterizing indexes of the event to find the best-match solved
+case(s) from the case library. The solution from the retrieved
+case(s) will be reused.
+However, the solution might need to be modified to fit the new 
+situation as the new situation will rarely match the old one exactly: 
+this step is called "revising". Once the new solution is proposed, 
+the next step is to test it with the real environment. The result is 
+either success or failure. If the solution fails, a monitoring process 
+will analyse the failure, repair the working solution, and test again. 
+If the solution succeeds, this new solution will be indexed and 
+retained in the case library to use for future problem solving.
+The work shown in [5] gives an example of using CBR in network
+traffic control by using it to control traffic flow in the standard
+public switched telephone network of the Ile de France. In another
+work in [6], CBR is used to correct the error estimation of the
+required bandwidth computed by conventional connection
+admission control schemes.
+In the work described in this paper, CBR is used to recognise traffic
+patterns as congestion occurs in a 3G network and to define the
+policies to respond to that congestion in the reactive layer of the
+resource agent. Congestion here means the situation where system
+could not maintain the QoS required by the SLA. (This is explained
+in more detail in section 5)
+3.2  Resource agent
+In this work the resource agent is the focus of attention as it is an
+important agent in managing the resource within the network.  The
+architecture of the resource agent is illustrated in figure 2.
+
+
+Figure 2  Resource agent internal architecture
+
+The reactive layer is designed to be fast, performing the same
+function that would be in a conventional RNC (Radio Network
+Controller), assigning the connection a Node B, and performing
+Previous 
+Cases
+General
+Knowledge
+Suggestion
+
+Solution
+
+Confirmed
+
+Solution
+
+RETRIEVE
+Problem
+Retrieve
+Case
+Tested /
+Repaired
+Case
+Solved
+Case
+Case
+New
+New
+
+Case
+
+Learned
+Case
+RETAIN
+REUSE
+REVISE
+Co-operative Planning Layer
+
+-  Action between cells
+
+Local Planning
+
+Layer
+
+
+-  Act on changing QoS within cell
+
+Case - Based Reasoning
+Reactive Layer
+Assignment
+OK
+OK
+CAC
+
+Exception
+handle
+No
+Yes
+No
+Yes
+Assigned
+request
+Modified request
+
+Set up
+connection
+Reject
+Request
+pol
+i
+cy
+pol
+i
+cy
+pol
+i
+cy
+S
+t
+at
+us
+re
+p
+o
+rti
+ng
+253
+CAC (Connection Admission Control) but it does this according to
+policies assigned by the planning layer.
+The connection request (containing information about the service
+provider, QoS, type of connection) is first considered for
+assignment to a Node B using an algorithm or set of rules passed
+down from the planning layer. As a result, the system performance
+can be monitored at all times. Any congestion occurring can be
+detected and reported to the planning layer which, will then find the
+best solution using the CBR approach in order to maintain the SLA.
+
+ASSIGNMENT AND ADMISSION SCHEME
+Assignment and admission control together determine which base
+station will have power control over a mobile, which means that
+base station must have available bandwidth to support the new call,
+and also must make sure that none of the existing connection will
+be dropped.
+A great deal of work has been done in this area. In [7], a
+comparison is made between a transmitted power-based call
+admission control (TPCAC) that protects the ongoing calls and a
+received power-based call admission control (RPCAC) that blocks
+new calls when the total received power at a base station exceeds a
+threshold. The result shows that the RPCAC scheme is found to
+offer significant performance benefits. In [8], the number-based
+CAC and interference-based CAC are compared. SIR-based CAC
+(signal-to-interference based CAC) has been proposed in [9], the
+benefit being in improving the system performance at traffic hot-spots
+.
+In this paper, a combination between the ideal scheme and SIR-based
+CAC has been chosen with uplink capacity limitation (which
+means the signal-to-interference of the received signal from mobile
+to base station is calculated) As for the ideal scheme, the system
+has to make sure none of the existing connections will be dropped
+when accepting a new connection request. Hence, two perfect
+power control loops are run to verify that the new request can really
+be accepted; otherwise it would be blocked or put into the buffer.
+The admission process is as follow :
+- With the new connection request, the new mobile's
+transmitted power is estimated in order to get the target SIR.
+(the open power control in section 5.4)
+-  If the estimated transmitted power is in the accepted range, it
+means the new mobile can make a connection. Otherwise, it
+will be blocked or held in the buffer.
+-  Set up the new connection and perform the first perfect power
+control loop. With this, the new transmitted power that is
+supposed to give each connection the target SIR can be
+determined.
+-  The second perfect power control loop is performed to achieve
+the actual SIR for each connection as a result of accepting a
+new connection request.
+-  If any existing connection would be dropped (by having SIR
+less than the threshold), the new connection is still rejected
+otherwise it is accepted and the connection can be made.
+The rejected connection request will be put into a queue until the
+next calculation or new call arrival and it will be blocked at the
+expiry of a timer: setting the timer to zero means that a request is
+immediately accepted or rejected. Furthermore, the base station
+serving the mobile can be reassigned at anytime during the
+connection if the current base station cannot provide the required
+link quality.
+SIMULATION MODEL
+The simulation model has been implemented in MatLab. The
+system used for the results in this paper consists of 9 hexagonal
+cells (25 cells have been used for other work but the large model
+suffers from an excessively long run time) and each cell has its own
+base station with an omni-directional antenna placed at the centre
+of the cell. A number of mobiles have been generated randomly
+according to the input traffic. When considering different classes of
+user, it is quite common to use three classes: bronze, silver, and
+gold. In the results described here, 50% of the users are bronze,
+30% are silver and 20% are gold. It is assumed that the gold
+customers will pay the highest service charge followed by silver
+and bronze customers, so that the gold customer is paying for the
+best service and more flexibility than the others.
+5.1  Radio Propagation Model
+In cellular systems, radio propagation is crucially influenced by the
+path loss according to the distance, log-normal shadowing, and
+multipath fading. The relationship between the transmitted power
+and received power can be expressed as [9].
+0
+10
+/
+10
+)
+(
+P
+r
+r
+P
+
+
+=
+
+
+(1)
+
+where P(r) is the received power, P0 is transmitted power, r is the 
+distance from the base station to mobile,
+in decibels has a normal
+distribution with zero mean and standard deviation of
+(typical
+value of 8 dB), and
+
+2
+represents the gain (typical values of
+in a
+cellular environment are 2.7-4.0).
+5.2  Traffic Model
+The model consists of two traffic types, voice and video. The
+model has been simplified from the three type traffic model that
+also included data traffic, which was used in [2]. The reason in
+simplifying the traffic model is because modelling data traffic to
+the level of packet results in unrealistically long simulation times.
+5.2.1  Voice traffic
+Voice traffic is considered to be real-time traffic. The common
+model for a single voice source is illustrated by the ON-OFF
+process. It consists of two stages, active (ON) and silent (OFF) 
+stage, with a transition rate
+µ from ON to OFF and  from OFF to
+ON stage.
+Figure 3 illustrates the ON-OFF model. The silent period is
+assumed to be the period that cannot be used to transmit data
+message or voice call.
+
+
+
+
+
+
+
+Figure 3  Traffic model for voice call (ON-OFF model)
+Silent
+Active
+Duration in silent
+state : exponential
+distribution
+Duration in active
+state : exponential
+distribution
+
+µ
+
+1
+µ
+1
+254
+To simplify the simulation, the approach of [9] is used with an
+activity factor of 0.45 is used. The transmission rate for voice
+traffic is assumed to be 8kbit/s and mean holding time is
+180second.
+5.2.2  Video traffic
+Video traffic is also considered as real-time traffic. The common
+model for video source is illustrated by the discrete-state
+continuous time Markov process illustrated in figure 4.
+The bit rate of video traffic is quantized into finite discrete level (0
+A 2A... MA). Transitions between levels occur with exponential
+transition rates that may depend on the current level. [11]
+
+
+
+Figure 4  Video source model  (Discrete-state continuous time
+Markov process)
+The
+and  are the state transitions and they are obtained by:
+
+
++
+=
+M
+N
+04458
+.
+5
+1
+9
+.
+3
+
+(2)
+
+
+=
+9
+.
+3
+(3)
+where N is a Number of aggregated video sources (typical
+assumption 1) and M is a number of quantization levels (typical
+assumption 8).
+
+Implementing this video traffic model in the simulation causes
+simulation times to be very long. Many authors therefore simplify
+this by using activity factor. [9][12]  Here, an activity factor of 1
+has been assumed for the real-time video source as use in [9]. The
+transmission rate for video traffic is assumed to be 64, 144, or
+384kbit/s and mean holding time is 300 second.
+5.3  Receiver Model
+For the uplink capacity limited, the SIR of each transmission is
+calculated at the base station and it can be expressed as follows,
+(based on [13])
+thermal
+er
+ra
+N
+I
+I
+R
+W
+SIR
++
++
+
+
+
+
+
+=
+int
+int
+Pr
+
+(4)
+
+where, (W/R) is the processing gain, Pr is the received signal
+strength, I
+intra
+is the sum of the received signal powers of other
+transmissions within the same cell, I
+inter
+is the sum of the received
+signal powers from the other cells, and N
+thermal
+is the thermal noise
+power.
+
+5.4  Power Control Model
+Power control is the crucial part in the system since it is necessary
+to minimise the interference in the system by minimising the level
+of transmitted power to the optimum level, which means just
+enough to maintain the link quality. Power control in UMTS
+consists of three main functions: (i) open-loop power control, (ii)
+inner-loop power control, and (iii) outer-loop power control [14].
+As the simulation focuses on the uplink-limited capacity, power
+control for the uplink is applied. In this work, the first two types are
+applied in
+
+the simulation since they have the major effect on the
+simulation result. Without outer-loop power control, the target SIR
+has to be fixed; here, it is assumed to be 6 dB and the threshold is 4
+dB. [10] The power control step is assumed to be 1 dB at each
+power control cycle. [15][16]
+5.4.1  Open-Loop Power Control
+Open-loop power control is applied when new connection requests
+arrive in the system as initial step of the admission process (section
+4). The total interference at the base station is calculated as it is the
+parameter that User Equipment (UE) needs to use in the estimation
+of its initial transmit power. According to the parameter and the
+target SIR, UE estimates the transmit power and uses it as an initial
+transmit power.
+5.4.2  Inner-Loop Power Control
+This is done periodically to allow the transmitted power of each
+connection to be kept as low as possible, yet maintain the target
+SIR. Firstly, the base station calculates the received SIR from the
+UE. If the SIR is less than the target SIR
+,
+the TPC (Transmit Power
+Control) command "up" is sent to the UE which increases the
+
+transmitted power by one step. If the SIR is more than the target
+SIR+1, the TPC command "down" is sent to the UE which
+decreases the transmitted power by one step. Otherwise, the UE
+maintains the same transmitted power. After the power control
+cycle has been performed, the new SIR for each mobile can be
+calculated. Any mobile that has an SIR less than the threshold will
+not be dropped immediately; instead the system will try to
+reallocate that mobile to another base station nearby that still has
+available bandwidth and can provide the link quality. If it is
+possible, the mobile will be handed over to the next base station,
+otherwise the mobile will be dropped. The transmitted power has a
+maximum of 21dBm; if the calculated transmit power is more than
+the maximum power, the maximum transmitted power will be
+applied.
+In this simulation, the inner-loop power control is performed every
+10ms. Experiments have been done by varying the power control
+time step and the results show that the blocking rate becomes
+erratic as the timing gets too high. From the experiment, the time
+step of 10ms has been chosen as it is the highest value that gives
+consistent results. From the simulation point of view, it is
+preferable to use the highest time as this reduces the length of the
+simulation.
+The power control is essentially that used in 3G without including
+outer-loop power control.
+5.5  Verification and Validation
+One of the most important aspects in developing the simulation
+model is its credibility; therefore the validation and verification of
+any simulation model are essential. The simulation model was
+validated by comparing the result with the relevant result from [8]: 
+this is discussed in [1]
+.
+0
+MA
+(M-1)A
+(M-2)A
+A
+2A
+
+
+2
+
+
+M
+
+M
+
+)
+1
+(
+M
+
+2
+
+)
+1
+(
+M
+255
+5.6  CBR Model
+According to [17], there are several proposed schemes of
+organizational structure and retrieval algorithms for CBR. In this
+work, the hierarchical memory with parallel search is used as it
+provides an efficient retrieval that is less time consuming, as the
+matching and retrieving happen in one step, which also give less
+complexity.
+The monitoring process of the system performed every 10 seconds.
+This means the monitoring parameters will be collected for 10
+seconds and sent to the local planning layer of an agent where the
+CBR model is located as shown in figure 1. The parameters will
+then be compared with the SLA requirements and any deviation
+from the SLA  can be reported. The CBR model will then be used
+to find the best solution for the situation. Base on the process model
+in figure 1, a solution will be proposed, or where the  best matched
+case cannot be found or the evaluating process fails, a calculation
+might be used instead in order to find the solution according to
+certain rules.
+As the parallel search has been chosen for the CBR model, the
+whole library will be searched for each characterizing index in one
+step. If the new case is to be retained in the library, the library
+indexes have to be re-sorted according to the priority of the
+characterizing index of the new case.
+5.7  Monitoring and case matching process
+As explained above, the monitoring process is done every 10
+seconds. The call blocking, call dropping and the accumulative
+value of blocking rate are calculated and by comparing them with
+the SLA requirements, the error can be detected. If the error being
+reported is significant, the CBR model will be called.
+There are seven characterising indexes used to describe the case at
+the moment. Currently, they are obtained by matching the actual
+monitoring factors into a suitable range where the value belongs.
+Therefore, the characterising indexes will be in form of small
+integer numbers. The seven monitoring factors are as follows-:
+·  Total throughput for the whole system 
+·  Offered traffic for the whole system 
+·  Offered traffic for silver customer for the whole system 
+·  Offered traffic for gold customer for the whole system 
+·  Cell identity where offered traffic exceeds limit 
+·  Accumulative blocking rate for silver class 
+·  Accumulative blocking rate for gold class
+In case that there is not an exact match, there needs be a way to
+identify whether the closest match is acceptable for the situation.
+However, in the current model, only the best match will be chosen.
+In future work, the acceptable level for each case will be
+determined by the distance to the seven-dimensional coordinates
+defining the individual point of the case. If it is within the tolerable
+range, the case will be used.
+TRAFFIC PATTERN RECOGNITION AND NUMERICAL RESULTS
+The previous work [1] was done to support the basic idea that the
+reactive layer of the agent system can be controlled by the planning
+layer in order to ensure system compliance with the SLA. Here, the
+SLA assumptions made for the maximum acceptable level of call
+blocking rate.
+-  Maximum acceptable call blocking rate for gold : 0.03
+-  Maximum acceptable call blocking rate for silver : 0.05
+The gold customer pays the highest rate for the least elasticity of
+service level. These rates can either be instantaneous values or
+measured over a period of time; naturally the numerical limits
+would be different.
+In [1], the random overload situation has been tested with the traffic
+load being increased after the system reached stability. The call
+dropping rate is acceptable before high traffic load was applied, but
+after changing the load, the call dropping rate increases, then
+slowly declines to about the same level as before, because of the
+implementation of ideal assignment and admission control. On the
+other hand, the call blocking rate increases as a greater number of
+mobiles attempt to get into the system and the system tries not to
+drop any existing connection, so more will be blocked. The call
+buffering time for all classes of customer and all types of service
+has been set to zero to give immediate accept or reject decisions.
+Figure 5 shows the comparison between the result from the
+conventional system that does not chance the policy with the
+dashed lines and the result of policy chance as the solid lines.
+Without the SLA based control, the call blocking rate for all
+customer classes raises as the traffic load increases.
+For the SLA based control, the implementation here uses a buffer
+mechanism so the a call request that cannot be served immediately
+is held for a short time in case resources become available. The
+buffering time is configurable. From solid lines at the point when
+the level of call blocking rate for gold customer reaches the
+maximum level, policy 2 is applied which allocates a short
+buffering time to call requests from gold and silver customers, with
+that for bronze customers still being set to zero. The result shows
+that the call blocking rate of gold and silver customers stabilises,
+but does not go below the limit set for gold. After waiting for a
+short period (here 2 minutes) to ensure the trend is stable, a further
+change in policy is applied; this gives longer buffering time for
+gold customers and slightly longer buffering time for silver
+customers, so increasing still further the probability of gold and
+silver customers (especially gold) being accepted at the expense of
+bronze.
+
+
+
+
+
+
+
+
+
+Figure 5  Comparison between the result from the conventional
+system and SLA based control system
+Silver maximum level
+Gold maximum level
+Mean interarrival 100ms
+Mean interarrival 25 ms.
+Policy 1
+Policy 2
+Policy 3
+Bronze
+Silver
+Gold
+With SLA control 
+Without SLA control
+Gold
+Bronze
+Silver
+0
+0.02
+0.04
+0.06
+0.08
+0.1
+0.12
+0.14
+18000
+90000
+2E+05
+2E+05
+3E+05
+4E+05
+5E+05
+5E+05
+6E+05
+Simulation time (ms.)
+Rate of call blocking over total avtice call
+256
+A simple case library has been generated partly from this previous
+work and the knowledge from the work under current study. By
+using the simulation model mentioned before, a few traffic patterns
+can be implemented to test the system performance.
+The two main environments being tested here are the random
+overload situation and the hot spot situation. As the system detects
+the congestion, the CBR model is called to analyse the situation and
+the simulation results will be divided in two sections.
+6.1  Random overload case
+For this case, the simulation repeated the previous work explained
+before by adding the CBR model and also use the simulation model
+illustrated in section 5. (In previous work [1] the less detailed
+simulation model has been used.)
+Figure 6 shows the simulation results of the call blocking across the
+simulation time as the traffic load increases in a conventional
+system that does not change policy. The call buffering time for all
+classes of customers and all types of services has been set to zero to
+give immediate accept or reject decisions.
+
+
+
+
+
+
+
+
+
+
+
+Figure 6  The simulation result from conventional system for
+the random overload situation
+Figure 7, 8 and 9 show the effect of using the CBR approach to
+identify the current traffic pattern and manage the reactive layer
+policies accordingly.
+It might be thought that these results are simply the normal result of
+applying priorities, but the technique is more powerful. In many
+SLAs, it is not short-term violations that are important: an SLA
+might specify for instance that the blocking rate must not exceed a
+certain value during a day or a month.
+The new policy has been applied to the reactive layer as soon as the
+system recognises congestion, in this example using the
+accumulative error rate over a period of 10s.
+The implementation here again uses a buffer mechanism to give
+short buffering time to call request that cannot be served
+immediately, especially for the higher priority customer. The
+buffering time is configurable. It can be seen from the result that
+CBR keeps the call blocking rate for gold and/or silver customers
+within the SLA bounds, according to the congestion pattern.
+In figure 7, the traffic reaches overload when the accumulative call
+blocking rate for gold exceeds the limit, at that point silver is still in
+an acceptable range. In this case the chosen policy gives the highest
+buffering time to gold and lower value for silver with that for
+bronze still at zero.
+
+
+
+
+
+
+
+
+
+
+Figure 7  Simulation results showing the effect of SLA-based
+control by CBR approach for the first random overload case
+It can be seen that the system detects the overload situation at the
+point where the traffic load increases and generates the appropriate
+policy. As the new policy gives priority to gold, the call blocking
+for gold customer is maintained within an acceptable range at the
+expense of both silver and bronze.
+Figure 8 shows the result from the second case, where the traffic is
+overloaded with the accumulative call blocking rate for gold and
+silver exceeding the maximum value. In this case, both silver and
+gold QoS need to be handled. By giving highest buffering time to
+silver and slightly lower for gold, the blocking for both can be kept
+within the range. As the buffer in this implementation uses the
+priority arrangement, gold customers are always in the top of the
+queue, so, in order to also give priority to silver customers, their
+buffering time has to be higher.
+
+
+
+
+
+
+
+
+Figure 8  Simulation results showing the effect of SLA-based
+control by CBR approach for the second random
+overload case
+Silver
+Gold maximum level 
+Silver maximum level
+Normal traffic
+Overload traffic
+Gold
+Bronze
+Silver
+Gold maximum level
+Silver maximum level
+Normal traffic
+Overload traffic
+Gold
+Bronze
+Silver
+Gold maximum level
+Silver maximum level
+Normal traffic
+Overload traffic
+Gold
+Bronze
+0
+0.05
+0.1
+0.15
+0.2
+0.25
+0.3
+0.35
+0.4
+0.45
+5
+35
+65
+95 125 155 185 215 245 275 305 335 365 395
+Simulation time (s.)
+Call blocking rate
+0
+0.05
+0.1
+0.15
+0.2
+0.25
+0.3
+0.35
+0.4
+0.45
+5
+35
+65 95 125 155 185 215 245 275 305 335 365 395
+Simulation time (s.)
+Call blocking rate
+0
+0.05
+0.1
+0.15
+0.2
+0.25
+0.3
+0.35
+0.4
+0.45
+5
+35
+65
+95 125 155 185 215 245 275 305 335 365 395
+Simulation time (s.)
+Call blocking rate
+257
+In Figure 9 the situation is that the long-term value for gold
+customers has been met, but that for silver is at the limit. When
+congestion occurs then, silver customers have to be given priority
+in order that their long-term blocking is not exceeded, but gold
+customers can be allowed to have worse service since there is still
+"slack" in their SLA.
+
+
+
+
+
+
+
+
+Figure 9  Simulation results showing the effect of SLA-based
+control by CBR approach for the
+last random overload case
+The SLA monitoring here is looking at the long-term blocking, has 
+detected that silver needs priority and has applied that priority.
+These results show the flexibility of the control system which
+assigns different policies to different scenarios and also shows that
+the highest priority can also be a sacrifice in order to maintain the
+customer who normally has the overall long-term values.
+In fact any SLA that can be evaluated numerically can be used as 
+the basis for controlling the policy: the system is that flexible.
+6.2  Hot spot case
+With hot spots, the monitoring process is able to identify the
+congestion from the individual blocking and dropping parameters
+of each cell. CBR model will then match the pattern with the cases
+in the library. The proposed mechanism here can be seen in figure
+10.
+The bronze and silver users near the boundary will be transferred to
+the neighbouring cells that have normal traffic: effectively then by
+controlling the cell size in a more comprehensive manner than
+simple cell breathing from power control. By doing this, some of
+the capacity will be released for the hot spot cell in order to
+maintain the users nearer to the centre and high priority users.
+
+
+
+
+
+
+
+
+
+
+
+
+
+Figure 10  Hot spot situation and the proposed solution
+
+In the initial work for this hot spot case, the transferring process or
+handover will be done every 10s, which is the frequency of the
+monitoring process. An example of results from the initial work in
+this case are shown in figure 11 and 12.
+In figure 11, after the traffic load has increased in the hot spot cell,
+the call blocking rate for the hot spot call rise up while the other
+cells still have low blocking rate as the traffic was controlled within
+normal level.
+
+
+
+
+
+
+Figure 11  Result from the conventional system for the hot
+spot situation
+
+
+
+
+Gold 
+Silver 
+Bronze
+Silver
+Gold maximum level 
+Silver maximum level
+Normal traffic
+Overload traffic
+Gold
+Bronze
+Silver
+Gold maximum level 
+Silver maximum level
+Normal traffic
+Overload traffic
+Gold
+Bronze
+Hot spot cell 
+Normal traffic cell
+
+0
+0.05
+0.1
+0.15
+0.2
+0.25
+0.3
+0.35
+0.4
+0.45
+5
+35 65
+95 125 155 185 215 245 275 305 335 365 395
+Simulation model (s.)
+Call blocking rat
+e
+0
+0.05
+0.1
+0.15
+0.2
+0.25
+0.3
+0.35
+0.4
+0.45
+5
+35 65 95 125 155 185 215 245 275 305 335 365 395
+Simulation Time (s.)
+Call block rate
+258
+Figure 12 shows the result of using the CBR model which 
+instructs the system to perform the handover for bronze and silver 
+users near boundary to the neighbouring cells every 10s. The 
+blocking rate for the hot spot cell still increases after the traffic 
+load has increased but by comparing with the result in figure 11, 
+the call blocking rate  is lower. Further work is being done on 
+evaluating more complex scenarios.
+
+Figure 12  Result from SLA based control system with CBR
+model for the hot spot situation
+
+CONCLUSIONS
+This paper has introduced the concept of combining CBR with an 
+intelligent agent layered architecture to manage SLAs in W-CDMA
+networks. The simulation results show that the CBR 
+system has been able to detect congestion occurring and then 
+apply the appropriate policy to manage the behaviour of the CAC 
+to block those customers who, at that time, are perceived as less 
+important to the operator.
+The scenarios illustrated are fairly simple but further work is 
+evaluating the approach over a much more complex range of 
+situations.
+REFERENCES
+[1]
+Chantaraskul, S. and Cuthbert, L.G. SLA Control for 
+Congestion Management in 3G Networks, in  Proceeding of 
+the IASTED International Conference on Wireless and 
+Optical Communications (WOC2003), Banff, Alberta, 
+Canada, 2003, pp. 447-452.
+[2]
+Chantaraskul, S. and Cuthbert, L.G. Introducing Case-Based 
+Reasoning in SLA Control for Congestion Management in 
+3G Networks, in  Proceeding of the
+
+IEEE Wireless
+Communications and Networking Conference 2004 (IEEE 
+WCNC2004), Atlanta, Georgia, USA, 2004.
+[3]
+Cuthbert, L.G., Ryan, D., Tokarchuk, L., Bigham, J., 
+Bodanese, E. Using intelligent agents to manage resource in 
+3G Networks, Journal of IBTE, vol. 2 part 4, Oct.-Dec. 2001, 
+pp. 1-6.
+[4]
+Admodt A. and Plaza E., Case-Based Reasoning: 
+Foundational Issues, Methodological Variations, and System, 
+AI Communications, The European Journal of Artificial 
+Intelligence, vol. 7:1, pp. 39-59. 1994.
+[5]
+Caulier, P. and Houriez, B. A Case-Based Reasoning 
+Approach in Network Traffic Control, in  Proceeding of the 
+IEEE International Conference on Systems, Man and 
+Cybernetics, 1995.  Intelligent Systems for the 21st Century, 
+Volume 2, 1995, pp. 1430-1435.
+[6]
+Hassanein, H., Al-Monayyes, A. and Al-Zubi,M. Improving 
+Call Admission Control in ATM Networks Using Case-Based 
+Reasoning, in Proceeding of the IEEE International 
+Conference on Performance, Computing, and 
+Communications, 2001, pp. 120-127.
+[7]
+Huang, C. Y.  and Yates, R. D. Call Admission in Power 
+Controlled CDMA Systems, in Proceeding of the IEEE 
+Vehicular Technology Conference, 1996, pp.227-231.
+[8]
+Capone, A., Redana S. Call Admission Control Techniques 
+for UMTS, in Proceeding of the IEEE Vehicular Technology 
+Conference, 2001, pp.925-929.
+[9]
+Liu, Z.  and Zarki, M. E. SIR Based Call Admission Control 
+for DS-CDMA Cellular System, IEEE Journal on Selected 
+Areas in Communications, vol. 12, issue 4, May 1994, pp. 
+638-644.
+[10]
+Kuri, J. and Mermelstein, P. Call Admission on the Uplink of 
+a CDMA System based on Total Received Power, in 
+Proceeding of the IEEE International Conference on 
+Communications, vol. 3, 1999, pp. 1431-1436.
+[11]
+So, J.W. and Cho, D.H. Access Control of Data in Integrated 
+Voice/Data/Video CDMA Systems, in Proceeding of the VTC 
+Spring 2002, IEEE 55
+th
+vol. 3, 2002, p.1512-1516.
+[12]
+Angelou, E.S.,  Koutsokeras, N.Th, Kanatas, A.G.  and 
+Constantinou, Ph. SIR-Based Uplink Terrestrial Call 
+Admission Control Scheme with Handoff for Mixed Traffic 
+W-CDMA Networks , in Proceeding of the 4
+th
+International
+Workshop on Mobile and Wireless Communications Network, 
+2002, pp. 83-87, 2002.
+[13]
+Radio Frequency (RF) system scenarios, 3GPP TR 253942, 
+Avialable:  htpp://www.sgpp.org
+[14]
+Laiho, J., Wacker, A. and Novosad, T. Radio Network 
+Planning and Optimisation for UMTS, John Wiley & Sons, 
+Ltd., 2002.
+[15]
+Baker, M.P.J., Moulsley, T.J. Power Control in UMTS 
+Release '99, 3G Mobile Communication Technologies, 2000. 
+First International Conference on (IEE Conf. Publ. 
+No.471),27-29, March 2000, pp.36­40
+.
+
+[16]
+Thong, W.S., Bigham, J. Hierachical Managament of CDMA 
+Network Resources, in Proceeding of the Third International 
+Conference on  3G Mobile Communication Technologies, 
+2002
+(Conf. Publ. No. 489),
+8-10 May 2002
+
+pp. 216 ­ 220.
+[17]
+Kolodner, J. Case-Based Reasoning, Morgan Kaufmann 
+Publishers, Inc., 1993, pp. 289-320.
+
+Silver
+Gold maximum level
+Silver maximum level
+Normal traffic
+Overload traffic
+Gold
+Bronze
+Hot spot cell 
+Normal traffic
+0
+0.05
+0.1
+0.15
+0.2
+0.25
+0.3
+0.35
+0.4
+0.45
+5
+35 65
+95 125 155 185 215 245 275 305 335 365 395
+Simulation Time (s.)
+Call block rate
+259
+

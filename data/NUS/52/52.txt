@@ -1,0 +1,373 @@
+Catenaccio: Interactive Information Retrieval System through Drawing
+ABSTRACT
+The Catenaccio system integrates information retrieval with 
+sketch manipulations. The system is designed especially for pen-based
+computing and allows users to retrieve information by 
+simple pen manipulations such as drawing a picture. When a user 
+draws a circle and writes a keyword, information nodes related to 
+the keyword are collected automatically inside the circle. In 
+addition, the user can create a Venn diagram by repeatedly 
+drawing circles and keywords to form more complex queries. 
+Thus, the user can retrieve information both interactively and 
+visually without complex manipulations. Moreover, the sketch 
+interaction is so simple that it is possible to combine it with other 
+types of data such as images and real-world information for 
+information retrieval. In this paper, we describe our Catenaccio 
+system and how it can be effectively applied.
+CR Categories: I.3.6 [Computer Graphics]: Methodology and 
+Techniques ­ Interaction Techniques; I.3.4 [Computer Graphics]: 
+Graphics Utilities ­ Software support
+INTRODUCTION
+Pen-based computers, such as personal digital assistants (PDA) 
+and tablet PCs, have been developed. These computers are 
+characterized by simple sketch interfaces similar to drawing a 
+picture on paper in the real world. This drawing manipulation is 
+not especially useful for communicating details, but is effective 
+for general use. It is especially useful for creative activities, so 
+there have been a number of research reports on improving sketch 
+manipulation [1, 2, 3].
+In addition, some game devices (e.g., Nintendo DS [4]) support 
+such kinds of interactions and provide many types of game 
+content. In these systems, a user can use the entire system window 
+as a workspace and create 3D CG from 2D drawings. However, as 
+the original applications may not support information retrieval, 
+the user has to use conventional retrieval applications along with 
+pen-based input styles. 
+Considerable research has been done to support the use of 
+information visualization for retrieving information [5]. Technical 
+visualization methods such as zooming and scaling can be used to 
+effectively display huge amounts of data [6, 7, 8]. However, 
+existing visualization systems focus on mouse manipulation (e.g., 
+click and drag), so they are not effectively designed for pen-based 
+interactions such as a drawing. 
+The most popular method of retrieving information is no doubt 
+keyword searching. Search engines via the Web (e.g., Google and 
+Yahoo) have been
+
+generally used for keyword searching [12, 13],
+and people feel that they cannot live without such search engines. 
+Generally, keyword searching requires users to input one or more 
+keywords. In these systems, users can retrieve information related 
+to the keywords with Boolean operations (e.g., AND, OR and 
+NOT). However, the systems are based on conventional input 
+methods. Users of pen-based computers have to write a query into 
+a fixed dialog box with a stylus or pen. 
+Therefore, we have been developing an information retrieval 
+system based on simple sketch manipulations. Our goal is to 
+devise an effective and simple information retrieval system that 
+works on pen-based computers, so we integrated a keyword 
+searching that is one of the most usual methods with sketch 
+manipulation that is one of the simple interactions. In our system, 
+users retrieve information by drawing a Venn diagram instead of 
+inputting keywords to a dialog box. Because the Venn diagram 
+can be used to display Boolean operations (e.g., AND, OR, and 
+NOT) visually and create some relationships at the same time, 
+users can recognize the relationships at a glance. Moreover, the 
+system allows users to use other types of data as elements in a 
+Venn diagram (Fig. 1).
+
+In this paper, we describe our Catenaccio system that integrates 
+information retrieval with sketch manipulations, and explain how 
+it can be effectively applied for information retrieval.
+
+Permission to make digital or hard copies of all or part of this work for 
+personal or classroom use is granted without fee provided that copies are 
+not made or distributed for profit or commercial advantage and that 
+copies bear this notice and the full citation on the first page. To copy 
+otherwise, or republish, to post on servers or to redistribute to lists, 
+requires prior specific permission and/or a fee. 
+AVI '06, May 23­26, 2006, Venezia, Italy. 
+Copyright 2006 ACM 1-59593-353-0/06/0005...$5.00.
+
+79
+
+
+Figure 1: Venn diagram: Venn diagram can be used to display 
+Boolean operations and some relationships at the same time 
+(top). The user can create an original Venn diagram (bottom).
+
+Figure 2. Basic manipulation: A user of the Catenaccio system 
+draws a circle and writes a keyword inside that circle. 
+Information nodes related to the keyword are then collected 
+within the circled area.
+
+RELATED WORK
+A wide variety of information visualization systems are used for 
+information retrieval [5]. Treating information as visualized nodes 
+(e.g., images and simple shapes) allows users to interact with the 
+information space visually. Moreover, several techniques (e.g., 
+scaling, zooming, focus and context) are used to display a huge 
+amount of information more effectively [6, 7, 8, 19]. Especially, 
+spring model [11] provides useful ways to recognize the 
+relationships between nodes. In these systems, related nodes move 
+when the user clicks and drags a node. That is, node positions are 
+dynamically changed through the user manipulations, so users 
+retrieve information interactively. InfoCrystal [9] is also a visual 
+tool focused on information retrieval. The system uses Venn 
+diagrams to treat huge amounts of information effectively. 
+However, conventional systems are designed for mouse 
+interactions (e.g., click and drag) and their layouts are predefined, 
+so they are not suitable for Pen-based computing, especially 
+drawing or writing by hand. 
+There are also several sketch interfaces focusing on pen-based 
+computing [1, 2, 3]. Most of them enhance drawing manipulations 
+and focus on 3D creations performed with 2D manipulation. 
+Characteristically, the manipulations required for these systems 
+are simple and are similar to drawing a stroke on a piece of paper 
+with a pen. Sketch [1] users can draw 3D curves by performing 
+2D manipulations. This system calculates a 3D curve by 
+combining a 2D stroke and a shadow stroke. Users of Harold [2] 
+and Tolba [3] can create flat models in a 3D space by using 
+sketch-based manipulation, effectively creating a 2.5D scene in a 
+3D space.
+
+Figure 3. Drawing a Venn diagram: By repeatedly drawing 
+circles and keywords, users create Venn diagrams, and can 
+then retrieve information by forming complex queries. 
+Information nodes related with both "CG" and "3D" are 
+collected.
+
+SYSTEM OVERVIEW
+The Catenaccio system is focused on pen-based computing and 
+provides an interactive and visual information retrieval 
+environment of using drawing manipulations.
+3.1
+Drawing Circles and Writing Keywords
+
+A user of the Catenaccio system draws a circle and writes a 
+keyword inside that circle. The system automatically recognizes 
+both the circle area and the keyword. Information nodes related to 
+the keyword are then collected within the circled area. By making 
+a continuous series of simple drawings, the user can create a Venn 
+diagram to form a more complex query. Since the entire window 
+is both a search area and a drawing canvas, the user can use the 
+workspace freely. 
+Since all the manipulations required for information retrieval are 
+based on sketch manipulations, users can design an original Venn 
+diagram related their interests. Thus, users can freely exploit the 
+whole application window as both an input and a search area and 
+retrieve information without complex GUIs. 
+The circle provides an area where information nodes related to the 
+keyword will be collected, and the keyword provides a query to 
+search for related information nodes from a database. By 
+continuing to use simple drawings, users can form more complex 
+queries. The related information nodes are moved with a force 
+that depends on the distance between the node position and the 
+center of the circle (Fig. 2). 
+Figure 3 shows an example of creating a Venn diagram by 
+continuing to draw circles and keywords. In the example, when a 
+user retrieves information that has two keywords "CG" and "3D", 
+the user first draws a circle and writes "CG" (Fig. 3 (1)), and then 
+draws another circle and writes "3D" (Fig. 3 (2)). Information 
+nodes related to both keywords appear in the shared area of the 
+Venn diagram (Fig. 3 (3 and 4)). Moreover, in the Venn diagram, 
+the user can view four areas at a glance (Fig. 3 (3)).
+80
+
+Figure 4: Venn diagram of a drawing and an image, and Venn 
+diagram of a drawing and an image that contains character 
+information.
+
+Figure 5: Combination with real-world information: 
+Capturing real-world information as a picture (1, 2) and 
+drawing a circle around the keyword brings up related 
+information nodes (3, 4).
+3.2  Combination with Other Types of Data
+Users can now easily take pictures using digital cameras and cell 
+phones that contain CCD cameras. As a result, they may have a 
+huge amount of original image data in their computers. These data 
+include some information such as name, time, or place, so we 
+considered using them for information retrieval.
+We have developed prototype applications to explore the potential 
+of Catenaccio. A Venn diagram is basically constructed by 
+combining keywords and areas, so it is possible to combine that 
+diagram with other types of data such as images and real-world 
+information. Images contain name, time, or place information, and 
+that information becomes a good trigger for retrieving other 
+information and it can be used for queries. In addition, the image 
+data has a rectangular shape that is useful for setting an area by 
+controlling its position and size.
+The example in Figure 4 shows how users can use images to 
+create Venn diagrams by combining drawings with image data. In 
+the example, a file named "Mr. Tobita" becomes a query for the 
+Venn diagram, so information related to "VR" AND "Mr. 
+Tobita" is collected. In this case, even if users have forgotten 
+someone's name, they can still retrieve related information 
+through image contents. 
+Figure 5 shows an example a Venn diagram with real-world 
+information. Generally, using captured data for an interaction 
+trigger is a common technique in AR systems [20]. We also use it 
+for elements of Venn diagrams. Users first capture real-world 
+information through digital cameras attached to their computers 
+(Fig. 5 (1, 2)), and then draw circles around keywords on the 
+captured data and another circle to collect information nodes (Fig. 
+5 (3)). As the system recognizes the keyword inside the first circle, 
+related information nodes appear inside the second curve (Fig. 5 
+(4)).
+
+Figure 6: Recognition of user drawings: The system labels the 
+user drawing area (1, 2). The system recognizes written 
+keywords by using an OCR library (3) 
+Previously, we have proposed a similar information retrieval 
+system [10]. That system provides natural interactions, however, 
+it completely depends on real-world objects. However, 
+Catenaccio provides not only real-world information, but also 
+drawing manipulations. Thus, the user can retrieve information 
+even if there are not enough real-world objects.
+
+IMPLEMENTATION
+The entire workspace is bitmapped as in conventional 2D paint 
+systems, and user drawing manipulations are reflected in the 
+bitmap. The system supports two types of drawing, writing 
+keywords and area drawings. The keyword writing is displayed as 
+green, and the area drawing is displayed as blue. To set an area, 
+the system labels the inside of a green area and knows the size 
+and position of the area (Fig. 6 (1)). Then, the system divides the 
+area into four layers for node animations (Fig. 6(2)). For keyword 
+writing, the system sends the result to an OCR library to search 
+for its meaning (Fig. 6 (3)). 
+Catenaccio is a prototype system now, and the relationship 
+between keywords and information nodes are predefined in a 
+temporary database. The database contains three types of data: 
+node names, keywords, and relationship levels. After the image 
+recognition processes, nodes related to the keyword are selected 
+and start moving until they are in the area appropriate to their 
+relationship. The force is calculated by spring model [11]. For 
+example, the node with the strongest relationship with the 
+keyword receives a force that takes it to the deepest area.
+
+DISSCUSSION
+We have had some opportunities to demonstrate our system. Here, 
+we discuss user interactions with Catenaccio based on comments 
+made by visitors to our demonstrations. Also we consider the 
+limitations of the system and our plans for future work.
+From our demonstrations, the visitors quickly understood the 
+concepts of our system that integrates information retrieval with
+81
+drawing manipulations. Using Venn diagrams makes recognizing 
+the relationships between information nodes and keywords easy. 
+Most visitors could create simple Venn diagrams and set related 
+nodes into the diagrams after watching a simple demonstration. 
+We observed that some users drew interesting Venn diagrams that 
+resembled pictures. The system facilitates creative activities, so 
+we expect users will be able to create more original, and 
+increasingly effective drawings for information retrieval. 
+Especially, we received good reactions from users regarding the 
+combination of drawing and an image to create a Venn diagram. 
+By exploiting such combinations, the system augments keyword 
+searching, and it is different from conventional search engines [12, 
+13]. Moreover, combining keywords and user-drawn pictures to 
+create Venn diagrams is possible.
+Our system focuses on information retrieval for pen-based input. 
+However, information retrieval using Venn diagrams is quite 
+rough. We plan to combine our system with other types of sketch-based
+systems such as VelvetPath [16] to support more detailed 
+interaction. With such a combination, users can use Catenaccio 
+for general retrieval of information and then use VelvetPath to 
+examine the information in more detail. In this case, all the 
+manipulations would still be based on drawing or handwriting, so 
+a user can handle a large amount of data in a natural way. 
+Drawing manipulation is also useful for finger gestures.
+Many AR systems support the use of finger gestures as an input 
+method [17, 18]. As the system recognizes user finger gestures, 
+users can create Venn diagrams by manipulating real-world 
+objects, drawing circles, and writing keywords.
+CONCLUSION
+We described the Catenaccio system that is focused on Pen-based 
+computing and allows users to retrieve information by drawing 
+Venn diagrams. The system recognizes user writing and drawings 
+(keywords and circles) and places information related to the 
+keywords inside the circles. Using this input, the system provides 
+an interactive and visual information retrieval method. We 
+described some examples of retrieving information through 
+simple drawings. We also provided several examples of unique 
+Venn diagrams created by combining drawings with images and 
+real-world information.
+
+ACKNOWLEDGMENTS
+We thank Tetsuji Takada and Sinji Daigo for the visible and 
+useful suggestions on this work.
+
+REFERENCES
+[1]
+R. C. Zeleznik, K. P. Herndon, and J. F. Hughes. An 
+Interface for Sketching 3D Curves. In Proceedings of 
+ACM SIGGRAPH '96, pp. 163-170, 1996.
+[2]
+J. M. Cohen, J. F. Hughes, and R. C. Zeleznik. Harold: 
+A World Made of Drawings. In Proceedings of 
+NPAR2000 (Symposium on Non-Photorealistic 
+Animation and Rendering), pp. 83-90, 2000.
+[3]
+O. Tolba, J. Doresey, and L. McMillan. Sketching with 
+Projective 2D Strokes. In Proceedings of ACM 
+UIST '99, pp. 149-157, 1999.
+[4]
+Nintendo DS: http://www.nintendo.co.jp/ds/
+[5]
+S. K. Card, J. D. MacKinlay, and B. Shneiderman. 
+Readings in Information Visualization: Using Vision 
+to Think. Morgan Kaufmann, 1999.
+[6]
+H. Koike. Fractal views: a fractal-based method for 
+controlling information display. In Proceedings of 
+ACM Transactions on Information Systems, Vol. 13, 
+No. 3, pp. 305-323, July 1995.
+[7]
+G. W. Furnas. Generalized fisheye views. In 
+Proceedings of the ACM Transactions on Computer-Human
+Interaction, Vol. 1, No. 2, pp. 126-160, 1994.
+[8]
+B. B. Bederson, J. D. Hollan, K. Perlin, J. Meyer, D. 
+Bacon, and G. Furnas. Pad++: A Zoomable Graphical 
+Sketchpad for Exploring Alternate Interface Physics. 
+Journal of Visual Languages and Computing, Vol. 7, 
+No. 1, pp. 3-31, 1996.
+[9]
+A. Spoerri. Visual tools for information retrieval. In 
+Proceedings of VL'93, pp. 160-168, 1993.
+
+[10]
+H. Koike, Y. Sato, Y. Kobayashi, H. Tobita and M. 
+Kobayashi. Interactive Textbook and Interactive Venn 
+Diagram. In Proceedings of ACM CHI2000, pp. 121-128
+, 2000.
+[11]
+R. Davidson and D. Harel. Drawing Graphics Nicely 
+Using Simulated Annealing. In Proceedings of ACM 
+Transactions on Graphics, Vol. 15, No. 4, pp. 301-331, 
+1996.
+[12]
+Google: http://www.google.com
+[13]
+Yahoo: http://www.yahoo.com
+[14]
+T. Calishain and R. Dornfest. GoogleHack:
+100
+Industrial-Strength Tips & Tricks
+. O'RELLY, 2003.
+[15]
+P. Bausch. AmazonHack: 100 Industrial-Strength Tips 
+& Tools. O'RELLY, 2003.
+[16]
+H. Tobita. VelvetPath: Layout Design System with 
+Sketch and Paint Manipulations, In Proceedings of 
+EUROGRAPHICS2003 Short Presentations, pp. 137-144
+, 2003.
+[17]
+J. Rekimoto. SmartSkin: An Infrastructure for 
+Freehand Manipulation on Interactive Surfaces, In 
+Proceedings of ACM CHI2002, 113-120, 2002.
+
+[18] X. Chen, H. Koike, Y. Nakanishi, K. Oka, and Y. Sato. Two-handed
+drawing on augmented desk system, In Proceedings 
+of AVI 2002, 2002.
+[19] E. Orimo and H. Koike. ZASH: A browsing system for
+multi-dimensional data. In Proceedings of IEEE VL '99, pp. 
+266-286, 1999.
+[20] J. Rekimoto and K. Nagao. The world through the computer:
+Computer augmented interaction with real world 
+environments. In Proceedings of ACM UIST'95, pp. 29-36, 
+1995.
+
+82

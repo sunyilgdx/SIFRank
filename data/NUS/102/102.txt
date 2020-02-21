@@ -1,0 +1,842 @@
+2D Information Displays
+ABSTRACT
+Many exploration and manipulation tasks benefit from a coherent
+integration of multiple views onto complex information
+spaces. This paper proposes the concept of Illustrative
+Shadows for a tight integration of interactive 3D graphics
+and schematic depictions using the shadow metaphor. The
+shadow metaphor provides an intuitive visual link between
+3D and 2D visualizations integrating the different displays
+into one combined information display. Users interactively
+explore spatial relations in realistic shaded virtual models
+while functional correlations and additional textual information
+are presented on additional projection layers using a
+semantic network approach. Manipulations of one visualization
+immediately influence the others, resulting in an in-formationally
+and perceptibly coherent presentation.
+Categories and Subject Descriptors
+H.5.2 [Information Interface
+and Presentation]: User Interfaces--Screen design;
+I.2.4 [Artificial Intelligence]: Knowledge Representation
+Formalisms and Methods--Semantic networks; I.3.6 [Computer
+Graphics]: Methodology and Techniques--Interaction
+techniques
+General Terms
+Design, Human Factors
+
+INTRODUCTION
+In many areas knowledge about structures and their meaning
+as well as their spatial and functional relations are required
+to comprehend possible effects of an intervention.
+For example, engineers must understand the construction of
+machines as a prerequisite for maintenance whereas the
+spatial composition of molecules and hence possible reactions
+are of importance for the discovering of new drugs in
+chemistry. Medical students need to imagine the wealth of
+spatial and functional correlations within the human body
+to master anatomy.
+To date, novices as well as domain experts are required to
+consult several, often voluminous documents in parallel to
+extract information for a certain intervention. Spatial relations
+, characteristics of structures inherently three-dimensional
+, such as the shape and location of structures, however
+, are difficult to convey on paper. Besides requiring a
+significant amount of images to illustrate spatial relations
+between only a few structures, the mental integration of
+multiple views to form a three-dimensional picture in mind
+is demanding. Spatial relations can be conveyed more ef-fectively
+by means of 3D models <A href="102.html#8">[18]. Using interactive 3D
+graphics, available to more and more people due to recent
+advances in consumer graphics hardware, the user may actively
+explore the spatial correlations of structures within a
+photorealistic virtual model (see upper left of <A href="102.html#1">Figure 1).
+Here, the visual realism of the model facilitates recognition
+on real encounters.
+Information about functional correlations, such as the interplay
+of muscles causing an upward motion of the human
+foot, has been traditionally provided by means of text and
+illustrations as found in textbooks. Simple, non-photorealistic
+drawings enriched with annotations and metagraphical
+symbols can be extremely powerful in conveying complex
+relationships and procedures (see upper right of <A href="102.html#1">Figure 1).
+Abstraction techniques reduce the complexity of the depicted
+structures to illustrate the important aspects thereby
+guiding the attention of the viewer to relevant details. In
+contrast to the visualization of spatial relations, 3D graphics
+add no significant value to the illustration of functional
+correlations.
+Figure 1: Illustrative Shadows provide an intuitive, visual link
+between spatial (3d) and non-spatial (2d) information displays
+integrating them into one combined information display.
+M. tibialis anterior
+M. extensor hallucis longus
+M. extensor digitorum longus
+M. tibialis posterior
+M. flexor digitorum longus
+M. flexor hallucis longus
+M. fibularis brevis
+M. fibularis longus
+interactive 3d-graphic
+2d-information display
+shadow
+Permission to make digital or hard copies of all or part of this work for
+personal or classroom use is granted without fee provided that copies are
+not made or distributed for profit or commercial advantage and that copies
+bear this notice and the full citation on the first page. To copy otherwise, or
+republish, to post on servers or to redistribute to lists, requires prior
+specific permission and/or a fee.
+IUI'03, January 12­15, 2003, Miami, Florida, USA.
+Copyright 2003 ACM 1-58113-586-6/03/0001...$5.00.
+166
+The integration of both aspects in one visualization is difficult
+since each serves to fulfill a different goal with, partly
+mutually exclusive, visualization techniques. It becomes
+even more complicated if the 3D model is frequently manipulated
+, such as in construction or recent interactive
+learning environments. Here, occludings by annotations
+and metagraphical symbols are annoying and may even interrupt
+the current manipulation for the user. Additional
+views, whether as insets <A href="102.html#8">[20], separate objects like mirrors
+<A href="102.html#8">[8], or in form of lenses and volumetric cursors changing
+the rendition of embedded structures <A href="102.html#8">[7, 21, 23], are either
+not close enough to the manipulated structures to be fully
+recognized without dividing the users attention between
+different views <A href="102.html#8">[13] or require sometimes tedious manipulations
+to be placed or moved within the scene. Nonetheless
+, additional information as to restrictions or functional
+correlations pertaining the current manipulated structures is
+highly desired, even necessary.
+In this paper we present an approach called Illustrative
+Shadows that provides an intuitive, visual link between an
+actively manipulated 3D visualization and a supplemental
+2D information display integrating them into one combined
+information display (see <A href="102.html#1">Figure 1). One of the main ideas
+behind Illustrative Shadows is the integration of secondary
+information, or in other words, background information,
+into an interactive 3D scene. By analyzing the users' manipulation
+of 3D structures and finding correlations, graphical
+and textual information about the current interaction
+context, such as graphical object-details and textual labels,
+are displayed in the ``background''--the shadow--to give
+guidance as well as to further enhance the users' understanding
+of the context.
+The paper is structured as follows: After reviewing related
+approaches to combine multiple visual and textual information
+displays, we present the design of Illustrative Shadows.
+Furthermore, an architecture realizing these concepts is discussed
+in this section. Thereafter, the major components of
+this architecture are described. Realization issues are subject
+of the subsequent section, whereas application examples
+and the summary conclude the paper.
+RELATED WORK
+Recently proposed tools for the exploration of virtual
+scenes extend possibilities to display covered structures or
+hidden details. A complementary view called Magic Mirror
+that mimics a hand mirror has been introduced in <A href="102.html#8">[8]. In addition
+to providing the optical effects of a real mirror, it also
+allows to explore the insight of objects by clipping against
+the mirror front-frustum. Magic lens filters as presented in
+<A href="102.html#8">[7, 21] go further by combining an arbitrarily-shaped region
+with an operator that changes the view of objects viewed
+through that region thereby displaying different aspects of
+the visualized information space. In <A href="102.html#8">[5, 23] the 2D lens approach
+is extended to 3D using volumetric lenses. All
+aforementioned techniques require the user to actively manipulate
+a tool within the scene. These techniques assume
+the user already knows which parts of the presented visualization
+offer additional information or is willing to explore
+the model. While this might be feasible in explorative environments
+where navigation is the main interaction task, it
+certainly hinders manipulation.
+Several approaches to combine 3D and 2D visualizations
+have been made using a corner cube environment (
+). The
+three orthogonal sides show image slices that provide a visual
+context for a 3D model or structures displayed in the
+center. In <A href="102.html#8">[11] the images have been integrated as back-planes
+to ground the 3D representation of anatomic structures
+visually. By outlining the 3D structures in the images,
+the spatial correspondence between the 3D renditions of activated
+foci in the context of human brain slices is emphasized
+in <A href="102.html#8">[16]. The images, however are precomputed and do
+not change according to the users' interaction nor is there
+any visualization of functional correlations. An interesting
+interactive approach has been proposed by <A href="102.html#8">[10]. The projection
+of the 3D model onto the sides of the corner cube
+can be manipulated by the user in order to change the position
+and orientation of the model. Fully rendered shadows
+of certain objects resemble real-world mirrors and may be
+used to stress importance. There is, however, no discussion
+on how to use this feature to provide, for instance, additional
+context information for the user.
+To establish hypotheses on the interaction context in order
+to be able to display additional context information and to
+provide meaningful descriptions of relationships knowledge
+modeling is required. Promising approaches to connect
+those knowledge with 3D graphics have been developed
+in the area of medical applications. The Digital
+Anatomist <A href="102.html#8">[4] incorporates a logic-based description comprising
+class and subclass relationships (is-a) as well as partitive
+and qualitative spatial relationships (has-parts, is-superior
+-to). The information is presented in tree-like textual
+form that can be explored by folding and unfolding. Corresponding
+structures are displayed in a 3D visualization
+aside. There is no visual integration of both information
+displays. The semantic network described in <A href="102.html#8">[14] is used to
+create various `views' in which correlating structures are
+displayed to communicate specific aspects with a voxel
+model of the human anatomy. The highly detailed visualization
+, however, cannot be interactively explored, nor is
+there any kind of abstraction to focus the users' attention.
+Interaction is only possible by tree-like menus.
+SYSTEM DESIGN USING ILLUSTRATIVE SHADOWS
+With the term Illustrative Shadows we refer to a coherent
+integration of photorealistic depictions of a virtual model
+with abstract illustrations and textual explanations. Both
+Figure 2: Architecture of a system incorporating the Illustrative
+Shadows approach.
+3D
+model
+3D
+visualization
+2D
+visualization
+Visualization
+annotations
+Knowledge
+-based
+server
+Client interface
+System
+Event control
+167
+kinds of depictions serve to fulfill different and somehow
+contradicting goals: on the one hand to enable navigation
+and manipulation of complex spatial models and on the
+other hand to provide adjusted visualizations that guide the
+user's attention to additional information about the most
+relevant objects in the current interaction context. Both visualizations
+are achieved by applying photorealistic and
+specific non-photorealistic rendering techniques <A href="102.html#8">[22] to
+geometric models.
+Furthermore, textual information describing the most relevant
+structures and functional correlations between them
+must be integrated. The estimation of the relevance with respect
+to the current interaction context as well as the selection
+or generation of textual explanations heavily rely on
+non-geometric formal and informal representations and are
+therefore determined by external inference mechanisms.
+Moreover, co-referential relations between the entities
+within the geometric model and the formal and informal
+representations have to be established in order to link the
+different representations.
+Based on these requirements we designed a system architecture
+which comprises three basic components (see
+<A href="102.html#2">Figure 2):
+· The visual component renders a photorealistic 3D
+model with a standard camera model as well as a non-photorealistic
+illustration that is projected onto a
+ground plane. A client interface enables external control
+of the non-photorealistic rendering techniques. Finally
+, the visual component also renders text and
+metagraphical annotations, such as labels, hypertext
+and arrows.
+· The event control allows the user to modify the parameters
+of a virtual camera and to select and manipulate
+geometric objects within the scene. Interactions are
+tracked and ranked within an interaction history to
+communicate the current interaction context via a client
+interface to an external knowledge-based component.
+· The knowledge-based server receives notification of
+user manipulations and establishes hypotheses on the
+degree of interest values (DOI) for geometric objects.
+These DOI values guide the selection of appropriate
+text fragments presented in text annotations as well as
+the modification of parameters of the non-photorealistic
+rendering techniques for emphasizing in the illustration
+.
+The following sections discuss important aspects of these
+system components.
+VISUALIZATION
+Besides displaying a photorealistic rendition of a 3D model
+that the user can manipulate, the illustration of functional
+correlations between structures of the model in the "background"
+has to be accomplished. To focus the user's attention
+on relevant structures and to facilitate perception, important
+objects must be emphasized and surroundings
+abstracted. Furthermore, both visualizations must be integrated
+in a coherent manner, so that a visual connection between
+the 3D and 2D renditions of the relevant objects is
+established by the user. Several crucial aspects have to be
+considered:
+· How can objects be emphasized such that they attract
+the user's attention while still being in the background?
+· Are additional graphical elements required to establish
+a visual correlation between the two model representations
+?
+· What illustration techniques can be applied to differentiate
+between important and less important objects?
+· Is a continuous synchronization between the photorealistic
+and the schematic representation of the model necessary
+during user interactions?
+Integrating Different Model Representations
+The question coming up at this point is how a secondary,
+schematic model representation can be integrated such that
+the following requirements are fulfilled:
+· The second representation must be placed near the original
+3D representation in order to perceive structures in
+<A href="102.html#8">both representations [13].
+· The secondary representation may never occlude the
+central, realistic 3D visualization, which a user manipulates
+directly. The relevant information, however, must
+be visible in order to be recognized but should not distract
+from the interaction with the 3D model.
+An exact copy of the 3D model representation is not appropriate
+for the task of depicting functional correlations, because
+their illustration in the "background" requires abstraction
+. Without abstraction, a lot of the users' attention
+would be required to extract the relevant information. An
+exact copy, however, can be used to provide a mirrored
+view below the 3D model to visualize structures otherwise
+not visible for the user (see <A href="102.html#7">Figure 9 at the end). The integration
+of a secondary view as inset <A href="102.html#8">[20] has some disadvantages
+too. Firstly, the inset must not occlude the 3D
+model, thus it must be placed in distance which in turn
+means visual separation. Secondly, the inset framing complicates
+the visualization of object correlations, e.g. by
+lines.
+An ideal solution in many respects is to project the 3D
+model onto a plane below the model, just like casting a
+shadow. This 2D representation may then be modified in
+various ways to illustrate associated concepts and relations
+and therefore is called Illustrative Shadows. Besides, this
+approach satisfies the requirements specified above.
+Illustrative Shadows
+Cast shadows <A href="102.html#8">[3] have proven to be beneficial for perceiving
+spatial relationships and to facilitate object positioning
+Figure 3: Different types of model projections onto the illustration
+plane. Beside simple, monochrome projections (shadows),
+the color of individual structures can be preserved. The mirrored
+projection shows details otherwise hidden in the current view.
+;;
+;;;
+;;;
+;;
+;;
+;;
+;;
+Monochrome projection
+Colored projection
+Mirrored projection
+168
+<A href="102.html#8">[24]. Thus, their use, if already present, occupies no additional
+space for the display of additional information, or in
+the case of prior absence, also add valuable depth cues to
+the 3D visualization. Furthermore, the shadows can be used
+to interact with the underlying information context or, as
+proposed in <A href="102.html#8">[10], with the shadowing 3D objects. To sum
+up:
+· The shadow projection results in an abstraction which
+is very important for illustrations.
+· Additional depth cues facilitate the perception of spatial
+relations and accelerate the relative positioning of objects
+while manipulating the 3D model.
+· The projection establishes a link between a 3D object
+and its 2D shadow providing additional information.
+Displaying and Focusing in the Illustration Plane
+Besides simple, monochrome shadow projection further
+possibilities to project the 3D model representation onto the
+illustration plane come to mind (see <A href="102.html#3">Figure 3). Preserving
+the colors of the different structures of the model, for instance
+, enables distinct renditions and perception of the objects
+in the shadow. As an extension, the objects can be mirrored
+before projecting them. Hence, objects or hidden
+details of objects otherwise not visible become visible in
+the illustration plane.
+To illustrate correlations or to annotate structures, the relevant
+objects must be emphasized to be easily distinguished
+from the remaining 2D visualization. Also, the viewer must
+be able to differentiate between relevant and less relevant
+objects. For monochrome shadow projections, the object
+color must contrast with the shadow color. The selection of
+emphasizing colors should be based on a perception oriented
+color model, such as the HSV. Moreover, an outline
+can be used to attract the viewer's interest. A colored projection
+makes it somewhat more difficult since the variation
+of the color won't always result in a noticeable distinct representation
+. By using a conspicuous texture or shaded representations
+of the relevant object whereas the remaining
+objects are flat-shaded, the viewer's attention can be directed
+to those relevant objects.
+Significance of Accentuations
+In addition to objects being significant to the current interaction
+context supplementary objects have to be included in
+the illustration. These objects are not of primary importance
+within the concepts to be illustrated but guide the
+viewer and maintain context. It is important that such objects
+are recognized by the viewer as objects of minor significance
+. The relevance of objects that have been emphasized
+by outlining, for instance, can be judged by line width
+or line style (e.g. contrast, waviness). Also preserving the
+objects color as well as the use of texture indicates a higher
+importance than an interpolation of the object's color and
+the background color.
+Recognition of Correlations between both Representations
+An important aspect in using two different but coherent representations
+of the same model is the identification of correlations
+between those visualizations by the viewer. If an object
+is being emphasized in the illustration plane, it must be
+possible for the viewer to find its counterpart in the detailed
+photorealistic representation too. Often shape and color
+give enough hints. However, if the projection of the relevant
+objects results in uniform shapes, the viewer may have difficulties
+to recognize individual objects in the 3D visualization
+(see <A href="102.html#4">Figure 4). Besides accentuating those objects in
+the 3D representation, the integration of additional elements
+can be beneficial. Semi-transparent shadow volumes
+originally developed to facilitate object positioning in 3D
+<A href="102.html#8">[19] indicate direct correspondence (see Figure <A href="102.html#4">5).
+Integration of Annotations
+The conveyance of important related facts by means of
+graphical abstraction, accentuation, or modification of relevant
+structures alone is difficult. Therefore conventional
+book illustrations often contain annotations with short descriptions
+. Those annotations must be placed close to the
+described objects and should not occlude relevant parts of
+the presentation. The latter, however, cannot always be
+guaranteed. A simple but effective solution places the annotation
+on a semi-transparent background face that increases
+the contrast between text annotation and illustration and
+still does not block vision (see <A href="102.html#4">Figure 5). To further facilitate
+absorption of shown concepts, single words or groups
+of words can be emphasized and graphically linked to relating
+structures in the illustration. Hypertext functionality reduces
+the amount to which textual annotations must be displayed
+at once. The user can request more detailed
+information by activating links.
+Figure 4: Recognition of individual objects in different scenes.
+To the left, unequivocal correspondence of shape and color
+facilitates identification. To the right, no clear correspondence.
+Figure 5: A direct connection to an object's shadow is established
+by displaying its semi-transparent shadow volume. The
+integration of annotations gives meaning to unknown objects and
+relationships.
+169
+INTERACTION
+A human illustrator is required to identify important aspects
+and characteristic features of the subject or concept that is
+to be conveyed in order to draw a focussed visualization.
+One way to identify those features for the computer is to
+watch the user interacting with the information space. Since
+our goal has been to enhance the users' understanding by
+providing background information in the current interaction
+context, an Illustrative Shadow depicting correlations in
+that context must be generated.
+By navigating within the 3D model on the one hand, the
+user is free to explore spatial relations by changing the
+view. Here, single structures may be tracked by the computer
+regarding their visibility hence obtaining information
+about the users' current focus. On the other hand, the user
+may interact with the structures, thus expressing specific interest
+. As a result of the integrated 3D/2D visualization, interaction
+is possible within the 3D visualization as well as
+in the projection layers, a technique inspired by <A href="102.html#8">[10]. Using
+the shadow for interaction facilitates certain tasks, such as
+selection, since structures hidden in the 3D visualization
+may be visible in the projection. Furthermore, 2D input device
+coordinates can be mapped directly onto the plane
+thereby enabling the use of 2D interaction techniques.
+The provided manipulation tasks highly depend on the application
+that employs the concept of Illustrative Shadows.
+In our application, the user is able to compose and to decompose
+a given 3D model like a 3D jigsaw. Thus, translation
+and rotation of individual structures are main interaction
+tasks.
+User-interactions are tracked within an interaction history.
+By assigning relevance values to each interaction task, accumulations
+of these values show a distribution of interest
+within the model over time. Thus each single structure's degree
+of interest (DOI, a normalized value) is a measure for
+its importance to the user at a certain time. As shown in
+<A href="102.html#5">Table 1, touching a structure with the mouse pointer has a
+much lower relevance than actually selecting it. The degree
+of interest is communicated to the knowledge server which
+in turn may modify the 2D visualization of the shadow. To
+give an example, the user is interested in a certain structure
+of an anatomic 3D visualization, such as a ligament, that is
+part of a functional relation between a bone and a muscle.
+Only one of those objects, that is the bone or the muscle,
+should be highlighted and annotated, because of space restrictions
+in the shadow layer. At this point, the DOI is used
+to decide. If the interaction history shows more user-interest
+for muscles, information about the functional relation
+between the ligament and the muscle is displayed.
+KNOWLEDGE MODELING
+While segmentation of the 3D model into individual structures
+(objects) provides a spatial description, the presentation
+of correlations also requires a linked symbolic, textual
+description. Moreover, in order to establish hypotheses on
+the current interaction context, formal knowledge is required
+. Thus, the system presented in this paper comprises
+a knowledge base, i.e. a media-independent formal representation
+, media-specific realization statements of entities
+within the formal representation as well as a large multi-lingual
+text corpus. Realization statements establish co-reference
+relations between independent formal representations
+describing different aspects of the underlying information
+space. They also guide the generation or selection of texts
+used to annotate structures in the 2D visualization.
+The medical education application presented later in this
+paper is based on a knowledge base describing the objects
+and functional correlations of the musculo-skeletal system.
+It covers the area of the lower limb and the pelvic girdle.
+The knowledge base was created by manually analyzing
+several anatomy textbooks, anatomy atlases, medical dictionaries
+, and lexica. This analysis reveals important concepts
+, their hierarchical classification, and the instance attribute
+values forming a complex semantic network. Our
+system contains a hierarchical representation of basic anatomic
+concepts such as bones, muscles, articulations, tendons
+, as well as their parts and regions. The corpus contains
+fragments of several anatomic textbooks describing global
+concepts of the osteology, syndesmology, and myology as
+well as descriptions of all the entities of these anatomic systems
+within the lower leg and the pelvic girdle.
+In order to present appropriate system reactions the event
+control informs the knowledge server of user interactions.
+First, exploiting the visual annotations, the knowledge
+action
+parameter
+value
+relevance
+mouseOver
+time
+short
+1
+long
+2
+mouseButtonPressed
+location
+3D object
+4
+2D object
+4
+annotation
+6
+Table 1. Relevance of certain user interactions
+Figure 6: Visualization of intermediate steps within a retrieval
+which discovers the association between the distal phalanx of the
+big toe and the extensor hallucis longus.
+has-Basis
+has-Area
+has-Basis
+Os-Longum
+Bone-Basis
+Musculus
+Bone-Area
+Phalanx distalis pedis
+Basis phalangis distalis pedis
+Area insertion of
+M. extensor hallucis longus
+M. extensor hallucis longus
+1
+2
+3
+1
+2
+3
+Instance
+Relation
+Concept
+170
+server extracts co-referring formal entities and assigns relevance
+values according to <A href="102.html#5">Table 1. Subsequently, the
+knowledge server searches for associations between the
+most relevant entities. Our system pursues two alternative
+strategies: retrievals and suggestions.
+Retrievals discover relations between entities by tracking
+predefined paths within the knowledge base. <A href="102.html#5">Figure 6 illustrates
+the intermediate steps in order to extract relations between
+bones and muscles. From a functional point of view
+(i.e. the muscle mechanics), bones are insertions or origins
+of muscles. Its contraction produces force, which in turn
+changes the orientation of these bones. These retrievals also
+need to consider substructures (e.g. bone-volumes and
+bone-area). The following retrieval extracts those muscles,
+which originate in a given bone (first logic order):
+The has-Part* relation represents the transitive hull over
+several spatial part-of-relations <A href="102.html#7">[1] (e.g. the has-Basis relation
+between Bones and Bone-Volumes and the has-Area relation
+between Areas or Volumes and Areas).
+These retrievals rely on knowledge about the structure of
+the knowledge base. Moreover, they refer to a small number
+of relevant objects. In many situations, however, the event
+control comes up with a huge number of potential relevant
+objects, which cannot easily be mapped to a predefined
+query. Hence, we adopt a bottom-up search approach
+within a complex semantic network developed within cognitive
+psychology.
+In his model of human comprehension <A href="102.html#8">[15] Quillian assumed
+that spatially and temporally independent aspects of
+human long-term memory are organized in a semantic network
+. Furthermore, he assumed that cognitive processes
+that access a node of the semantic network activate all connected
+nodes in parallel. The term spreading activation refers
+to a recursive propagation of initial stimuli. Nowadays,
+this term subsumes breadth-first search algorithms for paths
+connecting the nodes of a start and a destination set in directed
+graphs satisfying an evaluation criterion. Collins and
+Loftus <A href="102.html#8">[6] modify the propagation algorithm to consider activation
+strength.
+In our system, the knowledge server uses the objects' DOI
+from the event control as an initial activation, which
+spreads through the semantic network. These initial activa-tions
+also take the content presented on textual labels and
+inspected by the user into account. The spreading activation
+approach generates a focus structure which contains information
+how dominant graphical objects must be presented
+in the schematic illustration <A href="102.html#8">[9]. <A href="102.html#6">Figure 7 illustrates how visual
+dominance values control the render parameters.
+REALIZATION DETAILS
+The visual component of the prototypical implementation
+extends the Open Inventor graphical library with powerful
+scenegraph nodes to display hypertext on overlay regions
+and to render semi-transparent shadow volumes.
+Other nodes encapsulate the mirror and shading projection
+onto the ground plane as well as the user interaction, and
+emphasize techniques (e.g. computation of silhouette
+lines). The layer management (see <A href="102.html#6">Figure 8) employs the
+OpenGL polygon offset feature to allow graphics to overlap
+specifically whereas visibility-tests of individual structures
+are accomplished by offscreen rendering and analyzing
+OpenGL p-buffers. Additional OSF Motif widgets
+enable the user to add personalized annotations, which are
+inserted into the knowledge base.
+The knowledge base encodes both the media-independent
+formal knowledge representation as well as media specific
+realization statements using XML topic maps <A href="102.html#7">[2]. To process
+this information, XML statements are transformed into
+LISP-code. The authoring system contains export filters for
+the NeoClassic and the LOOM <A href="102.html#8">[12] description logic inference
+machine. In the current version it covers about
+50 basic
+anatomic
+concepts,
+70 relations,
+and
+over
+1500 instances, with linguistic realization statements in
+Latin, German and English. Furthermore, visual annotations
+refer to a small number of geometric models and 2D
+illustrations.
+The interface between the knowledge server and the visual
+component is described using CORBA's interface definition
+language (IDL). The CORBA-based interface implementation
+enables us to experiment with several knowledge serv-Figure
+7: Application of different emphasize techniques to the
+2D information representation according to decreasing dominance
+values.
+{ muscle | bone: Bone(bone)
+Musculus(muscle)
+
+(
+is-Origin-of (bone, muscle)
+
+part: has-Part*(bone, part)
+is-Origin-of (part, muscle))
+}
+Figure 8: Multiple layers are used to place the different visual
+information in order. Thereby, occluded details may be visible
+in the shadow (3).
+Outline
+Highlight
+Ordinary
+Detail
+Annotation
+1
+3
+2
+171
+ers implemented in Common-LISP (LOOM) and C++
+(NeoClassic).
+APPLICATIONS
+We applied the concept of Illustrative Shadows to an application
+of medical education. This system had been previously
+designed to foster the understanding of spatial relationships
+by means of 3D models based on a virtual 3D
+jigsaw approach <A href="102.html#8">[19]. While composing anatomical structures
+has proven to help medical students to build an understanding
+of the spatial composition <A href="102.html#8">[17], most of the users
+expressed their desire for detailed information about functional
+relations between structures. Consequently, students
+would be able to playfully study human organs including
+their spatial and functional correlations. Figures <A href="102.html#7">9 and <A href="102.html#7">10
+depict the screen of the prototype in typical learning sessions
+. Individual objects can be detached and moved within
+the scene to expose occluded structures. In <A href="102.html#7">Figure 9, one of
+the alternative visualization, the mirror, is shown to demonstrate
+the various employments of the plane. It enables the
+user to simultaneously look at two different views of the 3D
+model. Graphical accentuations are used to attract the
+viewer's attention (left atrium). Additional textual annotations
+are assigned to correlating structures in a hypertext
+representation which can be explored by following sepa-rately
+marked links.
+Another application that has not yet been realized is to support
+users of CAD systems by Illustrative Shadows. CAD
+systems are not only used to design individual components
+in 3D but also to assemble complex systems. Information
+about parameters of single components and relationships
+are of major importance. Being able to retrieve this information
+directly from the scene while interacting with the
+components is of great benefit for the design engineer.
+CONCLUSIONS
+For educational, engineering, or maintenance purposes a
+wealth of information about spatial and functional correlation
+as well as textual information is required. In this paper
+we developed a new metaphor-based approach to coher-ently
+integrate different views onto such a complex information
+space within an interactive system. Illustrative
+Shadows provide an intuitive visual link and a level of integration
+between interactive 3D graphics and supplemental
+2D information displays that is hard to achieve with other
+concepts.
+Shadow projections have proven to be beneficial for perceiving
+spatial relationships and to facilitate object positioning
+. Thus, their use, if already present, occupies no additional
+space for the display of additional information, or
+in the case of prior absence, also add valuable depth cues to
+the 3D visualization. The shadow projection onto a flat
+plane enables schematic illustrations which are focused on
+specific information extraction tasks and facilitates the integration
+of generated textual information that leads to further
+meaning. Thus, Illustrative Shadows promote the comprehension
+of complex spatial relations and functional
+correlations. Furthermore, the secondary information display
+does not hinder manipulations of the 3D model. Our
+approach is well suited for compact 3D models, and has
+been successfully applied to an application of medical education
+REFERENCES
+1. Bernauer, J. Analysis of Part-Whole Relation and Subsumption
+in the Medical Domain. Data & Knowledge
+Engineering, 20(3):405­415, October 1996.
+2. Biezunski, M., Bryan, M., and Newcomb, S., editors.
+ISO/IEC 13250:2000 Topic Maps: Information Technology
+­ Document Description and Markup Language
+. International Organization for Standarization
+Figure 9: Alternative visualization. The Mirror facilitates manipulation
+in 3D, by providing a better view of the structures. The
+central representation is never occluded by annotations.
+Figure 10: German annotation of objects previously selected.
+Realization statements of the semantic network provide alternative
+German, English, and Latin phrases referring to formal entities.
+172
+(ISO) and International Electrotechnical Commission
+(IEC), December 1999. 1. Draft.
+3. Blinn, J.F. Me and my (fake) shadow. IEEE Computer
+Graphics & Applications, 8(1):82­86, January/Febru-ary
+1988.
+4. Brinkley, J.F., Wong, B.A., Hinshaw, K.P., and Rosse,
+C. Design of an Anatomy Information System. IEEE
+Computer
+Graphics &
+Applications,
+19(3):38­48,
+May/June 1999.
+5. Cignoni, P., Montani, C., and Scopigno, R. Magic-sphere
+: An insight tool for 3d data visualization. IEEE
+Computer Graphics Forum, 13(3):317­328, 1994.
+6. Collins, A. and Loftus, E. A Spreading-Activation Theory
+of Semantic Processing. Psychological Review,
+82(6):407­428, 1975.
+7. Fishkin, K. and Stone, M.C. Enhanced dynamic queries
+via moveable filters. In Katz, I.R., Mack, R., Marks, L.,
+Rosson, M.B., and Nielsen, J., editors, Proc. of ACM
+CHI Conference on Human Factors in Computing Systems
+(Denver, May 1995), pages 415­420. ACM Press,
+New York, 1995.
+8. Grosjean, J. and Coquillart, S. The magic mirror: A
+metaphor for assisting the exploration of virtual worlds.
+In Zara, J., editor, Proc. of Spring Conference on Computer
+Graphics (Budmerice, Slovakia, April 1999),
+pages 125­129, 1999.
+9. Hartmann, K., Schlechtweg, S., Helbing, R., and
+Strothotte, T. Knowledge-Supported Graphical Illustration
+of Texts. In De Marsico, M., Levialdi, S., and
+Panizzi, E., editors, Proc. of the Working Conference on
+Advanced Visual Interfaces (AVI 2002), pages 300­307,
+Trento, Italy, May 2002. ACM Press, New York.
+10. Herndon, K.P., Zeleznik, R.C., Robbins, D.C., Conner,
+D.B., Snibbe, S.S., and van Dam, A. Interactive shadows
+. In Proc. of ACM Symposium on User Interface
+and Software Technology (Monterey, November 1992),
+pages 1­6. ACM Press, New York, 1992.
+11. Höhne, K.H., Pflesser, B., Pommert, A., Riemer, M.,
+Schiemann, T., Schubert, R., and Tiede, U. A virtual
+body model for surgical education and rehearsal. IEEE
+Computer, 29(1):25­31, January 1996.
+12. MacGregor, R. A Description Classifier for the Predicate
+Calculus. In Hayes-Roth, B. and Korf, R., editors,
+Proc. of the Twelfth Annual National Conference on
+Artificial Intelligence (AAAI-94), pages 213­220, Seattle
+, Washington, August 1994. AAAI Press, Menlo
+Park.
+13. Moreno, R. and Mayer, R.E. Cognitive principles of
+multimedia learning. Journal of Educational Psychology
+, 91:358­368, 1999.
+14. Pommert, A., Höhne, K.H., Pflesser, B., Richter, E.,
+Riemer, M., Schiemann, T., Schubert, R., Schumacher,
+U., and Tiede, U. Creating a high-resolution spatial/
+symbolic model of the inner organs based on the visible
+human. Medical Image Analysis, 5(3):221­228, 2001.
+15. Quillian, M. Semantic Memory. In Minsky, M., editor,
+Semantic Information Processing, chapter 4, pages
+227­270. MIT Press, Cambridge., 1968.
+16. Rehm, K., Lakshminaryan, K., Frutiger, S., Schaper,
+K.A., Sumners, D.W., Strother, S.C., Anderson, J.R.,
+and Rottenberg, D.A. A symbolic environment for
+visualizing activated foci in functional neuroimaging
+datasets. Medical Image Analysis, 2(3):215­226, ???
+1998.
+17. Ritter, F., Berendt, B., Fischer, B., Richter, R., and
+Preim, B. Virtual 3d jigsaw puzzles: Studying the effect
+of exploring spatial relations with implicit guidance. In
+Herczeg, M., Prinz, W., and Oberquelle, H., editors,
+Proc. of Mensch & Computer (Hamburg, September
+2002), pages 363­372, Stuttgart · Leipzig · Wiesbaden,
+2002. B.G.Teubner.
+18. Ritter, F., Deussen, O., Preim, B., and Strothotte, T.
+Virtual 3d puzzles: A new method for exploring geometric
+models in vr. IEEE Computer Graphics &
+Applications, 21(5):11­13, September/October 2001.
+19. Ritter, F., Preim, B., Deussen, O., and Strothotte, T.
+Using a 3d puzzle as a metaphor for learning spatial
+relations. In Fels, S.S. and Poulin, P., editors, Proc. of
+Graphics Interface (Montréal, May 2000), pages 171­
+178. Morgan Kaufmann Publishers, San Francisco,
+2000.
+20. Seligmann, D.D. and Feiner, S. Automated generation
+of intent-based 3d illustrations. In Proc. of ACM SIG-GRAPH
+Conference on Computer Graphics (Las
+Vegas, July 1991), pages 123­132. ACM Press, New
+York, 1991.
+21. Stone, M.C., Fishkin, K., and Bier, E.A. The moveable
+filter as a user interface tool. In Plaisant, C., editor,
+Proc. of ACM CHI Conference on Human Factors in
+Computing Systems (Boston, April 1994), pages 306­
+312. ACM Press, New York, 1994.
+22. Strothotte, T. and Schlechtweg, S. Non-Photorealistic
+Computer Graphics: Modeling, Rendering, and Animation
+. Morgan Kaufmann Publishers, San Francisco,
+2002.
+23. Viega, J., Conway, M.J., Williams, G., and Pausch, R.
+3d magic lenses. In Proc. of ACM Symposium on User
+Interface and Software Technology (Seattle, November
+1996), pages 51­58. ACM Press, New York, 1996.
+24. Wanger, L.R. The effect of shadow quality on the perception
+of spatial relationships in computer generated
+imagery. In Proc. of Symposium on Interactive 3D
+Graphics (Cambridge, March 1992), pages 39­42.
+ACM Press, New York, 1992.
+See also: http://isgwww.cs.uni-magdeburg.de/research/is/
+173

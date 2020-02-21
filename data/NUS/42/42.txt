@@ -1,0 +1,2193 @@
+Bayesian Online Classifiers for Text Classification and Filtering
+ABSTRACT
+This paper explores the use of Bayesian online classifiers
+to classify text documents. Empirical results indicate that
+these classifiers are comparable with the best text classification
+systems. Furthermore, the online approach offers the
+advantage of continuous learning in the batch-adaptive text
+filtering task.
+Categories and Subject Descriptors
+H.3.3 [Information Systems]: Information Search and Retrieval
+--Information filtering
+General Terms
+Algorithms, Experimentation
+
+INTRODUCTION
+Faced with massive information everyday, we need automated
+means for classifying text documents. Since handcrafting
+text classifiers is a tedious process, machine learning
+methods can assist in solving this problem[15, 7, 27].
+Yang & Liu[27] provides a comprehensive comparison of
+supervised machine learning methods for text classification.
+In this paper we will show that certain Bayesian classifiers
+are comparable with Support Vector Machines[23], one
+of the best methods reported in [27].
+In particular, we
+will evaluate the Bayesian online perceptron[17, 20] and the
+Bayesian online Gaussian process[3].
+For text classification and filtering, where the initial training
+set is large, online approaches are useful because they
+allow continuous learning without storing all the previously
+Permission to make digital or hard copies of all or part of this work for
+personal or classroom use is granted without fee provided that copies are
+not made or distributed for profit or commercial advantage and that copies
+bear this notice and the full citation on the first page. To copy otherwise, to
+republish, to post on servers or to redistribute to lists, requires prior specific
+permission and/or a fee.
+SIGIR'02, August 11-15, 2002, Tampere, Finland.
+Copyright 2002 ACM 1-58113-561-0/02/0008 ...
+$
+5.00.
+seen data. This continuous learning allows the utilization
+of information obtained from subsequent data after the initial
+training. Bayes' rule allows online learning to be performed
+in a principled way[16, 20, 17]. We will evaluate the
+Bayesian online perceptron, together with information gain
+considerations, on the batch-adaptive filtering task[18].
+CLASSIFICATION AND FILTERING
+For the text classification taskdefined by Lewis[9], we
+have a set of predefined categories and a set of documents.
+For each category, the document set is partitioned into two
+mutually exclusive sets of relevant and irrelevant documents.
+The goal of a text classification system is to determine whether
+a given document belongs to any of the predefined categories
+. Since the document can belong to zero, one, or more
+categories, the system can be a collection of binary classifiers
+, in which one classifier classifies for one category.
+In Text REtrieval Conference (TREC), the above taskis
+known as batch filtering. We will consider a variant of batch
+filtering called the batch-adaptive filtering[18]. In this task,
+during testing, if a document is retrieved by the classifier,
+the relevance judgement is fed backto the classifier. This
+feedbackcan be used to improve the classifier.
+2.1
+Corpora and Data
+For text classification, we use the ModApte version of
+the Reuters-21578 corpus
+1
+, where unlabelled documents are
+removed. This version has 9,603 training documents and
+3,299 test documents. Following [7, 27], only categories that
+have at least one document in the training and test set are
+retained. This reduces the number of categories to 90.
+For batch-adaptive filtering, we attempt the taskof TREC-9
+[18], where the OHSUMED collection[6] is used. We will
+evaluate on the OHSU topic-set, which consists of 63 topics.
+The training and test material consist of 54,710 and 293,856
+documents respectively. In addition, there is a topic statement
+for each topic. For our purpose, this is treated as an
+additional training document for that topic. We will only
+use the title, abstract, author, and source sections of the
+documents for training and testing.
+2.2
+Representation
+There are various ways to transform a document into a
+representation convenient for classification. We will use the
+1
+Available via http://www.daviddlewis.com/resources/
+testcollections/reuters21578.
+97
+bag-of-words approach, where we only retain frequencies
+of words after tokenisation, stemming, and stop-words removal
+. These frequencies can be normalized using various
+schemes[19, 6]; we use the ltc normalization:
+l
+i,d
+=
+1 + log
+2
+T F
+i,d
+t
+i
+=
+log
+2
+N
+n
+i
+ltc
+i,d
+=
+l
+i,d
+· t
+i
+Õ
+È
+j
+{terms in d}
+(l
+j,d
+· t
+j
+)
+2
+,
+where the subscripts i and d denote the ith term and the
+dth document respectively, T F
+i,d
+is the frequency of the ith
+term in the dth document, n
+i
+is the document-frequency of
+the ith term, and N is the total number of documents.
+2.3
+Feature Selection Metric
+Given a set of candidate terms, we select features from
+the set using the likelihood ratio for binomial distribution
+advocated by Dunning[5]:
+=
+R
+t
++R
+¯
+t
+N
+R
+t
++R
+¯
+t
+N
+t
++N
+¯
+t
+N
+N
+t
++N
+¯
+t
+R
+t
+R
+t
++N
+t
+R
+t
+N
+t
+R
+t
++N
+t
+N
+t
+R
+¯
+t
+R
+¯
+t
++N
+¯
+t
+R
+¯
+t
+N
+¯
+t
+R
+¯
+t
++N
+¯
+t
+N
+¯
+t
+,
+where R
+t
+(N
+t
+) is the number of relevant (non-relevant) training
+documents which contain the term, R
+¯
+t
+(N
+¯
+t
+) is the number
+of relevant (non-relevant) training documents which do
+not, and N is the total number of training documents.
+Asymptotically,
+-2 ln  is
+2
+distributed with 1 degree of
+freedom. We choose terms with
+-2 ln  more than 12.13,
+i.e. at 0.05% significance level. More details on the feature
+selection procedures will be given in section 4.
+2.4
+Performance Measures
+To evaluate a text classification system, we use the F
+1
+measure introduced by van Rijsbergen[22]. This measure
+combines recall and precision in the following way:
+Recall
+=
+number of correct positive predictions
+number of positive examples
+Precision
+=
+number of correct positive predictions
+number of positive predictions
+F
+1
+=
+2
+× Recall × Precision
+Recall + Precision
+.
+For ease of comparison, we summarize the F
+1
+scores over
+the different categories using the micro- and macro-averages
+of F
+1
+scores[11, 27]:
+Micro-avg F
+1
+=
+F
+1
+over categories and documents
+Macro-avg F
+1
+=
+average of within-category F
+1
+values.
+The micro- and macro-average F
+1
+emphasize the performance
+of the system on common and rare categories respectively
+. Using these averages, we can observe the effect
+of different kinds of data on a text classification system.
+In addition, for comparing two text classification systems,
+we use the micro sign-test (s-test) and the macro sign-test
+(S-test), which are two significance tests first used for comparing
+text classification systems in [27]. The s-test compares
+all the binary decisions made by the systems, while
+the S-test compares the within-category F
+1
+values. Similar
+to the F
+1
+averages, the s-test and S-test compare the
+performance of two systems on common and rare categories
+respectively.
+To evaluate a batch-adaptive filtering system, we use the
+T9P measure of TREC-9[18]:
+T9P =
+number of correct positive predictions
+Max(50, number of positive predictions) ,
+which is precision, with a penalty for not retrieving 50 documents
+BAYESIAN ONLINE LEARNING
+Most of this section is based on workby Opper[17], Solla
+& Winther[20], and Csat´
+o & Opper[3].
+Suppose that each document is described by a vector x,
+and that the relevance indicator of x for a category is given
+by label y  {-1, 1}, where -1 and 1 indicates irrelevant
+and relevant respectively. Given m instances of past data
+D
+m
+=
+{(y
+t
+, x
+t
+), t = 1...m}, the predictive probability of the
+relevance of a document described by x is
+p(y|x, D
+m
+) =
+da p(y|x, a)p(a|D
+m
+),
+where we have introduced the classifier a to assist us in the
+prediction. In the Bayesian approach, a is a random variable
+with probability density p(a|D
+m
+), and we integrate over all
+the possible values of a to obtain the prediction.
+Our aim is to obtain a reasonable description of a. In
+the Bayesian online learning framework[16, 20, 17], we begin
+with a prior p(a|D
+0
+), and perform incremental Bayes'
+updates to obtain the posterior as data arrives:
+p(a|D
+t
++1
+)
+=
+p(y
+t
++1
+|x
+t
++1
+, a)p(a|D
+t
+)
+Ê
+da p(y
+t
++1
+|x
+t
++1
+, a)p(a|D
+t
+) .
+To make the learning online, the explicit dependence of
+the posterior p(a|D
+t
++1
+) on the past data is removed by approximating
+it with a distribution p(a|A
+t
++1
+), where A
+t
++1
+characterizes the distribution of a at time t + 1. For example
+, if p(a|A
+t
++1
+) is a Gaussian, then A
+t
++1
+refers to its mean
+and covariance.
+Hence, starting from the prior p
+0
+(a) = p(a|A
+0
+), learning
+from a new example (y
+t
++1
+, x
+t
++1
+) comprises two steps:
+Update the posterior using Bayes rule
+p(a|A
+t
+, (y
+t
++1
+, x
+t
++1
+))
+p(y
+t
++1
+|x
+t
++1
+, a) p(a|A
+t
+)
+Approximate the updated posterior by parameterisation
+p(a|A
+t
+, (y
+t
++1
+, x
+t
++1
+))
+p(a|A
+t
++1
+),
+where the approximation step is done by minimizing the
+Kullback-Leibler distance between the the approximating and
+approximated distributions.
+The amount of information gained about a after learning
+from a new example can be expressed as the Kullback-Leibler
+distance between the posterior and prior distributions
+[25]:
+IG(y
+t
++1
+, x
+t
++1
+|D
+t
+)
+=
+da p(a|D
+t
++1
+) log
+2
+p(a|D
+t
++1
+)
+p(a|D
+t
+)
+
+da p(a|A
+t
++1
+) log
+2
+p(a|A
+t
++1
+)
+p(a|A
+t
+) ,
+where instances of the data
+D are replaced by the summaries
+A in the approximation.
+98
+To simplify notation henceforth, we use p
+t
+(a) and . . .
+t
+to
+denote p(a|A
+t
+) and averages taken over p(a|A
+t
+) respectively.
+For example, the predictive probability can be rewritten as
+p(y|x, D
+t
+)
+p(y|x, A
+t
+) =
+da p(y|x, a)p
+t
+(a) = p(y|x, a)
+t
+.
+In the following sections, the scalar field h = a · x will also
+be used to simplify notation and calculation.
+3.1
+Bayesian Online Perceptron
+Consider the case where a describes a perceptron. We then
+define the likelihood as a probit model
+p(y|x, a) =
+ya · x
+
+0
+,
+where
+2
+0
+is a fixed noise variance, and  is the cumulative
+Gaussian distribution
+(u) =
+1
+2
+u
+d
+e
+2
+/
+2
+.
+If p
+0
+(a) is the spherical unit Gaussian, and p
+t
+(a) is the
+Gaussian approximation, Opper[16, 17] and Solla & Winther[20]
+obtain the following updates by equating the means and covariances
+of p(a|A
+t
++1
+) and p(a|A
+t
+, (y
+t
++1
+, x
+t
++1
+)):
+a
+t
++1
+=
+a
+t
++ s
+t
++1
+
+h
+t
+ln p(y
+t
++1
+|h)
+t
+C
+t
++1
+=
+C
+t
++ s
+t
++1
+s
+T
+t
++1
+
+2
+h
+2
+t
+ln p(y
+t
++1
+|h)
+t
+,
+where
+s
+t
++1
+=
+C
+t
+x
+t
++1
+,
+p(y
+t
++1
+|h)
+t
+=
+
+y
+t
++1
+h
+t
+
+t
++1
+,
+
+2
+t
++1
+=
+
+2
+0
++ x
+T
+t
++1
+C
+t
+x
+t
++1
+and
+h
+t
+=
+a
+T
+t
+x
+t
++1
+.
+3.1.1
+Algorithm
+Training the Bayesian online perceptron on m data involves
+successive calculation of the means a
+t
+and covariances
+C
+t
+of the posteriors, for t  {1, ..., m}:
+1. Initialize a
+0
+to be 0 and C
+0
+to be 1 (identity matrix),
+i.e. a spherical unit Gaussian centred at origin.
+2. For t = 0, 1, ..., m - 1
+3.
+y
+t
++1
+is the relevance indicator for document x
+t
++1
+4.
+Calculate s
+t
++1
+,
+t
++1
+, h
+t
+and p(y
+t
++1
+|h)
+t
+5.
+Calculate u =
+y
+t+1
+h
+t
+
+t+1
+and
+£
+=
+1
+2
+exp(
+1
+2
+u
+2
+)
+6.
+Calculate
+
+h
+t
+ln p(y
+t
++1
+|h)
+t
+=
+y
+t+1
+
+t+1
+·
+1
+p
+(y
+t+1
+|h)
+t
+·
+£
+7.
+Calculate
+
+2
+h
+2
+t
+ln p(y
+t
++1
+|h)
+t
+=
+- 1
+
+2
+t
++1
+u ·
+£
+p(y
+t
++1
+|h)
+t
++
+£
+p(y
+t
++1
+|h)
+t
+2
+8.
+Calculate a
+t
++1
+and C
+t
++1
+The prediction for datum (y, x) simply involves the calculation
+of p(y|x, a)
+m
+= p(y|h)
+m
+.
+3.2
+Bayesian Online Gaussian Process
+Gaussian process (GP) has been constrained to problems
+with small data sets until recently when Csat´
+o & Opper[3]
+and Williams & Seeger[24] introduced efficient and effective
+approximations to the full GP formulation. This section will
+outline the approach in [3].
+In the GP framework, a describes a function consisting of
+function values
+{a(x)}. Using the probit model, the likelihood
+can be expressed as
+p(y|x, a) =
+ya(x)
+
+0
+,
+where
+0
+and  are described in section 3.1.
+In addition, p
+0
+(a) is a GP prior which specifies a Gaussian
+distribution with zero mean function and covariance/kernel
+function K
+0
+(x, x ) over a function space. If p
+t
+(a) is also a
+Gaussian process, then Csat´
+o & Opper obtain the following
+updates by equating the means and covariances of p(a|A
+t
++1
+)
+and p(a|A
+t
+, (y
+t
++1
+, x
+t
++1
+)):
+a
+t
++1
+=
+a
+t
++ s
+t
++1
+
+h
+t
+ln p(y
+t
++1
+|h)
+t
+C
+t
++1
+=
+C
+t
++ s
+t
++1
+s
+T
+t
++1
+
+2
+h
+2
+t
+ln p(y
+t
++1
+|h)
+t
+,
+where
+s
+t
++1
+=
+C
+t
+k
+t
++1
++ e
+t
++1
+,
+p(y
+t
++1
+|h)
+t
+=
+
+y
+t
++1
+h
+t
+
+t
++1
+,
+
+2
+t
++1
+=
+
+2
+0
++ k
+
+t
++1
++ k
+T
+t
++1
+C
+t
+k
+t
++1
+and
+h
+t
+=
+a(x
+t
++1
+)
+t
+=
+a
+T
+t
+k
+t
++1
+Notice the similarities to the updates in section 3.1. The
+main difference is the `kernel trick' introduced into the equations
+through
+k
+
+t
++1
+=
+K
+0
+(x
+t
++1
+, x
+t
++1
+)
+and
+k
+t
++1
+=
+(K
+0
+(x
+1
+, x
+t
++1
+), . . . , K
+0
+(x
+t
+, x
+t
++1
+))
+T
+New inputs x
+t
++1
+are added sequentially to the system via
+the (t + 1)th unit vector e
+t
++1
+. This results in a quadratic
+increase in matrix size, and is a drawbackfor large data
+sets, such as those for text classification. Csat´
+o & Opper
+overcome this by introducing sparseness into the GP. The
+idea is to replace e
+t
++1
+by the projection
+^
+e
+t
++1
+= K
+-1
+t
+k
+t
++1
+,
+where
+K
+t
+=
+{K
+0
+(x
+i
+, x
+j
+), i, j = 1 . . . t}.
+This approximation introduces an error
+t
++1
+= (k
+
+t
++1
+- k
+T
+t
++1
+K
+-1
+t
+k
+t
++1
+)
+
+h
+t
+ln p(y
+t
++1
+|h)
+t
+,
+which is used to decide when to employ the approximation.
+Hence, at any time the algorithm holds a set of basis vectors
+. It is usually desirable to limit the size of this set. To
+accommodate this, Csat´
+o & Opper describe a procedure for
+removing a basis vector from the set by reversing the process
+of adding new inputs.
+For lackof space, the algorithm for the Bayesian Online
+Gaussian Process will not be given here. The reader is re-ferred
+to [3] for more information.
+99
+EVALUATION
+In this evaluation, we will compare Bayesian online perceptron
+, Bayesian online Gaussian process, and Support Vector
+Machines (SVM)[23]. SVM is one of the best performing
+learning algorithms on the Reuters-21578 corpus[7, 27].
+The Bayesian methods are as described in section 3, while
+for SVM we will use the SV M
+light
+package by Joachims[8].
+Since SVM is a batch method, to have a fair comparison,
+the online methods are iterated through the training data 3
+times before testing.
+2
+4.1.1
+Feature Selection
+For the Reuters-21578 corpus, we select as features for
+each category the set of all words for which
+-2 ln  &gt; 12.13.
+We further prune these by using only the top 300 features.
+This reduces the computation time required for the calculation
+of the covariances of the Bayesian classifiers.
+Since SVM is known to perform well for many features,
+for the SVM classifiers we also use the set of words which
+occur in at least 3 training documents[7]. This gives us 8,362
+words. Note that these words are non-category specific.
+4.1.2
+Thresholding
+The probabilistic outputs from the Bayesian classifiers can
+be used in various ways. The most direct way is to use the
+Bayes decision rule, p(y = 1|x, D
+m
+) &gt; 0.5, to determine
+the relevance of the document described by x.
+3
+However,
+as discussed in [10, 26], this is not optimal for the chosen
+evaluation measure.
+Therefore, in addition to 0.5 thresholding, we also empir-ically
+optimise the threshold for each category for the F
+1
+measure on the training documents. This scheme, which we
+shall call MaxF1, has also been employed in [27] for thresholding
+kNN and LLSF classifiers. The difference from our
+approach is that the threshold in [27] is calculated over a
+validation set. We do not use a validation set because we
+feel that, for very rare categories, it is hard to obtain a reasonable
+validation set from the training documents.
+For the Bayesian classifiers, we also perform an analyti-cal
+threshold optimisation suggested by Lewis[10]. In this
+scheme, which we shall call ExpectedF1, the threshold for
+each category is selected to optimise the expected F
+1
+:
+E [F
+1
+]
+
+
+É
+i
+D
+(1
+- p
+i
+)
+if
+|D
++
+| = 0
+2
+È
+iD+
+p
+i
+|
+D
++
+|
++
+È
+iD
+p
+i
+otherwise,
+where  is the threshold, p
+i
+is the probability assigned to
+document i by the classifier, D is the set of all test documents
+, and
+D
++
+is the set of test documents with probabilities
+higher than the threshold .
+Note that ExpectedF1 can only be applied after the probabilities
+for all the test documents are assigned. Hence the
+classification can only be done in batch. This is unlike the
+first two schemes, where classification can be done online.
+4.1.3
+Results and Discussion
+2
+See section A.2 for discussion on the number of passes.
+3
+For SVM, to minimise structural risks, we would classify
+the document as relevant if w
+· x + b &gt; 0, where w is the
+hyperplane, and b is the bias.
+4
+See section A.3 for discussion on the jitter terms
+ij
+.
+Table 1: Description of Methods
+Description
+4
+SVM-1
+K
+0
+= x
+i
+· x
+j
++ 1
+SVM-2
+K
+0
+= (x
+i
+· x
+j
++ 1)
+2
+SVM-R1
+K
+0
+= exp(
+1
+2
+|x
+i
+- x
+j
+|
+2
+)
+Perceptron
+
+0
+= 0.5, one fixed feature (for bias)
+GP-1
+
+0
+= 0.5, K
+0
+= x
+i
+· x
+j
++ 1 + 10
+-4
+
+ij
+GP-2
+
+0
+= 0.5, K
+0
+= (x
+i
+· x
+j
++ 1)
+2
++ 10
+-4
+
+ij
+GP-R1
+
+0
+= 0.5, K
+0
+= exp(
+1
+2
+|x
+i
+- x
+j
+|
+2
+) + 10
+-4
+
+ij
+Table 2: Micro-/Macro-average F
+1
+0.5
+MaxF1
+ExpectedF1
+SVM
+a
+-1
+86.15 / 42.63
+86.35 / 56.92
+SVM
+a
+-2
+85.44 / 40.13
+86.19 / 56.42
+SVM
+a
+-R1
+84.99 / 37.61
+86.63 / 53.14
+SVM
+b
+-1
+85.60 / 52.03
+85.05 / 52.43
+SVM
+b
+-2
+85.60 / 50.53
+84.50 / 50.49
+SVM
+b
+-R1
+85.75 / 50.52
+84.65 / 51.27
+Perceptron
+85.12 / 45.23
+86.69 / 52.16
+86.44 / 53.08
+GP-1
+85.08 / 45.20
+86.73 / 52.12
+86.54 / 53.12
+GP-2
+85.58 / 47.90
+86.60 / 52.19
+86.77 / 55.04
+GP-R1
+85.18 / 44.88
+86.76 / 52.61
+86.93 / 53.35
+Table 1 lists the parameters for the algorithms used in our
+evaluation, while Table 2 and 3 tabulate the results. There
+are two sets of results for SVM, and they are labeled SVM
+a
+and SVM
+b
+. The latter uses the same set of features as the
+Bayesian classifiers (i.e. using the
+-2 ln  measure), while
+the former uses the set of 8,362 words as features.
+Table 2 summarizes the results using F
+1
+averages. Table
+3 compares the classifiers using s-test and S-test. Here, the
+MaxF1 thresholds are used for the classification decisions.
+Each row in these tables compares the method listed in the
+first column with the other methods. The significance levels
+from [27] are used.
+Several observations can be made:
+· Generally, MaxF1 thresholding increases the performance
+of all the systems, especially for rare categories.
+· For the Bayesian classifiers, ExpectedF1 thresholding
+improves the performance of the systems on rare categories
+.
+· Perceptron implicitly implements the kernel used by
+GP-1, hence their similar results.
+· With MaxF1 thresholding, feature selection impedes
+the performance of SVM.
+· In Table 2, SVM with 8,362 features have slightly lower
+micro-average F
+1
+to the Bayesian classifiers. However,
+the s-tests in Table 3 show that Bayesian classifiers
+outperform SVM for significantly many common categories
+. Hence, in addition to computing average F
+1
+measures, it is useful to perform sign tests.
+· As shown in Table 3, for limited features, Bayesian
+classifiers outperform SVM for both common and rare
+categories.
+· Based on the sign tests, the Bayesian classifiers outperform
+SVM (using 8,362 words) for common categories,
+and vice versa for rare categories.
+100
+Table 3: s-test/S-test using MaxF1 thresholding
+SVM
+a
+-1
+SVM
+a
+-2
+SVM
+a
+-R1
+SVM
+b
+-1
+SVM
+b
+-2
+SVM
+b
+-R1
+Pptron
+GP-1
+GP-2
+GP-R1
+SVM
+a
+-1
+/
+&lt; /
+/
+/
+/
+/
+/
+/
+/
+SVM
+a
+-2
+/
+/
+
+&gt; /
+/
+/
+/
+/
+/
+
+/ &gt;
+SVM
+a
+-R1
+&gt; /
+/
+
+/
+
+/
+/
+&lt; / &gt;
+&lt; / &gt;
+/
+&lt; /
+SVM
+b
+-1
+/
+&lt; /
+/
+
+/
+
+&gt; / &gt;
+/ &lt;
+/
+
+/ &lt;
+/ &lt;
+SVM
+b
+-2
+/
+/
+/
+/
+
+/
+/ &lt;
+/ &lt;
+/
+/
+SVM
+b
+-R1
+/
+/
+/
+&lt; / &lt;
+/
+/ &lt;
+/
+/
+/
+Perceptron
+/
+/
+&gt; / &lt;
+/ &gt;
+/ &gt;
+/ &gt;
+/
+/
+/
+GP-1
+/
+/
+&gt; / &lt;
+/
+
+/ &gt;
+/
+/
+/
+/
+GP-2
+/
+/
+
+/
+/ &gt;
+/
+/
+/
+/
+/
+GP-R1
+/
+/ &lt;
+&gt; /
+/ &gt;
+/
+/
+/
+/
+/
+"
+" or "
+" means P-value
+0.01;
+"&gt;" or "&lt;" means 0.01 &lt; P-value  0.05;
+"
+" means P-value &gt; 0.05.
+The last observation suggests that one can use Bayesian
+classifiers for common categories, and SVM for rare ones.
+4.2
+Filtering on OHSUMED
+In this section, only the Bayesian online perceptron will
+be considered. In order to avoid numerical integration of
+the information gain measure, instead of the probit model
+of section 3.1, here we use a simpler likelihood model in
+which the outputs are flipped with fixed probability :
+p(y|x, a) =  + (1 - 2) (ya · x) ,
+where
+(x) =
+´
+1
+x &gt; 0
+0
+otherwise.
+The update equations will also change accordingly, e.g.
+p(y
+t
++1
+|h)
+t
+=
++ (1 - 2)
+y
+t
++1
+h
+t
+
+t
++1
+,
+
+2
+t
++1
+=
+x
+T
+t
++1
+C
+t
+x
+t
++1
+and
+h
+t
+=
+a
+T
+t
+x
+t
++1
+.
+Using this likelihood measure, we can express the information
+gained from datum (y
+t
++1
+, x
+t
++1
+) as
+IG(y
+t
++1
+, x
+t
++1
+|D
+t
+)
+
+log
+2
++
+y
+t
++1
+h
+t
++1
+
+t
++1
+log
+2
+1
+
+-log
+2
+p(y
+t
++1
+|h)
+t
+,
+where
+
+2
+t
++1
+=
+x
+T
+t
++1
+C
+t
++1
+x
+t
++1
+and
+h
+t
++1
+=
+a
+T
+t
++1
+x
+t
++1
+.
+We use  = 0.1 in this evaluation. The following sections
+will describe the algorithm in detail. To simplify presentation
+, we will divide the batch-adaptive filtering taskinto
+batch and adaptive phases.
+4.2.1
+Feature Selection and Adaptation
+During the batch phase, words for which
+-2 ln  &gt; 12.13
+are selected as features.
+During the adaptive phase, when we obtain a feedback, we
+update the features by adding any new words with
+-2 ln  &gt;
+12.13. When a feature is added, the distribution of the perceptron
+a is extended by one dimension:
+a
+
+¼
+a
+0
+½
+C
+
+¼
+C
+0
+0
+1
+½
+.
+4.2.2
+Training the classifier
+During the batch phase, the classifier is iterated through
+the training documents 3 times. In addition, the relevant
+documents are collected for use during the adaptive phase.
+During the adaptive phase, retrieved relevant documents
+are added to this collection. When a document is retrieved,
+the classifier is trained on that document and its given relevance
+judgement.
+The classifier will be trained on irrelevant documents most
+of the time. To prevent it from "forgetting" relevant documents
+due to its limited capacity, whenever we train on an
+irrelevant document, we would also train on a past relevant
+document. This past relevant document is chosen succes-sively
+from the collection of relevant documents.
+This is needed also because new features might have been
+added since a relevant document was last trained on. Hence
+the classifier would be able to gather new information from
+the same document again due to the additional features.
+Note that the past relevant document does not need to be
+chosen in successive order. Instead, it can be chosen using
+a probability distribution over the collection. This will be
+desirable when handling topic-drifts.
+We will evaluate the effectiveness of this strategy of retraining
+on past retrieved relevant documents, and denote
+its use by +rel. Though its use means that the algorithm
+is no longer online, asymptotic efficiency is unaffected, since
+only one past document is used for training at any instance.
+4.2.3
+Information Gain
+During testing, there are two reasons why we retrieve
+a document.
+The first is that it is relevant, i.e.
+p(y =
+1
+|x, D
+t
+) &gt; 0.5, where x represents the document. The second
+is that, although the document is deemed irrelevant
+by the classifier, the classifier would gain useful information
+from the document. Using the measure IG(y, x|D
+t
+), we calculate
+the expected information gain
+IG(x|D
+t
+) =
+
+{-1,1}
+p(y = |x, D
+t
+)
+· IG(y = , x|D
+t
+).
+101
+0
+10
+20
+30
+40
+50
+60
+70
+80
+90
+100
+0
+0.2
+0.4
+0.6
+0.8
+1
+N
+ret
+
+Target number of 
+documents = 50
+Figure 1:  versus N
+ret
+tuned for T9P
+A document is then deemed useful if its expected information
+gain is at least . Optimizing for the T9P measure
+(i.e. targeting 50 documents), we choose  to be
+= 0.999 1 + exp - N
+ret
+- 50.0
+10
+-1
++ 0.001,
+where N
+ret
+is the total number of documents that the system
+has retrieved. Figure 1 plots  against N
+ret
+. Note that this
+is a kind of active learning, where the willingness to tradeoff
+precision for learning decreases with N
+ret
+. The use of this
+information gain criteria will be denoted by +ig.
+We will test the effectiveness of the information gain strategy
+, against an alternative one. The alternative, denoted by
++rnd, will randomly select documents to retrieve based on
+the probability
+U =
+´
+0
+if N
+ret
+&gt;= 50
+50-N
+ret
+293856
+otherwise,
+where 293,856 is the number of test documents.
+4.2.4
+Results and Discussion
+Table 4 lists the results of seven systems. The first two are
+of Microsoft Research Cambridge and Fudan University respectively
+. These are the only runs in TREC-9 for the task.
+The third is of the system as described in full, i.e. Bayesian
+online perceptron, with retraining on past retrieved relevant
+documents, and with the use of information gain. The rest
+are of the Bayesian online perceptron with different combinations
+of strategies.
+Besides the T9P measure, for the sake of completeness, Table
+4 also lists the other measures used in TREC-9. Taken
+together, the measures show that Bayesian online perceptron
+, together with the consideration for information gain,
+is a very competitive method.
+For the systems with +rel, the collection of past known
+relevant documents is kept. Although Microsoft uses this
+same collection for its query reformulation, another collection
+of all previously seen documents is used for threshold
+adaptation. Fudan maintains a collection of past retrieved
+documents and uses this collection for query adaptation.
+5
+[18] reports results from run ok9bfr2po, while we report
+results from the slightly better run ok9bf2po.
+0
+2
+4
+6
+8
+10
+12
+14
+16
+18
+20
+40
+50
+60
+70
+80
+90
+100
+110
+120
+130
+Average number of relevant documents retrieved
+Average number of features
+Pptron+rel+ig
+Pptron+ig
+Pptron+rnd
+Pptron
+Figure 2: Variation of the number of features as
+relevant documents are retrieved.
+The plots for
+Pptron+rel+ig and Pptron+ig are very close. So are
+the plots for Pptron+rnd and Pptron.
+In a typical operational system, retrieved relevant documents
+are usually retained, while irrelevant documents are
+usually discarded. Therefore +rel is a practical strategy to
+adopt.
+Figure 2 plots the average number of features during the
+adaptive phase.
+We can see that features are constantly
+added as relevant documents are seen. When the classifier
+is retrained on past documents, the new features enable the
+classifier to gain new information from these documents. If
+we compare the results for Pptron+rel and Pptron in Table
+4, we find that not training on past documents causes
+the number of relevant documents retrieved to drop by 5%.
+Similarly, for Pptron+rel+ig and Pptron+ig, the drop is
+8%.
+Table 5 breaks down the retrieved documents into those
+that the classifier deems relevant and those that the classifier
+is actually querying for information, for Pptron+ig
+and Pptron+rnd. The table shows that none of the documents
+randomly queried are relevant documents. This is
+not surprising, since only an average of 0.017% of the test
+documents are relevant. In contrast, the information gain
+strategy is able to retrieve 313 relevant documents, which is
+26.1% of the documents queried. This is a significant result.
+Consider Pptron+ig. Table 4 shows that for Pptron, when
+the information gain strategy is removed, only 731 relevant
+documents will be retrieved. Hence, although most of the
+documents queried are irrelevant, information gained from
+these queries helps recall by the classifier (i.e. 815 documents
+versus 731 documents), which is important for reaching
+the target of 50 documents.
+MacKay[13] has noted the phenomenon of querying for
+irrelevant documents which are at the edges of the input
+space, and suggested maximizing information in a defined
+region of interest instead.
+Finding this region for batch-adaptive
+filtering remains a subject for further research.
+Comparing the four plots in Figure 2, we find that, on
+average, the information gain strategy causes about 3% more
+features to be discovered for the same number of relevant
+documents retrieved. A consequence of this is better recall.
+102
+Table 4: Results for Batch-adaptive filtering optimized for T9P measure.
+Microsoft
+5
+Fudan
+Pptron+rel+ig
+Pptron+ig
+Pptron+rnd
+Pptron+rel
+Pptron
+Total retrieved
+3562
+3251
+2716
+2391
+2533
+1157
+1057
+Relevant retrieved
+1095
+1061
+1227
+1128
+732
+772
+731
+Macro-average recall
+39.5
+37.9
+36.2
+33.3
+20.0
+20.8
+20.0
+Macro-average precision
+30.5
+32.2
+35.8
+35.8
+21.6
+61.9
+62.3
+Mean T9P
+30.5
+31.7
+31.3
+29.8
+19.2
+21.5
+20.8
+Mean Utility
+-4.397
+-1.079
+15.318
+15.762
+-5.349
+18.397
+17.730
+Mean T9U
+-4.397
+-1.079
+15.318
+15.762
+-5.349
+18.397
+17.730
+Mean scaled utility
+-0.596
+-0.461
+-0.025
+0.016
+-0.397
+0.141
+0.138
+Zero returns
+0
+0
+0
+0
+0
+8
+0
+Table 5: Breakdown of documents retrieved for Pptron+ig and Pptron+rnd. The numbers for the latter are in
+brackets.
+Relevant
+Not Relevant
+Total
+# docs retrieved by perceptron classifier proper
+815
+(732)
+378
+(345)
+1193
+(1077)
+# docs retrieved by information gain (or random strategy)
+313
+(0)
+885
+(1456)
+1198
+(1456)
+Total
+1128
+(732)
+1263
+(1801)
+2391
+(2533)
+CONCLUSIONS AND FURTHER WORK
+We have implemented and tested Bayesian online perceptron
+and Gaussian processes on the text classification problem
+, and have shown that their performance is comparable
+to that of SVM, one of the best learning algorithms on
+text classification in the published literature. We have also
+demonstrated the effectiveness of online learning with information
+gain on the TREC-9 batch-adaptive filtering task.
+Our results on text classification suggest that one can use
+Bayesian classifiers for common categories, and maximum
+margin classifiers for rare categories. The partitioning of the
+categories into common and rare ones in an optimal way is
+an interesting problem.
+SVM has been employed to use relevance feedbackby
+Drucker et al [4], where the retrieval is in groups of 10 documents
+. In essence, this is a form of adaptive routing. It
+would be instructive to see how Bayesian classifiers perform
+here, without storing too many previously seen documents.
+It would also be interesting to compare the merits of incremental
+SVM[21, 1] with the Bayesian online classifiers.
+Acknowledgments
+We would like to thank Lehel Csat´
+o for providing details
+on the implementation of the Gaussian process, Wee Meng
+Soon for assisting in the data preparation, Yiming Yang
+for clarifying the representation used in [27], and Loo Nin
+Teow for proof-reading the manuscript. We would also like
+to thankthe reviewers for their many helpful comments in
+improving the paper.
+
+REFERENCES
+[1] G. Cauwenberghs and T. Poggio. Incremental and
+decremental support vector machine learning. In T. K.
+Leen, T. G. Dietterich, and V. Tresp, editors, NIPS
+2000, volume 13. The MIT Press, 2001.
+[2] D. Cox and E. Snell. Analysis of Binary Data.
+Chapman & Hall, London, 2nd edition, 1989.
+[3] L. Csat´
+o and M. Opper. Sparse representation for
+Gaussian process models. In T. K. Leen, T. G.
+Dietterich, and V. Tresp, editors, NIPS 2000,
+volume 13. The MIT Press, 2001.
+[4] H. Drucker, B. Shahrary, and D. C. Gibbon.
+Relevance feedbackusing support vector machines. In
+Proceedings of the 2001 International Conference on
+Machine Learning, 2001.
+[5] T. E. Dunning. Accurate methods for the statistics of
+surprise and coincidence. Computational Linguistics,
+19(1):61­74, 1993.
+[6] W. Hersh, C. Buckley, T. Leone, and D. Hickam.
+OHSUMED: An interactive retrieval evaluation and
+new large test collection for research. In Proceedings of
+the 17th Annual International ACM SIGIR
+Conference on Research and Development in
+Information Retrieval, pages 192­201, 1994.
+[7] T. Joachims. Text categorization with support vector
+machines: Learning with many relevant features. In
+Proceedings of the European Conference on Machine
+Learning (ECML), pages 137­142, 1998.
+[8] T. Joachims. Making large-scale SVM learning
+practical. In B. Sch´
+olkopf, C. Burges, and A. Smola,
+editors, Advances in Kernel Methods -- Support
+Vector Learning, chapter 11. The MIT Press, 1999.
+[9] D. D. Lewis. Representation and Learning in
+Information Retrieval. PhD thesis, Department of
+Computer and Information Science, University of
+Massachusetts at Amherst, 1992.
+[10] D. D. Lewis. Evaluating and optimizing automomous
+text classification systems. In Proceedings of the 18th
+Annual International ACM SIGIR Conference on
+Research and Development in Information Retrieval,
+pages 246­254, 1995.
+[11] D. D. Lewis, R. E. Schapire, J. P. Callan, and
+R. Papka. Training algorithms for linear text
+classifiers. In Proceedings of the 19th Annual
+International ACM SIGIR Conference on Research
+and Development in Information Retrieval, pages
+298­306, 1996.
+[12] D. J. Mackay. Bayesian interpolation. Neural
+Computation, 4(3):415­447, 1991.
+[13] D. J. Mackay. Information-based objective functions
+for active data selection. Neural Computation,
+4(4):590­604, 1992.
+103
+[14] R. M. Neal. Monte Carlo implementation of Gaussian
+process models for Bayesian regression and
+classification. Technical Report CRG-TR-97-2,
+Department of Computer Science, University of
+Toronto, January 1997.
+[15] H. T. Ng, W. B. Goh, and K. L. Low. Feature
+selection, perceptron learning, and a usability case
+study for text categorization. In Proceedings of the
+20th Annual International ACM SIGIR Conference on
+Research and Development in Information Retrieval,
+pages 67­73, 1997.
+[16] M. Opper. Online versus offline learning from random
+examples: General results. Physical Review Letters,
+77:4671­4674, 1996.
+[17] M. Opper. A Bayesian approach to online learning. In
+D. Saad, editor, On-Line Learning in Neural
+Networks. Combridge University Press, 1998.
+[18] S. Robertson and D. A. Hull. The TREC-9 filtering
+trackfinal report. In Proceedings of the 9th Text
+REtrieval Conference (TREC-9), pages 25­40, 2001.
+[19] G. Salton and C. Buckley. Term-weighting approaches
+in automatic text retrieval. Information Processing
+and Management, 24(5):513­523, 1988.
+[20] S. A. Solla and O. Winther. Optimal perceptron
+learning: an online Bayesian approach. In D. Saad,
+editor, On-Line Learning in Neural Networks.
+Combridge University Press, 1998.
+[21] N. A. Syed, H. Liu, and K. K. Sung. Incremental
+learning with support vector machines. In Proceedings
+of the Workshop on Support Vector Machines at the
+International Joint Conference on Artificial
+Intelligence (IJCAI-99), 1999.
+[22] C. van Rijsbergen. Information Retrieval.
+Butterworths, London, 1979.
+[23] V. N. Vapnik. The Nature of Statistical Learning
+Theory. Springer, New York, 1995.
+[24] C. K. Williams and M. Seeger. Using the Nystr¨
+om
+method to speed up kernel machines. In T. K. Leen,
+T. G. Dietterich, and V. Tresp, editors, NIPS 2000,
+volume 13. The MIT Press, 2001.
+[25] O. Winther. Bayesian Mean Field Algorithms for
+Neural Networks and Gaussian Processes. PhD thesis,
+University of Copenhagen, CONNECT, The Niels Bohr
+Institute, 1998.
+[26] Y. Yang. A study on thresholding strategies for text
+categorization. In Proceedings of the 24th Annual
+International ACM SIGIR Conference on Research
+and Development in Information Retrieval, pages
+137­145, 2001.
+[27] Y. Yang and X. Liu. A re-examination of text
+categorization methods. In Proceedings of the 22nd
+Annual International ACM SIGIR Conference on
+Research and Development in Information Retrieval,
+pages 42­49, 1999.
+APPENDIX
+A.
+ON THE CHOICE OF PARAMETERS
+A.1
+Likelihood model
+MacKay[12] has suggested the evidence frameworkfor model
+selection. Here, we calculate the evidence on the training
+Table 6:
+Micro-/Macro-avg F
+1
+(MaxF1 thresholds)
+and Avg log-evidence on Reuters-21578 for different
+likelihood models, using Bayesian online perceptron.
+Micro-/Macro-avg F
+1
+Avg log-evidence
+Logit
+86.48 / 52.75
+-45.02
+Probit
+86.69 / 52.16
+-34.32
+Flip
+85.94 / 53.00
+-368.8
+Table 7:
+Micro-/Macro-avg F
+1
+(MaxF1 thresholds)
+and Avg log-evidence on Reuters-21578 for different
+passes over the training data, using Bayesian online
+perceptron.
+Passes
+Micro-/Macro-avg F
+1
+Avg log-evidence
+1
+87.08 / 52.87
+-35.56
+2
+86.92 / 52.63
+-34.36
+3
+86.69 / 52.16
+-34.32
+4
+86.62 / 52.75
+-34.54
+5
+85.22 / 46.93
+-34.69
+data using the final posterior for a:
+p(D
+m
+) =
+m
+t
+=1
+p(y
+t
+|x
+t
+, a)
+m
+.
+Table 6 illustrates this for selecting the likelihood measure
+for the text classification task, using the Bayesian online
+perceptron. In the table, the probit model follows the
+formulation in section 3.1 with
+0
+= 0.5, logit model is esti-mated
+by the probit model with
+0
+= 1.6474[2], and the flip
+noise model is as described in section 4.2. Although their
+F
+1
+averages are similar, the evidences show that the probit
+model with
+0
+= 0.5 is a more likely model. The small evidence
+for the flip noise model is because much information
+is lost through the threshold function .
+A.2
+Effects of multiple passes over data
+Using the evidence measure defined in section A.1, Table
+7 illustrates the effects of different number of passes over
+training data for Bayesian online perceptron. Treating the
+number of passes as a parameter for the algorithm, we see
+that having 3 passes over the data gives the highest average
+evidence, although there is no significant difference between
+2, 3, or 4 passes. Similar results hold for the Gaussian process
+for the 3 different kernels. Hence, in section 4.1, we
+choose to use 3 passes for all the Bayesian algorithms.
+A.3
+Jitter term
+The addition of the jitter term 10
+-4
+
+ij
+(where
+ij
+= 1
+if i = j, and 0 otherwise) for Gaussian process for classification
+is recommended by Neal[14]. This term improves
+the conditioning of the matrix computations while having
+a small effect on the model. From our preliminary experiments
+, without the jitter term, the matrix operations in
+Bayesian online Gaussian process become ill-conditioned.
+A.4
+Sizes of the basis vectors sets
+The sizes of the sets of basis vectors for GP in section 4.1
+are limited to less than or equal to the number of features
+selected. This is because, as noted by Csat´
+o & Opper[3],
+for a feature space of finite dimension M, no more than M
+basis vectors are needed, due to linear dependence.
+104

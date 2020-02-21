@@ -1,0 +1,637 @@
+Quality-of-Service in IP Services over Bluetooth Ad-Hoc Networks
+Abstract
+Along with the development of multimedia and wireless networking technologies, mobile multimedia applications are playing
+more important roles in information access. Quality of Service (QoS) is a critical issue in providing guaranteed service in a low bandwidth
+wireless environment. To provide Bluetooth-IP services with differentiated quality requirements, a QoS-centric cascading mechanism is
+proposed in this paper. This innovative mechanism, composed of intra-piconet resource allocation, inter-piconet handoff and Bluetooth-IP
+access modules, is based on the Bluetooth Network Encapsulation Protocol (BNEP) operation scenario. From our simulations the handoff
+connection time for a Bluetooth device is up to 11.84 s and the maximum average transmission delay is up to 4e-05 s when seven devices
+join a piconet simultaneously. Increasing the queue length for the Bluetooth-IP access system will decrease the traffic loss rate by 0.02 per
+1000 IP packets at the expense of a small delay performance.
+
+Introduction
+Wireless communications have evolved rapidly over the past
+few years. Much attention has been given to research and
+development in wireless networking and personal mobile
+computing [10,17]. The number of computing and telecommunications
+devices is increasing and consequently, portable
+computing and communications devices like cellular phones,
+personal digital assistants, tablet PCs and home appliances
+are used widely. Wireless communication technologies will
+offer the subscriber greater flexibility and capability than ever
+before [14].
+In February 1998, mobile telephony and computing leaders
+­ Ericsson, Nokia, IBM, Toshiba, and Intel ­ formed a
+Special Interest Group (SIG) to create a standard radio interface
+named Bluetooth [13]. The main aim of Bluetooth
+has been the development of a wireless replacement for cables
+between electronic devices via a universal radio link in
+the globally available and unlicensed 2.4 GHz Industrial Scientific
+and Medical (ISM) frequency band [9]. Bluetooth
+technologies have the potential to ensure that the best services
+, system resources and quality are delivered and used efficiently
+. However, global services will embrace all types of
+networks. Therefore, bluetooth-based service networks will
+interconnect with IPv4/v6 existing networks to provide wide
+area network connectivity and Internet access to and between,
+individuals and devices [7]. In Reference [2], the BLUEPAC
+(BLUEtooth Public ACcess) concepts presented ideas for enabling
+mobile Bluetooth devices to access local area networks
+in public areas, such as airports, train stations and supermarkets
+.
+The Bluetooth specification defined how Bluetooth-enabled
+devices (BT) can access IP network services using
+the IETF Point-to-Point Protocol (PPP) and the Bluetooth
+Network Encapsulation Protocol (BNEP) [12,19,20].
+By
+mapping IP addresses on the corresponding BT addresses
+(BD_ADDR), common access across networks is enabled [3].
+This means that devices from different networks are allowed
+to discover and use one another's services without the need
+for service translation or user interaction. To support communications
+between all Bluetooth-based home appliances and
+the existing IP world, IPv6 over Bluetooth (6overBT) technology
+was proposed [8]. The 6overBT technology suggested
+that no additional link layer or encapsulation protocol headers
+be used. However, the development of 6overBT technology
+is still in progress. The BNEP protocol was referred to as the
+key technology in our research.
+What with the development of applications and wireless
+networking technologies, mobile multimedia applications are
+playing more important roles in information access [21].
+To provide responsive multimedia services (high QoS) in a
+Bluetooth-IP mobile environment, a pre-requisite for our discussion
+is seamless data transmission. A cascading system
+with fair resource allocation scheme, seamless handoff strategy
+, and transparent bridging system that provides a way
+of integrating IP networks and Bluetooth-based service networks
+to relay multimedia applications within residual and
+enterprise is thus inevitable [6].
+The rest of this paper is organized as follows. The following
+section describes Bluetooth background information,
+including the piconet, scatternet, IP over Bluetooth service architecture
+. Section 3 presents the proposed QoS-centric cascading
+mechanism, including the intra-piconet resource allocation
+, inter-piconet handoff, and Bluetooth-IP access system
+. The simulation model and performance analysis of the
+700
+W.-C. CHAN ET AL.
+queue length, loss rate, average delay, are introduced in section
+4. Section 5 presents our concluding remarks.
+Bluetooth-IP services
+Figure 1 is a Bluetooth-IP service network environment.
+When a BT user wants to receive a networked video stored
+on a remote video server, the BT (maybe a slave in a picocell
+) will initiate a connection procedure with the picocell
+master. The master initiates a connection procedure with the
+video server through the Bluetooth-IP access system. During
+the connection state, the video stream will be fed through the
+access system, master to BT user (the dotted line of figure 1).
+2.1. Piconet
+When two BTs establish a connection, one BT will act as
+master and the other as the slave. More BTs can join the piconet
+. A single piconet can accommodate up to seven active
+slaves. If a slave does not need to participate in the channel
+, it should still be frequency-hop synchronized and switch
+to a low-power Park mode. The master can also request that
+the slave enter the Park mode so the master can communicate
+more than seven slave BTs. The master determines the
+frequency-hop sequence, the timing and the scheduling of all
+packets in the piconet.
+Within a piconet, the master initiates the connection procedure
+, although the application may necessitate that the master
+and slave roles be exchanged. For instance, such an exchange
+is necessary when a BT receives network services through
+Bluetooth-IP access systems. In this circumstance, the access
+system provides an IP service that may be used by many
+other BTs. This situation requires that the access system be
+the master of the piconet and the other BTs to act as slaves.
+However, when the device is initially activated and looks for
+an access system, it may be the device initiating the connection
+. This will make the device the master and the access
+system the slave [1].
+2.2. Scatternet
+Several piconets can be established and linked together to
+form an ad-hoc network. This is called a scatternet. A BT
+can participate in two or more overlaying piconets by applying
+time multiplexing. To participate on the proper channel,
+the BT should use the associated master device address and
+proper clock offset to obtain the correct phase. A BT can act
+as a slave in several piconets, but only as a master in a sin-Figure
+1. Bluetooth-IP service network environment.
+QUALITY-OF-SERVICE IN IP SERVICES
+701
+Figure 2. An inter-piconet node in the scatternet.
+gle piconet: because two piconets with the same master are
+synchronous and use the same hopping sequence. This syn-chronization
+makes them one and the same piconet.
+Time multiplexing must be used to switch between piconets
+. In figure 2, an inter-piconet node is capable of time-sharing
+between multiple piconets. This allows the traffic to
+flow within and between the piconets [18]. In the case of data
+links only, a BT can request to enter the Hold or Park mode
+in the current piconet during which time it may join another
+piconet by just changing the channel parameters. BTs in the
+Sniff mode may have sufficient time to visit another piconet
+in between the Sniff slots. If audio links are established, other
+piconets can only be visited in the non-reserved slots.
+2.3. IP networking
+The LAN Access profile defines IP service access using
+PPP over RFCOMM. TCP/IP runs on the PPP protocol.
+BTs can receive IP services using the PPP protocol [20].
+When a BT wants to receive IP service, it will find a
+LAN Access Point (LAP) within radio range through inquiry
+and paging. After the data links have been setup, the
+LMP (Link_Manager Protocol) will process the master/slave
+switch and the L2CAP/RFCOMM/PPP connection will then
+be established. A suitable IP address is negotiated between
+devices in the PPP layer. The BT can forward IP packets
+through the LAP.
+Encapsulating an Ethernet packet inside a PPP packet is
+not an efficient solution. Moreover PPP is not sufficient for
+ad-hoc networks that contain multiple wireless hops. The best
+way of providing networking would be to Ethernet over the
+L2CAP layer. The Bluetooth Network Encapsulation Protocol
+(BNEP) was pursued by the Bluetooth SIG PAN working
+group to provide an Ethernet-like interface to IP services [19],
+as depicted in figure 3.
+QoS-centric cascading mechanism
+From figure 1, a BT that accesses multimedia services on
+the Internet may do so through a piconet or scatternet. QoS
+is critical in transmitting of different network segments. To
+provide Bluetooth-IP services with differentiated quality requirements
+, a QoS-centric cascading mechanism is proposed
+Figure 3. BNEP protocol stack.
+Figure 4. The proposed QoS-centric cascading modules.
+in our research to tunnel the guaranteed applications. The operational
+modules are illustrated in figure 4. The innovative
+mechanism consists of three modules: intra-piconet resource
+allocation, inter-piconet handoff and Bluetooth-IP access system
+. These modules were developed based on the BNEP operation
+scenarios.
+3.1. Intra-piconet resource allocation
+Two service types: Synchronous Connection Oriented (SCO)
+and Asynchronous Connectionless Link (ACL) were defined
+in the Bluetooth service environment. Through the QoS setup,
+the ACL link can be configured to provide QoS requirements.
+The ACL link can be configured with the Flush Timeout setting
+, which prevents re-transmission when it is no longer
+useful. Acknowledgement can be received within 1.25 ms.
+This makes the delay small and it is possible to perform re-transmission
+for real-time applications. The ACL link also
+supports variable and asymmetrical bandwidth requirement
+applications.
+Currently, the IP QoS architecture is based purely on
+IP-layer decision making, packet buffering and scheduling
+through a single link-layer service access point. The mechanism
+in the link layer has better understanding of the communications
+medium status. However, simplicity has been
+important design objective for the Bluetooth interface and the
+number of IP-based protocols is becoming increasingly more
+complex. As depicted in figure 5, QoS architecture at the
+network layer such as differentiated and integrated services
+provides different services to applications. These services at
+702
+W.-C. CHAN ET AL.
+Figure 5. Bluetooth IP QoS mechanism.
+Figure 6. General QoS framework.
+the high layer are sufficient depending on the particular scenario
+. With shared bandwidth and a re-transmission scheme,
+the Host Controller (HC) buffering will invoke delays. The
+HC buffer size can be decreased to reduce the buffer delay.
+In bluetooth-based service layer, the L2CAP layer informs
+the remote side of the non-default parameters and sends a
+Configuration Request. The remote L2CAP-side responds
+to the Configuration Response that agrees or disagrees with
+these requirements. If the Configuration Response disagrees,
+the local side sends other parameters to re-negotiate or stop
+the connection. The Link Manager uses the poll interval and
+repetitions for broadcast packets to support QoS. The poll interval
+, which is defined as the maximum time between subsequent
+transmissions from the master to a particular slave on
+the ACL link, is used to support bandwidth allocation and latency
+control. Figure 6 depicts the general framework, which
+defines the basic functions required to support QoS.
+In figure 6, the traffic and QoS requirements for the QoS
+flow from the high layer sends the request to the Resource
+Requester (RR). Based on this request, the RR generates a resource
+request to the Resource Manager (RM). When the RM
+accepts the request the RR configures parameters to the local
+Resource Allocation (RA) entity. The RA actually reserves
+resources to satisfy the QoS requirements. The QoS is satisfied
+by the application that receives the appropriate resource.
+In our scheme, bluetooth-based operation identifies the following
+functions and procedures to determine the amount
+of resources assigned to a traffic flow. A polling algorithm
+determines which slave is polled next and bandwidth is assigned
+to that slave. The slave uses the air-interface scheduler
+to determine which data to send when it is polled. An
+inter-piconet scheduling algorithm is used by the inter-piconet
+node to efficiently control the traffic flow between two piconets
+. Bluetooth also uses the Flush Timeout setting to determine
+the maximum delay involved with re-transmissions.
+The Link Manager module in the master selects the baseband
+packet type for transmission in the single, three and five time
+slots [4].
+3.2. Inter-piconet handoff
+The inter-piconet environment suffers many challenges. First,
+the formation of Bluetooth networks is spontaneous and the
+problem of scatternet formation has not been defined in the
+Bluetooth specification [16]. Some researches have addressed
+these issues in the formation of an efficient scatternet [5,22].
+The data sent forward between nodes must been sent via the
+master. Sometimes this data will traffic through multiple hops
+in the scatternet. Efficient routing protocols are needed for
+Bluetooth. The inter-piconet node as the bridge over which a
+piconet controls communications between piconets. Smarter
+traffic control is needed to coordinate with these masters. Different
+data rates exist in each link in different scenarios. The
+inter-piconet node becomes the bottleneck for the scatternet.
+In a piconet, the master controls all of the slaves in the piconet
+. The inter-piconet node joins more than two piconets,
+but it is only active in one piconet at a time. To efficiently
+move traffic between different piconets scheduling is needed
+to coordinate the inter-piconet and the master. In Reference
+[11], inter-piconet (IPS) and intra-piconet scheduling (IPRS)
+were presented to interact with one another to provide an efficient
+scatternet scheduler, as illustrated in figure 2. The IPS
+and IPRS must coordinate with one another to schedule when
+the inter-piconet node belongs to which piconet and how and
+when to transfer data packets between the different masters.
+Bluetooth connection progress includes two steps: the inquiry
+progress and the paging progress. This causes the bottleneck
+in the handoff. Two situations were discussed in
+BLUEPAC. When the Access Point is the master, the mobile
+node joins the piconet as a slave. The Access Point can efficiently
+control the traffic to the Internet. However, the disadvantage
+is that the Access Point must periodically enter the
+inquiry stage to find the newly arrived mobile node. This will
+interrupt the Access Point transfer a packet to the Internet. In
+a situation in which the BT is the master, the Access Point
+involves itself in multiple piconets. The BT can actively inquire
+the Access Point when it wants to connect to the Access
+Point. However, the traffic control becomes difficult and
+complex when the Access Point must switch between various
+piconets.
+The scheduler is still not supported for seamless handoffs
+in real time applications. To solve this problem, reference
+[15] proposes the Next Hop Handoff Protocol (NHHP) to support
+fast handoffs. The major focus is on reducing the connection
+time in the strategy. A scheme that passes the inquiry
+information to the next Access Point was used to avoid wasting
+time in the inquiry stage. The disadvantage is that the
+Access Points are divided into two categories: Entry Points
+QUALITY-OF-SERVICE IN IP SERVICES
+703
+which constantly make inquiries to the new BT and pass information
+to the Access Points in the internal regions have the
+responsibility in the handoff. If a newly arrived BT is initiated
+in an internal region, the scheme doesn't work.
+To resolve the above problem, a fast handoff scheme was
+proposed. This scheme assumes Bluetooth service environment
+is a micro-cellular network architecture. However, it
+also adapts Bluetooth as a macro-cellular network. Based on
+the fast handoff mission, the major focus is reducing the connection
+procedure that causes significant delay. We assumed
+the following conditions; the Access Point and mobile BT periodically
+scan for page attempts and inquiry requests. To obtain
+seamless and efficient handoff support, the Access Point
+RF range should cover the nearby Access Point. The neighborhood
+set records all Access Point locations.
+3.2.1. Connection procedure
+As depicted in figure 7, when the mobile BT accesses the Internet
+it initiates an inquiry to the Access Point and makes a
+connection. The Access Point passes the BT addresses and
+clock information to the nearest Access Point according to
+the neighborhood set. The nearest Access Point uses this
+information to page the BT and form the piconets. These
+piconets form the scatternet and the BT becomes the inter-piconet
+node between them. The BT depends on the received
+signal strength indicator (RSSI) to determine which Access
+Point to use to access the Internet. The BT is a dedicated
+Access Point only in the connection state. The remaining piconets
+are all in the Hold state.
+3.2.2. Handoff
+The BT periodically monitors the RSSI and bit error rate.
+When the RSSI decreases to the lower threshold a handoff
+may take place. To know where the mobile BT moves, the
+BT detects which RSSI becomes stronger. It then informs the
+Access Points and Foreign Agent that a handoff is imminent
+(figure 8(A)). The BT leaves the Hold state to the connection
+state in the piconet that contains the coming Access Point
+(AP0 in figure 8(B)). The routing path also changes to a new
+path. Additional caches may be needed in the Access Point
+to avoid packet losses. The new nearest Access Point (APa
+in figure 8(C)) in accordance with the neighbor set is notified
+that the mobile BT is within range to receive BT information
+. It begins to page the BT and enter the Hold state with
+the BT. The original connection state also turns into the Hold
+state in the piconet that contains the original access (AP1 in
+figure 8(D)).
+When the BT does not seek access service from the Access
+Point it should inform the Access Point that it no longer
+wants a connection. A connection could break down without
+prior warning. In the Bluetooth specification, both the master
+and slave use the link supervision time to supervise the loss.
+The supervision timeout period is chosen so that the value is
+longer than the hold periods.
+For simplicity of discussion we assumed that the Bluetooth
+AP is the application sender and divided the architecture into
+two parts, wired parts: the correspondent node (CN) to the
+Bluetooth AP and wireless part: the Bluetooth AP to the mobile
+BT device. The wired part is the same as the current
+general mechanism. We will only discuss the mechanism
+that combines the wireless part and our handoff mechanism
+in the Bluetooth environment. After making a connection and
+switching roles as mentioned earlier, the Bluetooth AP becomes
+a master. As illustrated in figure 9, the Bluetooth AP1
+sends an active PATH message to the BT in figure 9(1). After
+the BT receives the PATH message, if the BT needs RSVP
+Figure 7. Connection procedures.
+704
+W.-C. CHAN ET AL.
+Figure 8. Handoff procedures.
+Figure 9. RSVP messages for bluetooth resource reservation.
+support, it sends a resource reservation request with a RESV
+message to the AP1 in figure 9(2). When the traffic specification
+contains a RSVP message, the traffic and QoS requirements
+for the QoS flow from the high layer sends a request to
+the Resource Requester (RR). The Bluetooth low levels will
+thus coordinate with one another.
+Once the Bluetooth AP1 accepts the request, the reservation
+along the flow between the AP1 and BT is made. After
+this point, the Bluetooth AP1 must have reservations in
+the neighboring APs. The resource reservation request is the
+same as an active reservation. The current AP1 sends a Passive
+PATH message to the neighboring AP2. The AP2 responds
+with a Passive RESV message and reserves the resources
+that the BT may need. Because Bluetooth can have
+only seven active slaves in a piconet at the same time, the
+resources must be used efficiently. One way is adding more
+Bluetooth devices in an AP. This can be easily achieved by
+modifying the application layer.
+As discussed before, to support seamless handoffs, information
+about the BT is sent to the AP2 after the RSVP process
+is performed. The Hold state is maintained between the BT
+and AP2. However, if the BT does not need a QoS guarantee,
+Figure 10. The protocol stack for Bluetooth-IP interworking.
+the QoS mechanism is not added. After supporting the end-to
+-end QoS using the RSVP protocol, the packet classification
+and scheduler can be used to control the traffic.
+3.3. Bluetooth-IP access system
+Th difference between existing Bluetooth piconets and IP
+LANs is the communication protocol stack illustrated in figure
+10. From figure 10, these differences are shown in the
+lower OSI seven layers. The lower layers are responsible for
+connection and addressing. We therefore focused on the connection
+management and address resolution issues in our research
+.
+The access function allows connections to be established
+without requiring any particular knowledge or interaction.
+The Bluetooth-IP access system plays the role of bridg-ing/routing
+multimedia traffic between the various LANs and
+piconets. Their operational scenario is illustrated in figure 11.
+When different piconet devices are connected directly to
+the access system, the access system function is referred to
+as a bridge (piconet Master and Slave role). If a LAN host
+(piconet BT) communicates with a piconet BT (LAN host)
+through the access system, because of the different protocol
+stacks between the piconet and LAN networks, two issues,
+addressing and connection must be resolved in the design.
+QUALITY-OF-SERVICE IN IP SERVICES
+705
+Figure 11. Bluetooth-IP interworking operational scenario.
+3.3.1. Address resolution
+To achieve the interconnection function in a Bluetooth-IP environment
+, the access system must refer to both the piconet
+and LAN networks as members. Thus, two different protocol
+stacks must be combined to form a new communication protocol
+stack suitable as a routing server. The combined protocol
+stack is shown in figure 10. Using the protocol stack specifications
+, a scenario for addressing is identified as follows:
+Step 1: Each LAN host assigns an IP address. Each host thus
+possesses two addresses; an IP address and a MAC
+address.
+Step 2: Each piconet BT acquires two addresses, a BT address
+(BD_ADDR) and an IP address.
+Step 3: A routing table must be built for interconnection in
+the access system.
+A lookup for destination addresses
+is needed to find the corresponding outbound
+BD_ADDR or MAC address to which the packet
+must be forwarded.
+3.3.2. Connection management
+Because the existing LAN is a packet switching service and
+BT connections are made on an ad hoc basis, interconnection
+is very difficult. To solve this problem, a mechanism based
+on IP services over Bluetooth was proposed in the Bluetooth
+specification. The system is as follows.
+Step 1: Bluetooth adapters and an Ethernet card are embed-ded
+into a desktop computer. These adapters and card
+are referred to as network attachment units (wired or
+Figure 12. The Bluetooth-IP access system.
+radio). Each port in the interface is directly attached
+to different networks (see figure 12).
+Step 2: The API of the Bluetooth adapter and the Ethernet
+packet driver are used to design an access system.
+The operational procedures for this system follow the
+scenario in figure 11.
+Performance analysis
+The Bluehoc toolkit was used to simulate the various scenarios
+in the Bluetooth-IP service environment. As depicted
+in figure 13, the data is dumped from the L2CA_DataWrite
+706
+W.-C. CHAN ET AL.
+Figure 13. L2CAP packet flow.
+and L2CA_DataRead into the connection state. The
+L2CA_DataWrite and L2CA_DataRead events are the upper-Layer
+to the L2CAP events. The L2CA_DataRead is the
+event that requests transfer for received data from the L2CAP
+entity to the upper layer. The L2CA_DataWrite is the event
+that requests data transfer from the upper layer to the L2CAP
+entity for transmission over an open channel.
+In the Bluehoc toolkit the connection procedures such as
+inquiry and paging are simulated according to the Bluetooth
+specifications. The master sends the QoS parameters, which
+depend on the application. QoS parameters are then passed
+to the Deficit Round Robin (DRR) based scheduler that determines
+if the connection can be accepted by the LMP. The
+DRR-based scheduler finds the appropriate ACL link baseband
+packet type (DM1, DM3, DM5, DH1, DH3 and DH5)
+depending upon the application level MTU and loss sensitivity
+. The simulation applications include packetized voice,
+Telnet and FTP.
+4.2. Simulation results
+In figure 14 the average delay for various numbers of slaves
+using packetized voice in a piconet is shown. The voice application
+is real time and would be sensitive to a loss of several
+consecutive small packets. Figure 15 shows the average delay
+in the mixed traffic source. The short-packet delay, such
+as telnet applications, are significantly increased by the long-packet
+in the DRR-based scheduler. An efficient and simple
+scheme that does not add to the Bluetooth load is important.
+4.2.1. Queue length analysis
+The queue length analysis was based on the access system
+queue size. We observed the variations in queue length using
+specified traffic levels. In figure 16, the queue length of the
+traffic from 100 M LAN to 1 M piconet increases very fast.
+It reaches 50000 packets within 10 s. The queue length for
+the traffic from 10 M LAN to 1 M piconet increases more
+smoothly and the queue length of the traffic from 1 M piconet
+to 100 M or 10 M LANs is almost zero.
+Figure 14. Average delay with voice services.
+Figure 15. Average delay in the mixed traffic.
+Figure 16. Queue length analysis.
+4.2.2. Loss rate analysis
+In the loss rate analysis the queue length was changed to observe
+the variations in the loss rate. In figure 17, when the
+queue length is smaller than 1000 packets, the loss rate is
+close to 0.9. When the queue length increases to 5000 packets
+, the loss rate decreases to 0.8. Therefore, increasing the
+queue length will decrease the traffic loss rate. The loss rate
+from 100M LAN to 1 M piconet is a little more than that for
+10 M LAN to 1 M piconet because of the difference in the
+LAN transport speed.
+QUALITY-OF-SERVICE IN IP SERVICES
+707
+Figure 17. Loss rate analysis.
+Figure 18. Throughput analysis.
+4.2.3. Throughput analysis
+From figure 18, increasing the queue length has no effect on
+improving the throughput. The throughput is smooth in both
+the LAN to piconet and piconet to LAN traffic.
+4.2.4. Delay analysis
+From figure 19, when the queue length is 500 packets, the
+delay is about 0.0005 seconds per bit. If the queue length increases
+to 1000 packets, the delay becomes almost double.
+When the queue length reaches 5000 packets, the delay is
+close to 0.003 seconds per bit. The transfer delay has no obvious
+change when the queue length increases to 10000 packets.
+Conclusions
+In a wireless environment the QoS guarantee provision becomes
+more important. The frequent mobility of a host increases
+the service disruption in real-time applications. Even
+though efficient RSVP enhances the resource reservation ability
+and allows for requesting a specific QoS from the network,
+these mechanisms do not have enough QoS guarantee to prevent
+service disruption during handoff. In this paper a cascading
+mechanism for QoS guarantee in a Bluetooth-IP environment
+was proposed. A fast and efficient handoff scheme
+that supports BT roaming handoffs between different Access
+Points was proposed. Concepts for the mobile RSVP issues
+in Bluetooth networks were presented with our fast handoff
+mechanism. The Bluetooth-IP access system can be implemented
+using available technology such as Network Addressing
+Translation (NAT) and Linux Bluetooth Stack to connect
+Bluetooth piconets and LAN. In our simulations Bluetooth
+required a long time to process the inquiry and paging procedures
+. These results show that the connection time is up to
+11.84 sec when seven slaves join a piconet at the same time.
+Moreover, the access system queue length increases by about
+10000 packets per second in a 100 Mbps LAN and about 1000
+packets per second in a 10 Mbps LAN when the traffic load is
+80%. In the loss rate analysis, the loss rate was close to 90%
+when the queue length was less than 1000 packets. However
+, when the queue length increased to 10000 packets the
+708
+W.-C. CHAN ET AL.
+Figure 19. Delay analysis.
+loss rate decreased to 70%. In the delay analysis, the delay
+was about 0.000045 seconds per bit when the queue length
+was 500 packets. The delay doubles when the queue length
+doubles. However, when the queue length is more than 5000
+packets the delay has no obvious variance.
+Acknowledgement
+This paper is a partial result of project no. NSC-90-2218-E-259
+-006 conducted by National Dong Hwa University under
+the sponsorship of National Science Council, ROC.
+References
+[1] M. Albrecht, M. Frank, P. Martini, M. Schetelig, A. Vilavaara and A.
+Wenzel, IP service over bluetooth: Leading the way to a new mobility,
+in: Proceedings of the International Conference on Local Computer
+Networks (1999) pp. 143­154.
+[2] S. Baatz, M. Frank, R. Gopffarth, D. Kassatkine, P. Martini, M.
+Schetelig and A. Vilavaara, Handoff support for mobility with IP over
+bluetooth, in: Proceedings of the 25th Annual IEEE Conference on Local
+Computer Networks, USA (2000) pp. 143­154.
+[3] J.L. Chen and K.C. Yen, Transparent bridging support for bluetooth-IP
+service interworking, International Journal of Network Management 12
+(2002) 379­386.
+[4] J.L. Chen, A.P. Shu, H.W. Tzeng and P.T. Lin, Fair scheduling for guaranteed
+services on personal area networks, in: Proceedings of 2002
+International Conference on Communications, Circuits and Systems,
+China (2002) pp. 440­444.
+[5] L. Ching and K.Y. Siu, A bluetooth scatternet formation algorithm, in:
+Proceedings of IEEE Global Telecommunications Conference, Vol. 5
+(2001) pp. 2864­2869.
+[6] A. Das, A. Ghose, A. Razdan, H. Saran and R. Shorey, Enhancing performance
+of asynchronous data traffic over the bluetooth wireless ad-hoc
+network, in: Proceedings of the IEEE INFOCOM (2001) pp. 591­
+600.
+[7] D. Famolari and P. Agrawal, Architecture and performance of an em-bedded
+IP bluetooth personal area network, in: Proceedings of the International
+Conference on Personal Wireless Communications, India
+(2000) pp. 75­79.
+[8] M. Frank, R. Goepffarth, W. Hansmann and U. Mueller, Transmission
+of native IPv6 over bluetooth, http://www.ispras.ru/~ipv6/
+docs/draft-hansmann-6overbt-00.txt
+[9] C. Haartsen and S. Mattisson, Bluetooth ­ a new low-power radio interface
+providing short-range connectivity, Proceedings of the IEEE
+88(10) (2000) 1651­1661.
+[10] G. Ivano, D. Paolo and F. Paolo, The role of Internet technology in
+future mobile data systems, IEEE Communications Magazine 38(11)
+(2000) 68­73.
+[11] P. Johansson, R. Kapoor, M. Kazantzidis and M. Gerla, Rendezvous
+scheduling in bluetooth scatternets, in: Proceedings of IEEE International
+Conference on Communications, Vol. 1 (2002) pp. 318­324.
+[12] D.J.Y. Lee and W.C.Y. Lee, Ricocheting bluetooth, in: Proceedings of
+the 2nd International Conference on Microwave and Millimeter Wave
+Technology (2000) pp. 432­435.
+[13] D.G. Leeper, A long-term view of short-range wireless, IEEE Computer
+34(6) (2001) 39­44.
+[14] Y.B. Lin and I. Chlamtac, Wireless and Mobile Network Architectures
+(Wiley, 2000).
+[15] I. Mahadevan and K.M. Sivalingam, An architecture and experimental
+results for quality if service in mobile networks using RSVP and CBQ,
+ACM/Baltzer Wireless Networks Journal 6(3) (2000) 221­234.
+[16] B. Raman, P. Bhagwat and S. Seshan, Arguments for cross-layer opti-mizations
+in Bluetooth scatternets, in: Proceedings of 2001 Symposium
+on Applications and the Internet (2001) pp. 176­184.
+[17] T.S. Rappaport, Wireless Communications ­ Principles and Practice,
+2nd ed. (2002).
+[18] T. Salonidis, P. Bhagwat, L. Tassiulas and R. LaMaire, Distributed
+topology construction of bluetooth personal area networks, in: Proceedings
+of the IEEE INFOCOM (2001) pp. 1577­1586.
+[19] The Bluetooth Special Interest Group, Bluetooth Network Encapsulation
+Protocol Specification (2001).
+[20] The Bluetooth Special Interest Group, Documentation available at
+http://www.bluetooth.com/techn/index.asp
+[21] The Bluetooth Special Interest Group,
+Quality of service in
+bluetooth networking, http://ing.ctit.utwente.nl/WU4/
+Documents/Bluetooth_QoS_ING_A_part_I.pdf
+[22] V. Zaruba, S. Basagni and I. Chlamtac, Bluetrees-scatternet formation
+to enable bluetooth-based ad hoc networks, in: Proceedings of IEEE
+International Conference on Communications, Vol. 1 (2001) pp. 273­
+277.
+QUALITY-OF-SERVICE IN IP SERVICES
+709
+Wah-Chun Chan received the Ph.D. degree from
+University of British Columbia in 1965. He is cur-rently
+a Visiting Professor in the Department of
+Computer Science at National Chiao Tung University
+. Dr. Chan's research interest has been in the areas
+of queueing theory and telecommunication networks
+.
+Research on telecommunication networks
+has been in the development of models for the performance
+analysis of computer communication networks
+.
+Jiann-Liang Chen received the Ph.D. degree in
+electrical engineering from National Taiwan University
+, Taipei, Taiwan in 1989. Since August 1997,
+he has been with the Department of Computer Science
+and Information Engineering of National Dong
+Hwa University, where he is a Professor now. His
+current research interests are directed at cellular mobility
+management and personal communication systems

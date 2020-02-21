@@ -1,0 +1,668 @@
+Contour-based Partial Object Recognition using Symmetry in Image Databases
+ABSTRACT
+This paper discusses the problem of partial object recognition in 
+image databases. We propose the method to reconstruct and estimate 
+partially occluded shapes and regions of objects in images from 
+overlapping and cutting.  We present the robust method for 
+recognizing partially occluded objects based on symmetry properties, 
+which is based on the contours of objects. Our method provides 
+simple techniques to reconstruct occluded regions via a region copy 
+using the symmetry axis within an object.  Based on the estimated 
+parameters for partially occluded objects, we perform object 
+recognition on the classification tree. Since our method relies on 
+reconstruction of the object based on the symmetry rather than 
+statistical estimates, it has proven to be remarkably robust in 
+recognizing partially occluded objects in the presence of scale 
+changes, rotation, and viewpoint changes.
+
+INTRODUCTION
+Most existing methods for object recognition are based on full objects. 
+However, many images in electronic catalogs contain multiple objects 
+with occluded shapes and regions. Due to the occlusion of objects, 
+image retrieval can provide incomplete, uncertain, and inaccurate 
+results. To resolve this problem, we propose new method to 
+reconstruct objects using symmetry properties since most objects in a 
+given image database are represented by symmetrical figures. 
+Even though there have been several efforts in object recognition with 
+occlusion, currents methods have been highly sensitive to object pose, 
+rotation, scaling, and visible portion of occluded objects [12] [9] [17] 
+[3] [15]. In addition, many appearance-based and model-based object 
+recognition methods assumed that they have known occluded regions 
+of objects or images through extensive training processes with 
+statistical approach. However, our approach is not limited to 
+recognizing occluded objects by pose and scale changes, and does not
+need extensive training processes. 
+Unlike existing methods, our method finds shapes and regions to 
+reconstruct occluded shapes and regions within objects. Our approach 
+can handle object rotation and scaling for dealing with occlusion, and 
+does not require extensive training processes. The main advantage of 
+our approach is that it becomes simple to reconstruct objects from 
+occlusions. We present the robust method, which is based on the 
+contours of objects, for recognizing partially occluded objects based 
+on symmetry properties. The contour-based approach finds a 
+symmetry axis using the maximum diameter from the occluded object.  
+In experiments, we demonstrate how our method reconstruct and 
+recognize occluded shapes and regions using symmetry. Experiments 
+use rotated and scaled objects for dealing with occlusion. We also 
+evaluate the recognition rate of the reconstructed objects using 
+symmetry and the visible portion of the occluded objects for 
+recognition. 
+The rest of this paper is organized as follows. In Section 2, we briefly 
+review work related to this study. In Section 3, we describe a method 
+to recognize partial objects from given classes. In Section 4, we 
+describe experimental results for partial object recognition. Finally, 
+we summarize this paper in Section 5.
+
+RELATED WORK
+There have been several research efforts in object recognition for 
+dealing with occlusion. Krumm [13] proposed a new algorithm for 
+detecting objects in images which uses models based on training 
+images of the object, with each model representing one pose. 
+Williams [23] proposed a method for the reconstruction of solid-shape
+from image contour using the Huffman labeling scheme. For 
+object recognition, Chang and Krumm [3] used the color 
+cooccurrence histogram based on pairs of pixels. Schiele et al. [20] 
+proposed a method to perform partial object recognition using 
+statistical methods, which are based on multidimensional receptive 
+field histograms. In addition, Rajpal et al. [17] introduced a method 
+for partial object recognition using neural network based indexing.  
+In appearance-based object recognition, Edwards and Murase [6] 
+addressed the occlusion problem inherent in appearance-based 
+methods using a mask to block out part of the basic eigenimages and 
+the input image. Leonardis and Bischof [14] handled occlusion, 
+scaling, and translation by randomly selecting image points from the 
+scene and their corresponding points in the basis eigenvectors. Rao 
+[18] applied the adaptive learning of eigenspace basis vectors in 
+appearance-based methods. Ohba and Ikeuchi [16] were able to 
+handle translation and occlusion of an object using eigenwindows.
+
+Permission to make digital or hard copies of all or part of this work for 
+personal or classroom use is granted without fee provided that copies are 
+not made or distributed for profit or commercial advantage and that copies 
+bear this notice and the full citation on the first page. To copy otherwise, 
+or republish, to post on servers or to redistribute to lists, requires prior 
+specific permission and/or a fee. 
+SAC'05, March 13-17, 2005, Santa Fe, New Mexico, USA. 
+Copyright 2005 ACM 1-58113-964-0/05/0003...$5.00.
+
+1190
+2005 ACM Symposium on Applied Computing
+Current methods for dealing with occlusion have been based on 
+template matching, statistical approaches using localized invariants, 
+and recognition of occluded regions based on local features. In 
+addition, there are many efforts in ellipse construction and detection 
+[7][9][22]. In this paper, we propose unique methodologies in object 
+recognition for dealing with occlusion based on symmetry properties 
+through the ellipse reconstruction. 
+Even though there have been several efforts in object recognition with 
+occlusion, current methods have been highly sensitive to object pose 
+and scaling. In addition, many appearance-based and model-based 
+object recognition methods assumed that they have known occluded 
+regions of objects or images through extensive training processes. 
+However, our method is not limited to recognizing occluded objects 
+by pose and scale changes, and do not require extensive training 
+processes.
+THE PROPOSED METHOD
+We discuss the object reconstruction and the parameter estimation 
+method to find the best matching class of input objects using the 
+classification tree method [4]. We extracted shape parameters from 
+reconstructed objects using RLC lines, such as roundness, aspect ratio, 
+form factor, surface regularity [5]. 
+The approach tries to find occluded shapes within partially occluded 
+objects. The basic assumption is that most objects are represented by 
+symmetrical figures. When a symmetric object is partially occluded, 
+we use the symmetry measure to evaluate the symmetric shape. We 
+estimate the most similar parameters of occluded shape and region of 
+objects, and we retrieve objects that have the estimated parameters of 
+occluded objects. 
+A basic idea of reconstruction and estimation of occluded objects is to 
+use symmetry properties within objects and use to the contour of 
+objects. Fortunately, most products in electronic catalogs have 
+symmetry in their shapes and they are represented by symmetrical 
+figures. Symmetrical descriptions of shape or detection of 
+symmetrical features of objects can be useful for shape matching, 
+model-based object matching, and object recognition [2] [1]. 
+In the given database, we have elliptical and roughly-rounded objects 
+such as plates, cups, pans, and pots, depending on their poses and 
+shapes. First, we consider elliptical objects in which the occlusion 
+changes values of measurements and parameters related to diameters. 
+We assume that we can get diameters from elliptical objects, which 
+are partially occluded.
+
+Figure 3.1 Three-Spoke from the Triangle.
+However, the elliptical objects are limited to the shape of objects. 
+Therefore, it may not be applied to other types of shape such as 
+irregular shapes. In this case, since we cannot easily detect the 
+symmetry axes, we introduce the three-spoke type symmetry method 
+as shown in Figure 3.1. We apply this approach to roughly-rounded 
+objects such as cups.
+For roughly-rounded objects, we use the three-spoke type method, 
+which is derived from the triangle. The triangle is a basic model to 
+represent figures such as circle, rectangle, and polygon. We use 
+extended lines of the triangle to make axes as shown in Figure 3.1. 
+The three-spoke type symmetry axes, which are equally assigned by 
+120 degrees, provide the possibility to detect proper symmetry axes 
+on roughly-rounded objects. Therefore, this method can detect 
+symmetry axes in roughly-rounded objects. 
+In order to perform the following procedures, we assume that objects 
+are represented by symmetrical figures. 
+1.
+
+We have an occluded elliptical object in Figure 3.2 and roughly-rounded
+object in Figure 3.6, we can get cutting points of the 
+occlusion  (x,y)' and (x,y)'', that are given by overlapping or 
+cutting.
+
+
+Figure 3.2 The Occlusion Area 
+Estimation using Symmetry: Get 
+cutting points (x,y)' and (x,y)'' 
+and get a distance l'.
+Figure 3.3 The Occlusion Area 
+Estimation using Symmetry: 
+Get the maximum diameter 
+and the symmetry axis.
+
+
+Figure 3.4 The Occlusion 
+Area Estimation using 
+Symmetry: Get the estimated 
+region  a' using a line l' and 
+the symmetry axis.
+
+Figure 3.5 The Occlusion Area 
+Estimation using Symmetry: 
+Add region a' to occluded shape 
+and region and re-captured the 
+estimated shape of an object.
+
+2.
+
+Compute a distance between two cutting points from (x,y)' and 
+(x,y)'', which is called a line l' as in Figure 3.2 and 3.6.
+3.
+
+Based on a line l', make a connection between two points, fill the 
+concave region and re-captured the shape. It is important to 
+compute a centroid in an object.
+4.
+
+Get the maximum diameter from re-captured shape using 
+extremal points as shown in Figure 3.4 and 3.7. Two extremal 
+points (r, l) and (r, l)' from re-captured shape as in Figure 3.7. 
+The distance between two extreme boundary points are 
+represented by the maximum diameter.
+5.
+
+In elliptical objects, one of the maximum and minimum 
+diameters can be a symmetry axis. In roughly-rounded objects, 
+we use the three-spoke type symmetry, one spoke can be a
+1191
+symmetry axis to find occluded region within an object.
+6.
+
+Centroid Detection: In case of elliptical objects, we find a 
+centroid based on the maximum diameter and a line 
+perpendicular to the maximum diameter, which is located in the 
+center of the length of the maximum diameter. We select 
+symmetry axes based on one of these lines as in Figure 3.3. In 
+roughly-rounded objects, we get a centroid, based on whole 
+region of an object. Equation 2 is adapted from Russ [19]. If the 
+centroid is calculated by equation 1 using the boundary pixels 
+only, the results may not be correct. The calculated points will be 
+biased toward whichever part of the boundary is most complex 
+and contains the most pixels. The correct centroid location uses 
+the pairs of coordinates
+i
+x
+,
+i
+y
+for each point in the shape
+boundary. The centroid of an irregular shape is calculated 
+correctly using all of the pixels in an object.
+
+Area
+y
+C
+Area
+x
+C
+k
+i
+i
+y
+k
+i
+i
+x
+
+
+=
+=
+=
+=
+0
+0
+,
+
+
+(1)
+Area
+x
+x
+y
+y
+C
+Area
+y
+y
+x
+x
+C
+k
+i
+i
+i
+i
+i
+y
+k
+i
+i
+i
+i
+i
+x
+
+
+
+
+
+
+
+
++
+=
++
+=
+0
+2
+1
+2
+1
+0
+2
+1
+2
+1
+)
+(
+)
+(
+,
+)
+(
+)
+(
+(2)
+7.
+
+In roughly-rounded objects, a centroid is put at the same position 
+at the center of the three-spoke type symmetry axes.
+
+Figure 3.6 The occlusion of a 
+cup: Get a centroid after re-captured
+a shape.
+Figure 3.7 Get extremal points 
+(r,l), (r,l)' and (r,l)'',(r,l)''' and 
+the maximum diameter of an 
+object.
+
+Figure 3.8 Use the three spoke 
+type symmetry: Match a center of 
+the spoke to a centroid and 
+parallel one of axes to the 
+maximum diameter.
+Figure 3.9 Extend axes and 
+make symmetry axes.
+
+Figure 3.10 Select a symmetry 
+axis based on two regions, 
+which are A and B.
+Figure 3.11 Find a region a' 
+of occluded shape using a 
+symmetry axis and add to a 
+occluded shape.
+
+8.
+
+Axis Detection: The midpoint of the major axis is called the 
+center of the ellipse. The minor axis is the line segment 
+perpendicular to the major axis which also goes through the 
+center and touches the ellipse at two points. In elliptical objects, 
+we detect a symmetry axis based on the maximum diameter or 
+the minimum diameter. To find a symmetry axis in roughly-rounded
+objects, one of axes of the three-spoke type symmetry 
+axes is in parallel with the maximum diameter of an object as 
+shown in Figure 3.8. 
+Based on occluded shape and region, we select a symmetry axis 
+to estimate this region within an object. Figures 3.9 and 3.10 
+show how to select a symmetry axis. When we select an axis in 
+roughly-rounded objects, we consider conditions as follows:
+
+Select axes, which don't intersect the occluded region.
+
+3.9 and 3.10 show how to select a symmetry axis. Select 
+axes, which have a region with the maximum diameter   l'.
+
+Area and perimeter are invariants as in equation 3, compare 
+the proportion of region A and B.
+B
+A
+Area
+Perimeter
+Area
+Perimeter
+
+
+
+
+
+
+
+
+
+
+(3)
+9.
+
+Using mirror symmetry, we can get points across an axis. We 
+find points on the contour across an axis which have the same 
+length  l' and the same angle corresponding to the axis that is 
+perpendicular to a symmetry axis, but the distance between axis 
+and points may or may not be the same.
+10.
+
+Capture a region a', move the captured region to the occluded 
+shape using the mirror symmetry, and add to these regions as 
+shown in Figure 3.4, 3.5, and 3.11.
+11.
+
+Re-compute shape measurements such as area, diameters, and 
+perimeter using RLC lines from re-captured shape of an object. 
+Then, re-compute shape parameters based on measurements.
+12.
+
+Apply to a classifier.
+From the above discussions, we described how to reconstruct and 
+estimate the partially occluded shape and region of an object and how 
+to find the best matching class of partially occluded objects after the 
+estimation.
+1192
+EXPERIMENTAL RESULTS
+In the sections, we evaluate and describe the results of partial object 
+recognition by our proposed a method. We have selected 190 partially 
+occluded objects of images from electronic catalogs on the Internet as 
+well as manipulated images. We assume that occluded objects have 
+more than 50% visibility of objects, and images of catalogs contain 
+partially occluded objects. The objects are categorized by semantic 
+meanings such as cup and plate. In addition, our approaches and 
+experiments are limited to cups and plates since we use roughly-rounded
+or elliptical objects. More precisely, the database contains 32 
+objects from different viewpoints and images of 97 objects 
+comprising image plane rotations and scale changes. 
+In sample images, we have extracted image features of partially 
+occluded objects such as shape and texture. We experimented with 
+shape reconstruction based on the contour of objects using symmetry 
+properties. We assumed that inputs are not correctly classified and 
+have occlusion. 
+We experimented with samples such as plates and cups to reconstruct 
+the occluded shape of objects as shown in Figure 4.1 and 4.2. In 
+Figure 4.2, it is correctly classified after the reconstruction with an 
+occlusion about 30%. On the other hand, Figure 4.1 is not correctly 
+classified after the reconstruction since the width of plate is too 
+narrow. This experiment shows that our method heavily relies on 
+shape of objects.
+
+Figure 4.1 Example of the occlusion with a Plate.
+
+
+Figure 4.2 Example of the manipulated occlusion with a Cup.
+Finally, we performed an experiment for the relationships between 
+visible portion of objects and recognition rates. In order to evaluate 
+the visibility of objects, we used manipulated images of cups and 
+plates. Figure 4.3 shows the pattern of object recognition in the 
+presence of partial occlusion of objects and the results obtained by the 
+symmetric recognition. A visible portion of approximately 67% is 
+sufficient for the recognition of objects based on the contour.
+
+Figure 4.3 Object recognition in the presence of the occlusion of 
+objects based on the contour. 
+ 
+There are many efforts in object recognition for dealing with 
+occlusion. The visible portion of objects required to recognize 
+occluded objects are shown in Table 4.1. Table 4.1 shows a simple 
+comparison between our method and other existing methods. The 
+probabilistic method based on local measurements requires small 
+portions of objects to recognize the whole objects, but it required 
+extensive training processes to recognize occluded objects [21] [20]. 
+Our method shows good visibility of partial object recognition and do 
+not need extensive training processes. 
+ 
+Table 4.1 The visibility of object recognition in the presence of 
+partial occlusion.
+Methods Visibility
+Training
+processes
+Appearance matching techniques  using 
+adaptive masks
+90% not
+required
+Probabilistic technique using Chi-square
+72%
+required
+Probabilistic technique using local 
+measurements
+34% required
+Contour-based approach using symmetry
+67%
+not required
+In order to measure the influence of occlusion and compare its impact 
+on the recognition performance of the different methods, we 
+performed an experiment as follows. 
+Figure 4.4 summarizes the recognition results for different visible 
+object portions. For each test object, we varied the visible object 
+portion from 20% to 100% and recorded the recognition results using 
+Chi-square divergence and our method.
+
+Figure 4.4 Experimental results with occlusion.
+1193
+The results show that our method clearly obtains better results than 
+Chi-square divergence. Using only 60% of the object area, almost 
+80% of the objects are still recognized. This confirms that our method 
+is capable of reliable recognition in the presence of occlusion.  
+ 
+Table 4.2 Summary of Object Recognition Methods for dealing 
+with Occlusion.
+Methods
+Occlusion
+Scale changes
+Object Pose
+Rotation
+Bischof et al. [1]
+Yes
+Yes
+No
+No
+Edwards et al. [6]
+Yes
+Yes
+No
+Yes(limited)
+Ohba et al. [16]
+Yes
+No
+Yes
+No
+Rao [18]
+Yes
+No
+Yes
+No
+Jacob et al. [11]
+Yes
+No
+Yes
+No
+Krumm [13]
+Yes
+No
+No
+NO
+Contour-based 
+using symmetry
+Yes Yes
+Yes(limited)
+Yes
+Table 4.2 summarizes the various object recognition methods. The 
+table indicates whether the methods can handle occlusion, rotation, 
+pose, and changes in the size of objects in the database. Unlike the 
+other methods, our method can handle scale change, object pose, and 
+rotated objects with occlusion, even though our method has minor 
+limitations of object poses.
+CONCLUSION
+In this paper, we have discussed how to estimate parameters and to 
+reconstruct the occluded shape of partial objects in image databases. 
+In order to reconstruct occluded shapes, we used symmetry, which 
+provides powerful method for the partial object recognition. Unlike 
+the existing methods, our method tried to reconstruct occluded shapes 
+and regions within objects, since most objects in our domain have 
+symmetrical figures. However, we have limitations in the shape of 
+objects and the occluded region of objects. For example, if a pan has 
+an occlusion in handle, it cannot correctly reconstruct and be 
+recognized.  
+Another minor limitation of our method is that a method is sensitive 
+to the pose of an object. For example, if we cannot see an ellipse due 
+to the object's pose, we cannot recognize the object. After estimation, 
+we have applied inputs, which include estimated parameters, to the 
+existing classification trees, to get to the best matching class. 
+All experiments are performed based on the classifier in earlier work. 
+In experiments, the results show that the recognition of the occluded 
+object is properly reconstructed, estimated, and classified, even 
+though we have limited to the size of samples. In addition, we have 
+experienced the power of the symmetry through experiments.
+
+REFERENCES
+[1]
+
+H. Bischof and A. Leonardis. Robust recognition of scaled 
+eigenimages through a hierachical approach. In IEEE Conference 
+on Computer Vision and Pattern Recognition, 1998.
+[2]
+
+H. Blum and R.N. Nagel. Shape description using weighted 
+symmetric axis features. Pattern Recognition, 1978.
+[3]
+
+P. Chang and J. Krumm. Object Recognition with Color 
+Cooccurrence Histograms. In IEEE Conference on Computer 
+Vision and Pattern Recognition, 1999.
+[4]
+
+J. Cho and N. Adam. Efficient Splitting Rules based on the 
+Probabilities of Pre-Assigned Intervals. In IEEE Conference on 
+Data Mining, 2001.
+[5]
+
+J. Cho, A. Gangopadhyay and N. Adam. Feature Extraction for 
+Content-based Image search in Electronic Commerce. In MIS/OA 
+International Conference, 2000.
+[6]
+
+J. Edwards and H. Murase. Appearance matching of occluded 
+objects using coarse-to-fine adaptive masks. In IEEE Conference 
+on Computer Vision and Pattern Recognition, 1997.
+[7]
+
+A. W. Fitzgibbon, M. Pilu, and R. B. Fisher. Direct least squares 
+fitting of ellipses. In International Conference on Pattern 
+Recognition, 1996.
+[8]
+
+M. Fleck. Local Rotational Symmetries. In IEEE Conference on 
+Computer Vision and Pattern Recognition, 1986.
+[9]
+
+C. Ho and L. Chan. A fast ellipse/circle detector using geometric 
+symmetry. Pattern Recognition, 1995.
+[10]
+
+Joachim Hornegger, Heinrich Niemann, and Robert Risack. 
+Appearance-based object recognition using optimal feature 
+transforms. Pattern Recognition, 2000.
+[11]
+
+David W. Jacobs and Ronen Basri. 3D to 2D recognition with 
+regions.  In IEEE Conference on Computer Vision and Pattern 
+Recognition, 1997.
+[12]
+
+Grinnell Jones and Bir Bhanu. Recognition of articulated and 
+occluded objects. IEEE Transaction on Pattern Analysis and 
+Machine Intelligence, 1999.
+[13]
+
+John Krumm. Object detection with vector quantized binary 
+features.  In IEEE Conference on Computer Vision and Pattern 
+Recognition, 1997.
+[14]
+
+Ales Leonardis and Horst Bishof. Dealing with Occlusions in the 
+Eigenspace Approach. In IEEE Conference on Computer Vision 
+and Pattern Recognition, 1996.
+[15]
+
+David G. Lowe. Object Recognition from Local Scale-Invariant 
+Features. In International Conference on Computer Vision, 1999.
+[16]
+
+K. Ohba and K. Ikeuchi. Detectability, uniqueness, and 
+reliability of eigen windows for stable verification of partially 
+occluded objects. IEEE Trans. Pattern Anal. Mach, 1997.
+[17]
+
+N. Rajpal, S. Chaudhury, and S. Banerjee. Recognition of 
+partially occluded objects using neural network based indexing. 
+Pattern Recognition, 1999.
+[18]
+
+R. Rao. Dynamic appearance-based recognition. In IEEE 
+Conference on Computer Vision and Pattern Recognition, 1997.
+[19]
+
+John C. Russ. The Image Processing Handbook. CRC Press, 3rd 
+edition, 1998.
+[20]
+
+Bernt Schiele and Alex Pentland. Probabilistic Object 
+Recognition and Localization. In International Conference on 
+Computer Vision, 1999.
+[21]
+
+H. Schneiderman and T. Kanade. Probabilistic modeling of local 
+appearance and spatial relationships for object recognition. In 
+IEEE Conference on Computer Vision and Pattern Recognition, 
+1998
+[22]
+
+W. Wu and M. J. Wang. Elliptical object detection by using its 
+geometrical properties. Pattern Recognition 1993.
+[23]
+
+Lance R. Williams. Topological reconstruction of a smooth 
+manifold-solid from its occluding contour. Journal of Computer 
+Vision, 1997.
+
+1194
+

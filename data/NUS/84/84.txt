@@ -1,0 +1,2149 @@
+Entropy-based Sensor Selection Heuristic for Target Localization
+ABSTRACT
+We propose an entropy-based sensor selection heuristic for
+localization. Given 1) a prior probability distribution of the
+target location, and 2) the locations and the sensing models
+of a set of candidate sensors for selection, the heuristic
+selects an informative sensor such that the fusion of the
+selected sensor observation with the prior target location
+distribution would yield on average the greatest or nearly
+the greatest reduction in the entropy of the target location
+distribution.
+The heuristic greedily selects one sensor in
+each step without retrieving any actual sensor observations.
+The heuristic is also computationally much simpler than the
+mutual-information-based approaches. The effectiveness of
+the heuristic is evaluated using localization simulations in
+which Gaussian sensing models are assumed for simplicity.
+The heuristic is more effective when the optimal candidate
+sensor is more informative.
+Categories and Subject Descriptors
+H.1.1 [MODELS AND PRINCIPLES]: Systems and Information
+Theory--Information theory; C.2.4 [COMPUTER-COMMUNICATION
+NETWORKS]: Distributed Systems
+--Distributed applications
+General Terms
+Algorithms, Management, Theory
+Permission to make digital or hard copies of all or part of this work for
+personal or classroom use is granted without fee provided that copies are
+not made or distributed for profit or commercial advantage and that copies
+bear this notice and the full citation on the first page. To copy otherwise, to
+republish, to post on servers or to redistribute to lists, requires prior specific
+permission and/or a fee.
+IPSN'04, April 26­27, 2004, Berkeley, California, USA.
+Copyright 2004 ACM 1-58113-846-6/04/0004 ...
+$
+5.00.
+
+INTRODUCTION
+The recent convergence of micro-electro-mechanical systems
+(MEMS) technology, wireless communication and networking
+technology, and low-cost low-power miniature digital
+hardware design technology has made the concept of
+wireless sensor networks viable and a new frontier of research
+[2, 1]. The limited on-board energy storage and the limited
+wireless channel capacity are the major constraints of wireless
+sensor networks. In order to save precious resources,
+a sensing task should not involve more sensors than necessary
+. From the information-theoretic point of view, sensors
+are tasked to observe the target in order to increase the information
+(or to reduce the uncertainty) about the target
+state. The information gain attributable to one sensor may
+be very different from that attributable to another when sensors
+have different observation perspectives and sensing uncertainties
+. Selective use of informative sensors reduces the
+number of sensors needed to obtain information about the
+target state and therefore prolongs the system lifetime. In
+the scenario of localization or tracking using wireless sensor
+networks, the belief state of the target location can be gradually
+improved by repeatedly selecting the most informative
+unused sensor until the required accuracy (or uncertainty)
+level of the target state is achieved.
+There have been several investigations into information-theoretic
+approaches to sensor fusion and management. The
+idea of using information theory in sensor management was
+first proposed in [8]. Sensor selection based on expected information
+gain was introduced for decentralized sensing systems
+in [12]. The mutual information between the predicted
+sensor observation and the current target location distribution
+was proposed to evaluate the expected information gain
+about the target location attributable to a sensor in [11, 6].
+On the other hand, without using information theory, Yao
+et. al. [16] found that the overall localization accuracy depends
+on not only the accuracy of individual sensors but
+also the sensor locations relative to the target location during
+the development of localization algorithms. We propose
+a novel entropy-based heuristic for sensor selection based on
+our experiences with target localization. It is computationally
+more efficient than mutual-information-based methods
+proposed in [11, 6].
+36
+We use the following notations throughout this paper:
+1. S is the set of candidate sensors for selection, i  S is
+the sensor index;
+2. x is the realization of the random vector that denotes the
+target location;
+3. x
+t
+is the actual target location;
+4. ^
+x is the maximum likelihood estimate of the target location
+;
+5. x
+i
+is the deterministic location of sensor i;
+6. z
+i
+is the realization of the random variable that denotes
+the observation of sensor i about the target location;
+7. z
+ti
+is the actual observation of sensor i about the target
+location;
+8. z
+v
+i
+is the realization of the random variable that denotes
+the view of sensor i about the target location.
+The rest of this paper is organized as follows. Section 2
+describes the heuristic in detail.
+Section 3 evaluates the
+heuristic using simulations.
+Section 4 discusses the discrepancy
+between the heuristic and the mutual information
+based approaches. Section 5 outlines future work. Section 6
+concludes the paper. Section 7 acknowledges the sponsors.
+SENSOR SELECTION HEURISTIC
+This Sect. formulates the sensor selection problem in localization
+, presents the details of the entropy-based sensor
+selection heuristic, and discusses the relation between the
+entropy difference proposed in this paper and mutual information
+used in previous work about sensor selection.
+2.1
+Sensor Selection Problem in Localization
+There are several information measures. In this paper, we
+use Shannon entropy [14] to quantify the information gain
+(or uncertainty reduction) about the target location due to
+sensor observation. We adopt the greedy sensor selection
+strategy used in mutual-information-based approaches [11,
+6]. The greedy strategy gradually reduces the uncertainty
+of the target location distribution by repeatedly selecting
+the currently unused sensor with maximal expected information
+gain. The observation of the selected sensor is incorporated
+into the target location distribution using sequential
+Bayesian filtering [3, 7]. The greedy sensor selection and the
+sequential information fusion continue until the uncertainty
+of the target location distribution is less than or equal to
+the required level. The core problem of the greedy sensor
+selection approach is how to efficiently evaluate the expected
+information gain attributable to each candidate sensor without
+actually retrieving sensor data.
+The sensor selection problem is formulated as follows.
+Given
+1. the prior target location distribution: p(x),
+2. the locations of candidate sensors for selection: x
+i
+, i  S,
+3.
+the sensing models of candidate sensors for selection:
+p(z
+i
+|x), i  S,
+the objective is to find the sensor ^i whose observation z
+^i
+minimizes the expected conditional entropy of the posterior
+target location distribution,
+^i = arg min
+iS
+H(x|z
+i
+) .
+(1)
+Equivalently, the observation of sensor ^i maximizes the expected
+target location entropy reduction,
+^i = arg max
+iS
+(H(x) - H(x|z
+i
+)) .
+(2)
+H(x) - H(x|z
+i
+) is one expression of I(x; z
+i
+), the mutual
+information between the target location x and the predicted
+sensor observation z
+i
+,
+I(x; z
+i
+) =
+p(x, z
+i
+) log p(x, z
+i
+)
+p(x)p(z
+i
+) dxdz
+i
+,
+(3)
+where p(x, z
+i
+) = p(z
+i
+|x)p(x) and p(z
+i
+) =
+Ê
+p(x, z
+i
+)dx. Thus,
+the observation of sensor ^i maximizes the mutual information
+I(x; z
+i
+),
+^i = arg max
+iS
+I(x; z
+i
+) .
+(4)
+Sensor selection based on (4) is the maximal mutual information
+criterion proposed in [11, 6]. The target location
+x could be of up to three dimensions. The sensor observation
+z
+i
+(e.g. the direction to a target in a three-dimensional
+space ) could be of up to two dimensions. Therefore I(x; z
+i
+)
+is a complex integral in the joint state space (x, z
+i
+) of up to
+five dimensions. The complexity of computing I(x; z
+i
+) could
+be more than that low-end sensor nodes are capable of. If
+the observation z
+i
+is related to the target location x only
+through the sufficient statistics z(x), then
+I(x; z
+i
+) = I(z(x); z
+i
+) .
+(5)
+If z(x) has fewer dimensions than x, then I(z(x); z
+i
+) is less
+complex to compute than I(x; z
+i
+). In the above special scenario
+, I(z(x); z
+i
+) has been proposed to replace I(x; z
+i
+) to
+reduce the complexity of computing mutual information in
+[11]. In this paper, we propose an alternative entropy-based
+sensor selection heuristic. In general, the entropy-based sensor
+selection heuristic is computationally much simpler than
+the mutual information based approaches. However, the observation
+of the sensor selected by the heuristic would still
+yield on average the greatest or nearly the greatest entropy
+reduction of the target location distribution.
+2.2
+Entropy-based Sensor Selection Heuristic
+During the development of wireless sensor networks for
+localization, we have observed that the localization uncertainty
+reduction attributable to a sensor is greatly effected
+by the difference of two quantities, namely, the entropy of
+the distribution of that sensor's view about the target location
+, and the entropy of that sensor's sensing model for the
+actual target location.
+A sensor's view about the target location is the geometric
+projection of the target location onto that sensor's observation
+perspective. For example, a direction-of-arrival (DOA)
+sensor's view of the target location is the direction from the
+sensor to the target. The view of sensor i about the target
+location is denoted as z
+v
+i
+,which is a function of the target
+location x and the sensor location x
+i
+,
+z
+v
+i
+= f(x, x
+i
+) .
+(6)
+z
+v
+i
+usually has less dimensions than x. The probability distribution
+of the view of sensor i about the target location,
+p(z
+v
+i
+), is the projection of the target location distribution
+p(x) onto the observation perspective of sensor i,
+p(z
+v
+i
+)dz
+v
+i
+=
+z
+v
+i
+f(x,x
+i
+)z
+v
+i
++dz
+v
+i
+p(x)dx .
+(7)
+Alternatively, p(z
+v
+i
+) can be regarded as the `noise free' prediction
+of the sensor observation distribution p(z
+i
+) based on
+the target location distribution p(x).
+37
+0
+0.2
+0.4
+0.6
+0.8
+1
+1.2
+x 10
+-4
+East
+North
+38
+o
+36
+o
+0
+o
+100
+200
+300
+400
+50
+100
+150
+200
+250
+300
+350
+400
+Figure 1: A DOA sensor's view about the target
+location. Thestatespaceof thetarge
+t location is
+gridded in 1
+× 1 cells. Theimagedepicts theprobability
+distribution of thetarget location. Theactual
+target location is (200, 200), denoted by marker +.
+From the perspective of the DOA sensor denoted
+by the square, only the direction to the target is
+observable. The view of the DOA sensor about the
+target is in the interval [36
+o
+, 38
+o
+] if and only if the
+target is inside the sector delimited by 36
+o
+lineand
+38
+o
+line.
+In practice, the state space of the target location and the
+sensor view can be discretized by griding for numerical analysis
+. The discrete representation of p(z
+v
+i
+) can be computed
+as follows.
+1. Let
+X be the grid set of the target location x;
+2. Let
+Z be the grid set of the sensor view z
+v
+i
+;
+3. For each grid point z
+v
+i
+Z, initialize p(z
+v
+i
+) to zero;
+4. For each grid point x
+X , determine the corresponding
+grid point z
+v
+i
+Z using equation (6), and update its probability
+as p(z
+v
+i
+) = p(z
+v
+i
+) + p(x);
+5. Normalize p(z
+v
+i
+) to make the total probability of the sensor
+view be 1.
+The numerical computation of p(z
+v
+i
+) for a DOA sensor is
+illustrated in Fig. 1 and Fig. 2.
+The entropy of the probability distribution of the view of
+sensor i, H
+v
+i
+, is
+H
+v
+i
+=
+p
+(z
+v
+i
+) log p(z
+v
+i
+)dz
+v
+i
+.
+(8)
+Given the discrete representation of p(z
+v
+i
+) with a grid size
+of z
+v
+i
+, H
+v
+i
+can be numerically computed as
+H
+v
+i
+=
+p
+(z
+v
+i
+) log p(z
+v
+i
+)z
+v
+i
+.
+(9)
+The sensing model of sensor i for the actual target location
+x
+t
+is p(z
+i
+|x
+t
+), which describes the probability distribution of
+the observation of sensor i given that the target is at x
+t
+. The
+sensing model incorporates observation uncertainty from all
+sources, including the noise corruption to the signal, the signal
+modeling error of the sensor estimation algorithm, and
+the inaccuracy of the sensor hardware. For a single-modal
+target location distribution p(x), we can use the maximum
+10
+20
+30
+40
+50
+60
+70
+80
+0
+0.02
+0.04
+0.06
+0.08
+0.1
+0.12
+DOA (degree)
+Probability
+Figure2: Thediscreteprobability distribution of a
+DOA se
+nsor's vie
+w.
+Thestatespaceof theDOA
+sensor view is gridded in 2
+o
+intervals. The target location
+distribution and theDOA sensor location are
+illustrated in Fig. 1. Marker X denotes the probability
+of the DOA view interval [36
+o
+, 38
+o
+], which is the
+summation of theprobability of all target locations
+inside the sector delimited by 36
+o
+lineand 38
+o
+line
+in Fig. 1. Please note that the sensor view distribution
+does not depends on the sensing uncertainty
+characteristics at all.
+likelihood estimate ^
+x of the target location to approximate
+the actual target location x
+t
+. Thus the entropy of the sensing
+model of sensor i for the actual target location x
+t
+is
+approximated as
+H
+si
+=
+p
+(z
+i
+|^x) log p(z
+i
+|^x)dz
+i
+.
+(10)
+For a multi-modal target location distribution p(x) with M
+peaks ^
+x
+(m)
+, where m = 1, . . . , M , the entropy of the sensing
+model of sensor i for the actual target location x
+t
+can be
+approximated as a weighted average of the entropy of the
+sensing model for all modes,
+H
+si
+=
+M
+m=1
+p(^
+x
+(m)
+)
+p(z
+i
+|^x
+(m)
+) log p(z
+i
+|^x
+(m)
+)dz
+i
+. (11)
+Given a target location distribution p(x), the target location
+with maximum likelihood or local maximum likelihood can
+be found using standard search algorithms.
+We have repeatedly observed that the incorporation of
+the observation of sensor i with larger entropy difference
+H
+v
+i
+- H
+si
+yields on average larger reduction in the uncertainty
+of the posterior target location distribution p(x|z
+i
+).
+Therefore, given a prior target location distribution and the
+location and the sensing uncertainty model of a set of candidate
+sensors for selection, the entropy difference H
+v
+i
+- H
+si
+can sort candidate sensors into nearly the same order as mutual
+information I(x; z
+i
+) does. Specifically, the sensor with
+the maximal entropy difference H
+v
+i
+- H
+si
+also has the maximum
+or nearly the maximal mutual information I(x; z
+i
+).
+Hence we propose to use the entropy difference H
+v
+i
+- H
+si
+as
+an alternative to mutual information I(x; z
+i
+) for selecting
+38
+the most informative sensor. The entropy-based heuristic is
+to compute H
+v
+i
+- H
+si
+for every candidate sensor i  S and
+then to select sensor ^i such that
+^i = arg max
+iS
+(H
+v
+i
+- H
+si
+) .
+(12)
+In Sect. 3, the validity of the heuristic is evaluated using
+simulations and the complexity of the heuristic is analyzed
+for two-dimensional localization.
+The entropy-based sensor
+selection heuristic works nearly as well as the mutual-information
+-based approaches. In addition, the heuristic is
+computationally much simpler than mutual information.
+2.3
+Relation of Entropy Difference
+and Mutual Information
+A brief analysis of the relation between entropy difference
+H
+v
+i
+- H
+si
+and mutual information I(x; z
+i
+) helps to reveal
+fundamental properties of our sensor selection heuristic.
+Mutual information I(x; z
+i
+) has another expression, namely,
+H(z
+i
+)
+- H(z
+i
+|x). The entropy difference H
+v
+i
+- H
+si
+is closely
+related to H(z
+i
+)
+- H(z
+i
+|x).
+H(z
+i
+) is the entropy of the predicted sensor observation
+distribution p(z
+i
+),
+H(z
+i
+) =
+p
+(z
+i
+) log p(z
+i
+)dz
+i
+.
+(13)
+The predicted sensor observation distribution p(z
+i
+) becomes
+the sensor's view distribution p(z
+v
+i
+) when the sensing model
+p(z
+i
+|x) is deterministic without uncertainty. The uncertainty
+in the sensing model p(z
+i
+|x) makes H(z
+i
+) larger than
+the sensor's view entropy H
+v
+i
+defined in (8). H
+v
+i
+closely approximates
+H(z
+i
+) when the entropy of the sensing model
+p(z
+i
+|x) is small relative to H
+v
+i
+.
+H(z
+i
+|x) is actually the expected entropy of the sensing
+model p(x) averaged for all possible target locations,
+H(z
+i
+|x) = p
+(x, z
+i
+) log p(z
+i
+|x)dxdz
+i
+=
+p(x){-p
+(z
+i
+|x) log p(z
+i
+|x)dz
+i
+}dx .
+(14)
+When p(x) is a single-modal distribution, H
+si
+is defined in
+(10), which is the entropy of the sensing model for the most
+likely target location estimate ^
+x.
+When p(x) is a multi-modal
+distribution, H
+si
+is defined in (11), which is the average
+entropy of the sensing model for all target locations with
+local maximal likelihood. When the entropy of the sensing
+model,
+Ê
+p(z
+i
+|x) log p(z
+i
+|x)dz
+i
+, changes gradually with x,
+H
+si
+can reasonably approximate H(z
+i
+|x).
+The entropy difference H
+v
+i
+- H
+si
+reasonably approximates
+the mutual information H(z
+i
+)
+- H(z
+i
+|x) when H
+si
+is small
+relative to H
+v
+i
+and the entropy of the sensing model changes
+gradually with x. However, selection of the most informative
+sensor does not require an exact evaluation of sensor
+information utility. Instead, an order of sensors in terms of
+information utility is needed. H
+v
+i
+- H
+si
+could sort sensors
+into approximately the same order as mutual information
+does. Therefore, a sensor with the maximal entropy difference
+H
+v
+i
+- H
+si
+also has the maximal or nearly the maximal
+mutual information. The correlation between the entropy
+difference H
+v
+i
+- H
+si
+and mutual information I(x; z
+i
+) is analyzed
+using simulations in Sect. 3. Section 4 discusses the
+discrepancy between the heuristic and the mutual information
+based approaches.
+HEURISTIC EVALUATION
+This Sect. presents the evaluation of the entropy-based
+sensor selection heuristic using simulations.
+The computational
+complexity of the heuristic is also analyzed. The
+Gaussian noise model has been widely assumed for sensor
+observations in many localization and tracking algorithms,
+e.g. the Kalman filter [9]. Successes of these algorithms
+indicate that the Gaussian sensing model is a reasonable
+first-order-approximation of the reality. As a starting point,
+we assume Gaussian sensing models in the evaluative simulations
+for simplicity. The simple Gaussian sensing models assumed
+here are not accurate especially when sensors are very
+close to the target. To avoid the problem of over-simplified
+sensing models in the simulations, we only analyze sensors
+with some middle distance range to the target. The heuristic
+will be evaluated further under more realistic sensing
+models in the future. Four scenarios of sensor selection for
+localization have been studied. Three of them involve DOA
+sensors, range sensors, or time-difference-of-arrival (TDOA)
+sensors respectively. One of them involves all of the above
+sensors mixed together. In every sensor selection scenario,
+both the entropy difference H
+v
+i
+- H
+si
+and mutual information
+I(x; z
+i
+) are evaluated and compared for all candidate
+sensors. In all sensor selection scenarios, the entropy difference
+H
+v
+i
+- H
+si
+can sort all candidate sensors into nearly the
+same order as mutual information I(x; z
+i
+) does. Therefore,
+the sensor with the maximal entropy difference H
+v
+i
+- H
+si
+selected
+by the heuristic always has the maximum or nearly
+the maximal mutual information I(x; z
+i
+). The larger the
+entropy difference H
+v
+i
+- H
+si
+and mutual information I(x; z
+i
+)
+are, the more consistent their sensor selection decisions are.
+3.1
+Selection of DOA Sensors
+Consider now entropy-based sensor selection when all candidate
+sensors are DOA sensors, as depicted in Fig. 3. The
+prior probability distribution p(x) of the target location x is
+non-zero in a limited area. We assume the unbiased Gaussian
+sensing models for DOA sensors in some middle distance
+range to the target. Specifically, given a target location such
+that 10
+x - x
+i
+600, the probability distribution of
+DOA observation z
+i
+is assumed to be
+p(z
+i
+|x) =
+1
+2 e
+-(z
+i
+-z
+v
+i
+)
+2
+/(2
+2
+)
+,
+(15)
+where z
+v
+i
+= f(x, x
+i
+) is the direction from sensor i to the
+target location x. For many DOA estimation algorithms
+like the approximate maximum likelihood (AML) algorithm
+[4], DOA estimation usually becomes much more uncertain
+when the candidate sensor is either very near or very far
+from the target. In this scenario, we exclude sensors that
+are either outside the study area or within a distance of 10
+to the area of non-zero p(x).
+The entropy difference H
+v
+i
+- H
+si
+and mutual information
+I(x; z
+i
+) of DOA sensors are evaluated and compared in five
+cases. In each case, Gaussian sensing models of the same
+standard deviation  are assumed for all 100 candidate sensors
+.
+However, the standard deviation  varies with the
+case. As shown in fig. 4, mutual information I(x; z
+i
+) vs
+the entropy difference H
+v
+i
+- H
+si
+is plotted for all candidate
+sensors in all cases. Mutual information I(x; z
+i
+) increases
+nearly monotonically with the entropy difference H
+v
+i
+- H
+si
+.
+The larger the entropy difference H
+v
+i
+-H
+si
+and mutual information
+I(x; z
+i
+) are, the more correlated they are. Therefore,
+39
+0
+0.2
+0.4
+0.6
+0.8
+1
+1.2
+x 10
+-4
+100
+200
+300
+400
+50
+100
+150
+200
+250
+300
+350
+400
+Figure 3: Scenario of sensor selection for localization
+using DOA sensors exclusively. The image depicts
+theprior probability distribution p(x) of thetarget
+location x. p(x) is zero outside the solid rectangle.
+The actual target location is (200, 200), denoted by
+marker +. The squares denote candidate DOA sensors
+for selection. 100 DOA sensors are uniformly
+randomly placed outside the dotted rectangle. The
+gap between the solid rectangle and the dotted rect-angleis
+10.
+the entropy difference H
+v
+i
+- H
+si
+sorts DOA sensors in nearly
+the same order as mutual information I(x; z
+i
+) does, especially
+when the entropy difference H
+v
+i
+- H
+si
+is large. The
+candidate DOA sensor selected by the proposed heuristic
+has the maximal entropy difference H
+v
+i
+- H
+si
+, and also has
+the maximal mutual information I(x; z
+i
+).
+3.2
+Selection of Range Sensors
+and TDOA Sensors
+This Subsect. evaluates the entropy-based sensor selection
+heuristic for range sensors and TDOA sensors respectively.
+Fig. 5 shows the sensor selection scenario in which all
+candidate sensors can only measure the range to the target
+. The prior probability distribution p(x) of the target
+location x is non-zero in a limited area. We assume the
+unbiased Gaussian sensing models p(z
+i
+|x) for range sensors
+used in [13]. When the actual range is small relative to the
+standard deviation  of the Gaussian sensing model, p(z
+i
+|x)
+is significantly greater than zero even for negative values
+of range observation z
+i
+. Because a range of negative value
+has no physical meaning, the above Gaussian sensing model
+is not valid for short ranges. To avoid the above difficulty
+of the Gaussian sensing model, we only consider candidate
+sensors in some middle distance range to the target. Specifically
+, in this range sensor selection scenario, we exclude
+sensors that are either outside the study area or within a
+distance of 32 to the area of non-zero p(x).
+Fig. 6 shows the sensor selection scenario in which only
+TDOA sensors are used. The prior probability distribution
+p(x) of the target location x is non-zero in a limited area. As
+in [15], the signal arrival time difference observed by every
+TDOA sensor is relative to a common reference sensor. We
+-2
+-1
+0
+1
+2
+3
+4
+0
+0.5
+1
+1.5
+2
+2.5
+3
+3.5
+4
+Entropy difference (bit)
+Mutual information (bit)
+
+= 32
+
+= 16
+
+= 8
+
+= 4
+
+= 2
+Figure4: Mutual information I(x; z
+i
+) vs entropy difference
+H
+v
+i
+- H
+si
+of DOA sensors. Each symbol denotes
+(H
+v
+i
+- H
+si
+, I(x; z
+i
+)) pair evaluated for one candidatese
+nsor. Theprior targe
+t location distribution
+and the candidate sensor placements are shown in
+Fig. 3. Five cases with different standard deviation
+ of Gaussian sensing models are studied. In each
+case, all candidate sensors are assumed to have the
+same  value.
+also assume the unbiased Gaussian sensing models p(z
+i
+|x)
+for TDOA sensors. In order to be comparable with scenarios
+of DOA sensors and range sensors, we only consider TDOA
+sensors in middle range distance to the target. Specifically,
+we exclude TDOA sensors that are either outside the study
+area or within a distance of 10 to the area of non-zero p(x).
+Following the same approach to the heuristic evaluation
+for DOA sensors, the entropy difference H
+v
+i
+-H
+si
+and mutual
+information I(x; z
+i
+) of every candidate sensor are evaluated
+and compared for range sensor selection scenario in Fig. 5
+and for TDOA sensor selection scenario in Fig. 6 respectively
+. Mutual information I(x; z
+i
+) vs the entropy difference
+H
+v
+i
+- H
+si
+is plotted in Fig. 7 for all range sensors and in
+Fig. 8 for all TDOA sensors. In both scenarios, mutual information
+I(x; z
+i
+) increases nearly monotonically with the
+entropy difference H
+v
+i
+- H
+si
+. The larger the entropy difference
+H
+v
+i
+-H
+si
+and mutual information I(x; z
+i
+) are, the more
+correlated they are. Using the proposed heuristic, both the
+selected range sensor and the selected TDOA sensor have the
+maximal entropy difference H
+v
+i
+- H
+si
+, and also have nearly
+the maximal mutual information I(x; z
+i
+).
+3.3
+Selection of Mixed Sensors
+In order to evaluate the entropy-based sensor selection
+heuristic across different sensing modalities, this Subsect. is
+devoted to the sensor selection scenario in which candidate
+sensors are a mixture of DOA sensors, range sensors and
+TDOA sensors.
+Fig. 9 shows the sensor selection scenario for mixed candidate
+sensors. Each candidate sensor is randomly assigned
+one of three sensing modalities, namely, DOA, range, and
+TDOA. Gaussian sensing models are assumed for all candidate
+sensors with middle range distance to the target. Each
+40
+0
+0.5
+1
+1.5
+2
+2.5
+3
+3.5
+x 10
+-4
+100
+200
+300
+400
+50
+100
+150
+200
+250
+300
+350
+400
+Figure 5: Scenario of sensor selection for localization
+using rangese
+nsors.
+Theimagede
+picts theprior
+probability distribution p(x) of thetarget location x.
+p(x) is zero outside the solid rectangle. The actual
+target location is (200, 200), denoted by marker +.
+The circles denote candidate range sensors for selection
+. 100 range sensors are uniformly randomly
+placed outside the dotted rectangle.
+The gap between
+the solid rectangle and the dotted rectangle
+is 32.
+candidate sensor is also randomly assigned one of five values
+of the standard deviation  of the sensing model, namely,
+2, 4, 8, 16, and 32. 100 candidate sensors are uniformly
+randomly placed in the vicinity of the prior target location
+estimation. In order to avoid the difficulties of Gaussian
+sensing models for DOA sensors and range sensors close to
+the target, we exclude sensors either outside the study area
+or within a distance of 32 to the non-zero area of the prior
+target location distribution p(x).
+The entropy difference H
+v
+i
+- H
+si
+and mutual information
+I(x; z
+i
+) of every candidate sensor are evaluated and plotted
+in Fig.
+10.
+The correlation between H
+v
+i
+- H
+si
+and
+I(x; z
+i
+) of mixed sensors is very similar to the correlation
+between H
+v
+i
+- H
+si
+and I(x; z
+i
+) of sensors with single modality
+. Across various sensing modalities, mutual information
+I(x; z
+i
+) increases nearly monotonically with the entropy difference
+H
+v
+i
+- H
+si
+. Therefore, across various sensing modalities
+, the candidate sensor with the maximal entropy difference
+H
+v
+i
+- H
+si
+, selected by the proposed heuristic, has the
+maximal mutual information I(x; z
+i
+).
+3.4
+Computational Complexity
+Computational complexity analysis is an important part
+of the evaluation of the heuristic. We will analyze the complexity
+of the heuristic and compare it to the complexity of
+the mutual-information-based approaches.
+For two-dimensional localization, the target location x is
+two-dimensional. The sensor's view z
+v
+i
+of the target location
+x is one-dimensional. The sensor observation z
+i
+is one-dimensional
+. We assume that all random variables are gridded
+for numerical computation. Specifically, the area with
+non-trivial p(x) is gridded into n × n. The interval with
+0
+0.5
+1
+1.5
+2
+2.5
+3
+3.5
+x 10
+-4
+100
+200
+300
+400
+50
+100
+150
+200
+250
+300
+350
+400
+Figure 6: Scenario of sensor selection for localization
+using TDOA sensors. The image depicts the prior
+probability distribution p(x) of thetarget location x.
+p(x) is zero outside the solid rectangle. The actual
+target location is (200, 200), denoted by marker +.
+The triangles denote candidate TDOA sensors for
+selection.
+Every TDOA observation is relative to
+a common reference sensor denoted by marker
+×.
+100 TDOA sensors are uniformly randomly placed
+outside the dotted rectangle. The gap between the
+solid rectangle and the dotted rectangle is 10.
+non-trivial p(z
+i
+) or p(z
+v
+i
+) is also gridded into n. We assume
+there are K candidate sensors for selection. K is usually a
+small number.
+The proposed heuristic evaluates the entropy difference
+H
+v
+i
+- H
+si
+of all sensors and then selects the one with the
+maximal H
+v
+i
+- H
+si
+. As shown in (7), p(z
+v
+i
+) can be computed
+from p(x) with cost O(n
+2
+). As shown in (8), H
+v
+i
+can be
+computed from p(z
+v
+i
+) with cost O(n). As shown in (10) and
+(11), H
+si
+can be computed from p(z
+i
+|x) with cost O(n). The
+cost to compute H
+v
+i
+- H
+si
+for one candidate sensor is O(n
+2
+).
+Therefore, the total cost for the heuristic to select one out
+of K candidate sensors is O(n
+2
+).
+The mutual-information-based approaches evaluate the mutual
+information I(x; z
+i
+) of all sensors and then select the
+one with the maximal I(x; z
+i
+). As shown in (3), I(x; z
+i
+)
+can be directly computed from p(x) and p(z
+i
+|x) with cost of
+O(n
+3
+). Therefore, the total cost to select one out of K candidate
+sensors is O(n
+3
+). As we mentioned early in Subsect.
+2.1, the computational cost of mutual information I(x; z
+i
+)
+could be reduced in some special scenarios. In general, however
+, the heuristic is computationally much simpler than the
+mutual-information-based approaches.
+DISCREPANCY BETWEEN HEURISTIC AND MUTUAL INFORMATION
+As shown in Sect. 3, when the mutual information I(x; z
+i
+)
+is close to 0 bit, the entropy difference H
+v
+i
+- H
+si
+might not
+sort candidate sensors into exactly the same order as the
+mutual information does. Such discrepancy is caused by the
+dispersion of the correlation between the entropy difference
+41
+-2
+-1
+0
+1
+2
+3
+4
+5
+0
+1
+2
+3
+4
+5
+Entropy difference (bit)
+Mutual information (bit)
+
+= 32
+
+= 16
+
+= 8
+
+= 4
+
+= 2
+Figure7: Mutual information I(x; z
+i
+) vs entropy difference
+H
+v
+i
+- H
+si
+of range senors. Each symbol denotes
+(H
+v
+i
+- H
+si
+, I(x; z
+i
+)) pair evaluated for one candidate
+sensor. The prior target location distribution
+and the candidate sensor placements are shown in
+Fig. 5. Five cases with different standard deviation
+ of Gaussian sensing models are studied. In each
+case, all candidate sensors are assumed to have the
+same  value.
+H
+v
+i
+- H
+si
+and the mutual information I(x; z
+i
+) when the mutual
+information is small. In this Sect., we examine such
+correlation dispersion and evaluate its impact on the discrepancy
+of sensor selection decisions of the entropy-based
+heuristic and the mutual information based approaches.
+4.1
+Dispersion
+In this Subsect., we describe the dispersion of the correlation
+between the entropy difference H
+v
+i
+- H
+si
+and the
+mutual information I(x; z
+i
+) when the mutual information is
+small. We also examine possible sources for such correlation
+dispersion.
+Close examination on the convex part of the mutual information
+vs. entropy difference curve in Fig. 7 and Fig. 8
+reveals that the correlation between the mutual information
+I(x; z
+i
+) and the entropy difference H
+v
+i
+- H
+si
+is not strictly
+monotonic. Instead, there is obvious dispersion of the correlation
+. The convex part corresponds to the situation in
+which candidate sensors are not very informative because
+the mutual information between the target location distribution
+and the sensor observation is close to 0 bit. In another
+words, when candidate sensors are not very informative, the
+entropy difference H
+v
+i
+-H
+si
+might not sort candidate sensors
+into the same order as the mutual information I(x; z
+i
+) does.
+Given a set of candidate sensors whose observation could
+only reduce a little amount of uncertainty of the target location
+distribution, the sensor selected on the basis of the
+maximum entropy difference H
+v
+i
+- H
+si
+might not have the
+maximum mutual information I(x; z
+i
+). Thus, there might
+be discrepancy between the sensor selection decision of the
+entropy-based heuristic and that of the mutual information
+based approaches if no candidate sensor is very informative.
+-4
+-2
+0
+2
+4
+6
+0
+1
+2
+3
+4
+5
+6
+Entropy difference (bit)
+Mutual information (bit)
+
+= 32
+
+= 16
+
+= 8
+
+= 4
+
+= 2
+Figure8: Mutual information I(x; z
+i
+) vs entropy difference
+H
+v
+i
+- H
+si
+of TDOA senors. Each symbol denotes
+(H
+v
+i
+- H
+si
+, I(x; z
+i
+)) pair evaluated for one candidatese
+nsor. Theprior targe
+t location distribution
+and the candidate sensor placements are shown in
+Fig. 6. Five cases with different standard deviation
+ of Gaussian sensing models are studied. In each
+case, all candidate sensors are assumed to have the
+same  value.
+There might be multiple causes of such correlation dispersion
+between the entropy difference H
+v
+i
+-H
+si
+and the mutual
+information I(x; z
+i
+). As pointed out in Subsect. 2.3, the entropy
+difference H
+v
+i
+-H
+si
+can be viewed as an approximation
+of the mutual information I(x; z
+i
+). Thus, the order of sensors
+sorted by the entropy difference H
+v
+i
+-H
+si
+is intrinsically
+an approximation of that by the mutual information I(x; z
+i
+).
+In practice, the discretization of the state space of the target
+location random variable and the sensor view random
+variable might also introduce inaccuracy into the evaluation
+of H
+v
+i
+. Besides, as shown in (10) and (11), the maximum
+likelihood estimate of the target location is used to approximate
+the actual target location when evaluating the entropy
+of the sensing model for the actual target location.
+4.2
+Impact
+In this Subsect., we examine the impact of the dispersion
+of the correlation between the entropy difference H
+v
+i
+- H
+si
+and the mutual information I(x; z
+i
+) when the mutual information
+is small. The analysis shows that such correlation
+dispersion causes very little degradation to the quality of
+sensor selection decision of the entropy-based heuristic.
+As shown by the convex part of the mutual information
+vs. entropy difference curve in Fig. 7 and Fig. 8, there is
+dispersion of the correlation between the entropy difference
+H
+v
+i
+-H
+si
+and the mutual information I(x; z
+i
+) when candidate
+sensors are not very informative. We model such dispersion
+using a uniform distribution bounded by a parallelogram illustrated
+in Fig. 11. A candidate sensor could assume any
+position (H
+v
+i
+- H
+si
+, I(x; z
+i
+)) within the parallelogram with
+uniform probability. As shown in Fig. 11, the geometry of
+the parallelogram is defined by parameters a, b and c. a
+42
+0
+0.2
+0.4
+0.6
+0.8
+1
+1.2
+x 10
+-4
+100
+200
+300
+400
+50
+100
+150
+200
+250
+300
+350
+400
+Figure 9: Scenario of sensor selection for localization
+using sensors with various modalities. The imagedepicts
+theprior probability distribution p(x) of
+thetarge
+t location x. p(x) is zero outside the solid
+rectangle. The actual target location is (200, 200),
+denoted by marker +. The squares, the circles, and
+the triangles denote DOA sensors, range sensors and
+TDOA sensors respectively. Every TDOA observation
+is relative to a common reference sensor denoted
+by marker
+×. Each sensor is randomly chosen
+to bea DOA se
+nsor, a rangese
+nsor, or a TDOA
+sensor. Each sensor is also randomly assigned one
+of five values of the standard deviation  of Gaussian
+sensing models, namely, 2, 4, 8, 16, and 32. The
+sizeof a symbol indicates themagnitudeof . 100
+sensors of various sensing modalities and  values
+areuniformly randomly place
+d outsidethedotte
+d
+rectangle. The gap between the solid rectangle and
+the dotted rectangle is 32.
+is the variation scope of entropy difference H
+v
+i
+- H
+si
+among
+the set of candidate sensors. c indicates the variation scope
+of the mutual information I(x; z
+i
+) among the set of candidate
+sensors. b describes the magnitude of dispersion of the
+correlation between the entropy difference H
+v
+i
+- H
+si
+and the
+mutual information I(x; z
+i
+). Although the bounded uniform
+distribution is not accurate, it captures the major features
+of the correlation dispersion revealed by simulations in Sect.
+3. We choose this dispersion model for simplicity. As the
+first order approximation, the simple dispersion model does
+help to reveal some major characteristics of the impact of
+the correlation dispersion on the heuristics-based sensor selection
+.
+A typical dispersion scenario is illustrated in Fig.
+11.
+The mutual information I(x; z
+i
+) of candidate sensors varies
+from 0 bit to 1 bit. Correspondingly, the entropy difference
+H
+v
+i
+- H
+si
+of candidate sensors changes from
+-2 bit to 0 bit.
+For any value of the entropy difference H
+v
+i
+-H
+si
+, the disperse
+of the mutual information I(x; z
+i
+) is 0.1 bit. Given the above
+scenario, we run 10, 000 simulations. In each simulation, 8
+candidate sensors randomly assume their (H
+v
+i
+-H
+si
+, I(x; z
+i
+))
+pairs within the specified dispersion range. In each simulation
+, we identify both the sensor with the maximum entropy
+-2
+0
+2
+4
+6
+0
+1
+2
+3
+4
+5
+6
+Entropy difference (bit)
+Mutual information (bit)
+TDOA sensor 
+DOA sensor  
+range sensor
+Figure10: Mutual information I(x; z
+i
+) vs entropy
+difference H
+v
+i
+- H
+si
+of mixed senors.
+Each symbol
+denotes (H
+v
+i
+- H
+si
+, I(x; z
+i
+)) pair evaluated for one candidate
+sensor. The prior target location distribution
+and the candidate sensor placements are shown in
+Fig. 9.
+difference H
+v
+i
+- H
+si
+and the sensor with the maximum mutual
+information I(x; z
+i
+). With 87.8% chance, the sensor
+selected by the entropy-based heuristic also has the maximum
+mutual information. Even when the heuristic fails to
+select the sensor of the maximum mutual information, the
+mutual information of the selected sensor is on average only
+about 0.026 bit less than the maximum mutual information.
+Overall, the mutual information of the sensor selected by the
+entropy-based heuristic is about 0.026×(1-87.8%) = 0.0032
+bit less than the maximum mutual information. Therefore,
+most of the time, the correlation dispersion does not cause
+discrepancy of the sensor selection decisions between the
+entropy-based heuristic and the mutual information based
+approaches. Over all, the entropy-based heuristic introduces
+very little degradation to the quality of the sensor select decision
+even when candidate sensors are not very informative.
+We have analyzed the impact of the correlation dispersion
+for different configurations of a, b, c, and the number
+of candidate sensors. In table 1 , a = 2 bit, b = 0.1 bit and
+c = 1 bit are fixed. We only change the number of candidate
+sensors. The chance for the heuristic to successfully
+select the sensor with the maximum mutual information decreases
+as the number of candidate sensors increases. When
+the heuristic fails to select the sensor with the maximum
+mutual information, the degradation of sensor selection decision
+based on the heuristic compared to that based on
+the mutual information does not change with the number of
+candidate sensors. Thus, the overall degradation of sensor
+selection decision based on the heuristic compared to that
+based on mutual information also increases as the number
+of candidate sensors increases.
+In table 2 , a = 2 bit and c = 1 bit are fixed and the
+number of candidate sensors are fixed to be 8.
+We only
+change the dispersion width b. The chance for the heuristic
+to successfully select the sensor with the maximum mutual
+43
+-2
+-1.5
+-1
+-0.5
+0
+0
+0.5
+1
+1.5
+2
+Entropy difference (bit)
+Mutual information (bit)
+b
+a
+c
+Figure 11: Discrepancy between the entropy-based
+sensor selection heuristic and the mutual information
+based approaches when candidate sensors are
+not very informative. The dispersion of the correlation
+between the entropy difference H
+v
+i
+- H
+si
+and
+themutual information I(x; z
+i
+) is modeled by a uniform
+distribution bounded by a parallelogram. The
+geometry of the parallelogram is defined by parameters
+a, b and c. Candidate sensors are denoted by
+marker
+× whosecoordinates are(H
+v
+i
+- H
+si
+, I(x; z
+i
+)).
+The entropy-based heuristic selects the rightmost
+sensor, which has the maximum entropy difference
+H
+v
+i
+- H
+si
+and is enclosed by a square marker. The
+mutual information based approaches selects the top
+sensor, which has the maximum mutual information
+I(x; z
+i
+) and is enclosed by a diamond-shaped marker.
+The above two selected sensors might not be the
+same. In the scenario of this figure, a = 2 bits, b = 0.1
+bit, c = 1 bit, and 8 candidatesensors areavailable
+for selection.
+information decreases as the dispersion width b increases.
+When the heuristic fails to select the sensor with the maximum
+mutual information, the degradation of sensor selection
+decision based on the heuristic compared to that based
+on the mutual information increases as the dispersion width
+b increases. Thus, the overall degradation of sensor selection
+decision based on the heuristic compared to that based on
+mutual information also increases as the dispersion width b
+increases.
+In table 3 , a = 2 bit and b = 0.1 bit are fixed and
+the number of candidate sensors are fixed to be 8.
+We
+only change the mutual information variation scope c. The
+chance for the heuristic to successfully select the sensor with
+the maximum mutual information increases as the mutual
+information variation scope c increases. When the heuristic
+Table 1: Impact Change with Number of Sensors
+Number of Candidate Sensors
+4
+8
+16
+Chance of Success (%)
+93.6
+87.8
+78.2
+Degradation per Failure (bit)
+0.026
+0.026
+0.026
+Overall Degradation (bit)
+0.0016
+0.0032
+0.0058
+Table2: Impact Changewith Dispersion Width
+Dispersion Width b (bit)
+0.05
+0.1
+0.2
+Chance of Success (%)
+93.6
+87.8
+78.1
+Degradation per Failure (bit)
+0.013
+0.026
+0.054
+Overall Degradation (bit)
+0.0008
+0.0032
+0.012
+Table3: Impact Changewith Mutual Info. Scope
+Mutual Info. Scope c (bit)
+0.5
+1
+2
+Chance of Success (%)
+78.2
+87.8
+93.6
+Degradation per Failure (bit)
+0.027
+0.026
+0.025
+Overall Degradation (bit)
+0.0058
+0.0032
+0.0016
+fails to select the sensor with the maximum mutual information
+, the degradation of sensor selection decision based on
+the heuristic compared to that based on the mutual information
+does not change much with the mutual information
+variation scope c. Thus, the overall degradation of sensor
+selection decision based on the heuristic compared to that
+based on mutual information decreases as the mutual information
+variation scope c increases.
+In table 4 , b = 0.1 bit is fixed and the number of candidate
+sensors are fixed to be 8. We proportionally change
+the entropy difference variation scope a and the mutual information
+variation scope c so that c/a = 1/2 is fixed. The
+chance for the heuristic to successfully select the sensor with
+the maximum mutual information increases as the entropy
+difference variation scope a and the mutual information variation
+scope c proportionally increase. When the heuristic
+fails to select the sensor with the maximum mutual information
+, the degradation of sensor selection decision based
+on the heuristic compared to that based on the mutual information
+does not change. Thus, the overall degradation of
+sensor selection decision based on the heuristic compared to
+that based on mutual information decreases as the entropy
+difference variation scope a and the mutual information variation
+scope c proportionally increase.
+FUTURE WORK
+When the sensors is selected for tracking a temporally continuous
+source, the prior target location distribution at time
+t + 1 can be obtained from the posterior target location distribution
+at time t by using the target dynamic model as described
+in [11]. However, when the sensor selection heuristic
+is applied to locate a temporally discontinuous source such
+as a bird call, it is not straightforward to obtain the prior
+target location distribution used in the sequential Bayesian
+fusion. One possible solution to the above problem could be
+as follows. First, all sensors buffer the signal once an event
+Table4: Impact Changewith Entropy Diff. Scopec
+and Mutual Info. Scope a in Proportion
+Entropy Diff. Scope a (bit)
+1
+2
+4
+Mutual Info. Scope c (bit)
+0.5
+1
+2
+Chance of Success (%)
+78.2
+87.8
+93.6
+Degradation per Failure (bit)
+0.026
+0.026
+0.026
+Overall Degradation (bit)
+0.0058
+0.0032
+0.0016
+44
+such as a bird call is detected. Then, all triggered sensors
+elect a leader that received the strongest signal intensity using
+a protocol similar to that described in [10]. Finally, the
+leader can pick a few sensors to generate an initial prior target
+location distribution assuming a certain sensing model.
+With the initial prior target location distribution, we can
+apply the sensor selection heuristic to incrementally reduce
+the uncertainty of the target location distribution. We plan
+to implement and test the above mechanism in the future.
+5.2
+Discretization of State Space
+There is a trade offof computational efficiency and numerical
+accuracy in the discretization of the state space of
+random variables such as the target location and the sensor
+view. The bigger the grid size is, the fewer grids are
+involved in the computation. However, a bigger grid size
+also introduces more inaccuracy into the evaluation of the
+entropy difference heuristic. In the future, we must study
+more details about the trade offin order to choose a proper
+grid size.
+5.3
+Sensing Uncertainty Model
+We have assumed Gaussian sensing models in the simulations
+as the first step to evaluate the heuristic. Inaccuracy
+of sensing models diminishes the effectiveness of any
+sensor selection criterion. We plan to construct a more realistic
+sensing model for the AML-based DOA estimation.
+We have implemented AML algorithm for real-time DOA
+estimation on a wireless sensor network testbed [5].
+We
+will first analyze the sensing uncertainty characteristic of
+the AML algorithm, and then experimentally validate and
+refine it using the testbed. We will also evaluate the effectiveness
+of the entropy-based sensor selection heuristic using
+realistic sensing models and implement the heuristic on the
+real-time wireless sensor network testbed for localization.
+CONCLUSION
+We have proposed an entropy-based sensor selection heuristic
+for localization. The effectiveness of the heuristic has
+been evaluated using simulations in which Gaussian sensing
+models are assumed for simplicity. Simulations have shown
+that the heuristic selects the sensor with nearly the maximal
+mutual information between the target location and the sensor
+observation. Given the prior target location distribution,
+the sensor locations, and the sensing models, on average,
+the sensor selected by the heuristic would yield nearly the
+greatest reduction in the entropy of the posterior target location
+distribution. The heuristic is more effective when the
+optimal candidate sensor is more informative. As mutual-information
+-based sensor selection approaches [11, 6] do, the
+heuristic greedily selects one sensor in each step without retrieving
+any actual sensor observations. In addition, in general
+, our heuristic is computationally much simpler than the
+mutual-information-based approaches.
+ACKNOWLEDGMENTS
+This material is based upon work partially supported by
+the National Science Foundation (NSF) under Cooperative
+Agreement #CCR-0121778, and DARPA SensIT program
+under contract AFRL/IFG 315 330-1865 and AROD-MURI
+PSU 50126.
+
+REFERENCES
+[1] I. F. Akyildiz, W. Su, Y. Sankarasubramaniam, and
+E. Cayirci. Wireless sensor networks: a survey.
+Computer Networks, 38(4):393­442, March 2002.
+[2] G. Asada, M. Dong, T. Lin, F. Newberg, G. Pottie,
+W. Kaiser, and H. Marcy. Wireless integrated network
+sensors: low power systems on a chip. In Proc. the
+European Solid State Circuits Conference, The Hague,
+Netherlands, 1998.
+[3] J. M. Bernardo and A. F. M. Smith. Bayesian theory.
+Wiley, New York, 1996.
+[4] J. Chen, R. Hudson, and K. Yao. Maximum-likelihood
+source localization and unknown sensor location
+estimation for wideband signals in the near-field. IEEE
+T. Signal Proces., 50(8):1843­1854, August 2002.
+[5] J. Chen, L. Yip, J. Elson, H. Wang, D. Maniezzo,
+R. Hudson, K. Yao, and D. Estrin. Coherent acoustic
+array processing and localization on wireless sensor
+networks. Proc. the IEEE, 91(8):1154­1162, August
+2003.
+[6] E. Ertin, J. Fisher, and L. Potter. Maximum mutual
+information principle for dynamic sensor query
+problems. In Proc. IPSN'03, Palo Alto, CA, April
+2003.
+[7] S. Haykin. Adpative filter theory. Prentice Hall, New
+Jersey, USA, 1996.
+[8] K. Hintz and E. McVey. A measure of the information
+gain attributable to cueing. IEEE T. Syst. Man Cyb.,
+21(2):434­442, 1991.
+[9] R. E. Kalman. A new approach to linear filtering and
+prediction problems. Trans. of the ASME­Journal of
+Basic Engineering, 82(Series D):35­45, 1960.
+[10] J. Liu, J. Liu, J. Reich, P. Cheung, and F. Zhao.
+Distributed group management for track initiation
+and maintenance in target localization applications. In
+Proc. International Workshop on Informaiton
+Processing in Sensor Networks (IPSN), Palo Alto,
+CA, April 2003.
+[11] J. Liu, J. Reich, and F. Zhao. Collaborative
+in-network processing for target tracking. EURASIP
+JASP: Special Issues on Sensor Networks,
+2003(4):378­391, March 2003.
+[12] J. Manyika and H. Durrant-Whyte. Data fusion and
+sensor management: a decentralized
+information-theoretic approach. Ellis Horwood, New
+York, 1994.
+[13] A. Savvides, W. Garber, S. Adlakha, R. Moses, and
+M. B. Srivastava. On the error characteristics of
+multihop node localization in ad-hoc sensor networks.
+In Proc. IPSN'03, Palo Alto, CA, USA, April 2003.
+[14] C. E. Shannon. A mathematical theory of
+communication. Bell Systems Technical Journal,
+27(6):379­423 and 623­656, 1948.
+[15] T. Tung, K. Yao, C. Reed, R. Hudson, D. Chen, and
+J. Chen. Source localization and time delay estimation
+using constrained least squares and best path
+smoothing. In Proc. SPIE'99, volume 3807, pages
+220­223, July 1999.
+[16] K. Yao, R. Hudson, C. Reed, D. Chen, and
+F. Lorenzelli. Blind beamforming source localization
+on a sensor array system. In AWAIRS project
+presentation at UCLA, USA, December 1997.
+45
+

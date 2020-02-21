@@ -1,0 +1,2222 @@
+Formally Deriving an STG Machine
+ABSTRACT
+Starting from P. Sestoft semantics for lazy evaluation, we
+define a new semantics in which normal forms consist of variables
+pointing to lambdas or constructions. This is in accordance
+with the more recent changes in the Spineless Tagless
+G-machine (STG) machine, where constructions only appear
+in closures (lambdas only appeared in closures already
+in previous versions). We prove the equivalence between the
+new semantics and Sestoft's. Then, a sequence of STG machines
+are derived, formally proving the correctness of each
+derivation. The last machine consists of a few imperative
+instructions and its distance to a conventional language is
+minimal.
+The paper also discusses the differences between the final
+machine and the actual STG machine implemented in the
+Glasgow Haskell Compiler.
+Categories and Subject Descriptors
+D.3.1 [Programming Languages]: Formal Definitions and
+Theory--semantics, syntax ; D.3.2 [Programming Languages
+]: Language Classifications--applicative (functional)
+languages; D.3.4 [Programming Languages]: Processors-code
+generation, compilers; F.3.2 [Logics and meanings
+of programs]: Semantics of Programming Languages--operational
+semantics
+General Terms
+Theory, Languages, Verification
+
+Work partially supported by the Spanish project TIC 2000-0738
+.
+Permission to make digital or hard copies of all or part of this work for
+personal or classroom use is granted without fee provided that copies are
+not made or distributed for profit or commercial advantage and that copies
+bear this notice and the full citation on the first page. To copy otherwise, to
+republish, to post on servers or to redistribute to lists, requires prior specific
+permission and/or a fee.
+PPDP'03, August 27­29, 2003, Uppsala, Sweden.
+Copyright 2003 ACM 1-58113-705-2/03/0008 ...
+$
+5.00.
+INTRODUCTION
+The Spineless Tagless G-machine (STG) [6] is at the heart
+of the Glasgow Haskell Compiler (GHC) [7] which is perhaps
+the Haskell compiler generating the most efficient code. For
+a description of Haskell language see [8]. Part of the secret
+for that is the set of analysis and transformations carried
+out at the intermediate representation level. Another part
+of the explanation is the efficient design and implementation
+of the STG machine.
+A high level description of the STG can be found in [6].
+If the reader is interested in a more detailed view, then the
+only available information is the Haskell code of GHC (about
+80.000 lines, 12.000 of which are devoted to the implementation
+of the STG machine) and the C code of its different
+runtime systems (more than 40.000 lines)[1].
+In this paper we provide a step-by-step derivation of the
+STG machine, starting from a description higher-level than
+that of [6] and arriving at a description lower-level than that.
+Our starting point is a commonly accepted operational
+semantics for lazy evaluation provided by Peter Sestoft in
+[10] as an improvement of John Launchbury's well-known
+definition in [4]. Then, we present the following refinements:
+1. A new operational semantics, which we call semantics
+S3 --acknowledging that semantics 1 and 2 were defined
+by Mountjoy in a previous attempt [5]--, where
+normal forms may appear only in bindings.
+2. A first machine, called STG-1, derived from S3 in
+which explicit replacement of pointers for variables is
+done in expressions.
+3. A second machine STG-2 introducing environments in
+closures, case alternatives, and in the control expression
+.
+4. A third machine, called ISTG (I stands for imperative)
+with a very small set of elementary instructions, each
+one very easy to be implemented in a conventional
+language such as C.
+5. A translation from the language of STG-2 to the language
+of ISTG in which the data structures of STG-2
+are represented (or implemented) by the ISTG data
+structures.
+102
+e  x
+-- variable
+|
+x.e
+-- lambda abstraction
+|
+e x
+-- application
+|
+letrec x
+i
+= e
+i
+in e
+-- recursive let
+|
+C x
+i
+-- constructor application
+|
+case e of C
+i
+x
+ij
+e
+i
+-- case expression
+Figure 1: Launchbury's normalized -calculus
+At each refinement, a formal proof of the soundness and
+completeness of the lower level with respect to the upper
+one is carried out
+1
+. In the end, the final implementation is
+shown correct with respect to Sestoft's operational semantics
+.
+The main contribution of the work is showing that an efficient
+machine such as STG can be presented, understood,
+and formally reasoned about at different levels of abstraction
+. Also, there are some differences between the machine
+we arrive at and the actual STG machine implemented in
+the Glasgow Haskell Compiler. We argue that some design
+decisions in the actual STG machine are not properly justified
+.
+The plan of the paper is as follows: after this introduction
+, in Section 2, a new language called FUN is introduced
+and the semantics S3 for this language is defined. Two theorems
+relating Launchbury's original language and semantics
+to the new ones are presented. Section 3 defines the
+two machines STG-1 and STG-2. Some propositions show
+the consistency between both machines and the correctness
+and completeness of STG-1 with respect to S3, eventhough
+the latter creates more closures in the heap and produces
+different (but equivalent) normal forms. Section 4 defines
+machine ISTG and Section 5 defines the translation from
+STG-2 expressions to ISTG instructions. Two invariants are
+proved which show the correctness of the translation. Section
+6 discusses the differences between our translation and
+the actual implementation done by GHC. Finally, Section 7
+concludes.
+A NEW SEMANTICS FOR LAZY EVAL-UATION
+We begin by reviewing the language and semantics given
+by Sestoft as an improvement to Launchbury's semantics.
+Both share the language given in Figure 1 where A
+i
+denotes
+a vector A
+1
+, . . . , A
+n
+of subscripted entities. It is a normalized
+-calculus, extended with recursive let, constructor
+applications and case expressions. Sestoft's normalization
+process forces constructor applications to be saturated and
+all applications to only have variables as arguments. Weak
+head normal forms are either lambda abstractions or constructions
+. Throughout this section, w will denote (weak
+head) normal forms.
+Sestoft's semantic rules are given in Figure 2. There, a
+judgement  : e
+A
+: w denotes that expression e, with
+its free variables bound in heap , reduces to normal form
+w and produces the final heap . When fresh pointers are
+created, freshness is understood w.r.t. (dom )  A, where
+A contains the addresses of the closures under evaluation
+1
+The
+details
+of
+the
+proofs
+can
+be
+found
+in
+a
+technical
+report
+at
+one
+of
+the
+author's
+page
+http://dalila.sip.ucm.es/~albertoe.
+: x.e
+A
+: x.e
+Lam
+: C p
+i
+
+A
+: C p
+i
+Cons
+: e
+A
+: x.e
+: e [p/x]
+A
+: w
+: e p
+A
+: w
+App
+: e
+A{p}
+: w
+[p  e] : p
+A
+[p  w] : w
+Var
+[p
+i
+^
+e
+i
+] : ^
+e
+A
+: w
+: letrec x
+i
+= e
+i
+in e
+A
+: w where p
+i
+fresh Letrec
+: e
+A
+: C
+k
+p
+j
+: e
+k
+[p
+j
+/x
+kj
+]
+A
+: w
+: case e of C
+i
+x
+ij
+e
+i
+
+A
+: w
+Case
+Figure 2: Sestoft's natural semantics
+(see rule Var). The notation ^
+e in rule Letrec means the replacement
+of the variables x
+i
+by the fresh pointers p
+i
+. This
+is the only rule where new closures are created and added
+to the heap. We use the term pointers to refer to dynam-ically
+created free variables, bounded to expressions in the
+heap, and the term variables to refer to (lambda-bound, let-bound
+or case-bound) program variables. We consistently
+use p, p
+i
+, . . . to denote free variables and x, y, . . . to denote
+program variables.
+J. Mountjoy's [5] had the idea of changing Launchbury-Sestoft's
+language and semantics in order to get closer to the
+STG language, and then to derive the STG machine from
+the new semantics.
+He developed two different semantics: In the first one,
+which we call semantics S1, the main change was that normal
+forms were either constructions (as they were in Sestoft's
+semantics) or variables pointing to closures containing
+-abstractions, instead of just -abstractions. The reason
+for this was to forbid a -abstraction in the control expression
+as it happens in the STG machine. Another change
+was to force applications to have the form x x
+1
+, i.e. consisting
+of a variable in the functional part. This is also what
+the STG language requires. These changes forced Mountjoy
+to modify the source language and to define a normalization
+from Launchbury's language to the new one. Mountjoy
+proved that the normalization did not change the normal
+forms arrived at by both semantics.
+The second semantics, which we call semantics S2, forced
+applications to be done at once to n arguments instead of
+doing it one by one. Correspondingly, -abstractions were
+allowed to have several arguments. This is exactly what
+the STG machine requires. Semantics S2 was informally
+derived and contained some mistakes. In particular, (cf. [5,
+pag. 171]) rule App
+M
+makes a -abstraction to appear in
+the control expression, in contradiction with the desire of
+having -abstractions only in the heap.
+Completing and correcting Mountjoy's work we have defined
+a new semantics S3 in which the main changes in the
+source language w.r.t. Mountjoy's are the following:
+1. We force constructor applications to appear only in
+bindings, i.e. in heap closures. Correspondingly, normal
+forms are variables pointing to either -abstractions
+or constructions. We will use the term lambda forms to
+refer to -abstractions or constructions alike. The motivation
+for this decision is to generate more efficient
+code as it will be seen in Section 5.1.
+103
+e
+e x
+in
+-- n &gt; 0, application
+|
+x
+-- variable
+|
+letrec x
+i
+= lf
+i
+in e -- recursive let
+|
+case e of alt
+i
+-- case expression
+alt
+C x
+j
+e
+-- case alternative
+lf
+x
+in
+.e
+-- n &gt; 0, lambda abstraction
+|
+C x
+in
+-- constructor application
+|
+e
+-- expression
+Figure 3: Language FUN
+2. We relax applications to have the form e x
+in
+, where e is
+an arbitrary expression (excluding, of course, lambda
+forms). The initial motivation for this was not to introduce
+unjustified restrictions. In the conclusions we
+discuss that the generated code is also more efficient
+than the one produced by restricting applications to
+be of the form x x
+in
+.
+Additionally, our starting point is Sestoft's semantics instead
+of Launchbury's. The main difference is that Sestoft
+substitutes fresh pointers for program variables in rule Letrec
+while Launchbury substitutes fresh variables for all bound
+variables in rule Var instead.
+The syntax of the language, called FUN, is shown in Figure
+3. Notice that applications are done to n arguments
+at once, being e x
+in
+an abbreviation of (. . . (e x
+1
+) . . .) x
+n
+,
+and that consequently -abstractions may have several arguments
+. Its operational semantics, called S3 is given in
+Figure 4. For simplicity, we have eliminated the set A of
+pending updates appearing in Sestoft's semantics. This set
+is not strictly needed provided that the fresh name generator
+for pointers does not repeat previously generated names
+and provided that pointer's names are always distinguish-able
+from program variables. In rule Case
+S3
+, expression e
+k
+is the righthand side expression of the alternative alt
+k
+. The
+notation [p  e] highlights the fact that (p  e)  ,
+and   [p  e] means the disjoint union of  and (p  e).
+Please notice that this notation may not coincide with other
+notations in which  and [p  e] denote different heaps.
+Finally notice that, besides rule Letrec
+S3
+, also rule App
+S3
+creates closures in the heap.
+Language FUN is at least as expressive as Launchbury's
+-calculus. The following normalization function transforms
+any Launchbury's expression into a semantically equivalent
+FUN expression.
+Definition 1. We define the normalization function N :
+Launch  FUN:
+N x
+def
+= x
+N (e x)
+def
+= (N e) x
+N ( x.e)
+def
+= letrec y = N ( x.e) in y
+, y fresh
+N (C x
+i
+)
+def
+= letrec y = C x
+i
+in y
+, y fresh
+N (letrec x
+i
+= e
+in
+in e)
+def
+= letrec x
+i
+= N e
+i
+n
+in N e
+N (case e of C
+i
+y
+ij
+e
+i
+)
+def
+= case N e of C
+i
+y
+ij
+N e
+i
+N , N : Launch  FUN:
+N (C x
+in
+)
+def
+=
+C x
+in
+N e
+def
+=
+N
+e
+, e = C x
+in
+N
+( x.e)
+def
+=
+x.N
+e
+N
+e
+def
+=
+N e
+, e =  x.e
+The following proposition prove that the normalization
+functions are well defined.
+Proposition 1.
+1. Let e  Launch then N e  FUN
+2. Let e  lf then N e  lf
+3. Let e = x.e and e = C x
+i
+then, N e = N e
+4. (N e)[p
+i
+/x
+i
+] = N (e[p
+i
+/x
+i
+])
+5. (N e)[p
+i
+/x
+i
+] = N (e[p
+i
+/x
+i
+])
+Proof.
+1. By structural induction on e.
+2. Trivial.
+3. Trivial.
+4. By definition of N and of substitutions.
+5. By definition of N and of substitutions.
+To see that both semantics reduce an expression to equivalent
+normal forms, first we prove that the normalization
+does not change the meaning of an expression within Sestoft's
+semantics. Then, we prove that both semantics reduce
+any FUN expression to equivalent normal forms, provided
+that such normal forms exist.
+2.1
+Soundness and completeness
+The following two propositions prove that the normalization
+does not change the meaning of an expression. We use
+the following notation:  denotes a one-to-one renaming of
+pointers, and
+
+means that     . This is needed
+to express the equivalence between the heaps of both semantics
+up to some renaming . As S3 generates more closures
+than Sestoft's, it is not possible to guarantee that the fresh
+pointers are exactly the same in the two heaps.
+Proposition 2. (Sestoft  Sestoft
+
+) For all e  Launch
+we have:
+{ } : e   : w
+
+
+
+{ } : N e
+
+: w
+
+.
+w
+
+= N ( w)
+N
+
+
+
+Proof. By induction on the number of reductions of
+Launchbury expressions.
+Proposition 3. (Sestoft
+
+Sestoft) For all e  FUN
+we have:
+{ } : e   : w
+e  Launch.
+
+N e = e
+
+
+
+{ } : e   : w
+.
+N ( w ) = w
+N
+
+
+
+
+104
+[p  x
+in
+.e] : p   : p
+Lam
+S3
+[p  C p
+i
+] : p   : p
+Cons
+S3
+: e  [p  x
+in
+.y
+im
+.e ] : p
+: e p
+in
+[q  y
+im
+.e [p
+i
+/x
+i
+n
+]] : q m, n &gt; 0, q fresh
+App
+S3
+: e  [p  x
+im
+.e ] : p  : e [p
+i
+/x
+i
+m
+] p
+m+1
+. . . p
+n
+[q  w] : q
+: e p
+in
+: q
+n  m
+App
+S3
+: e  [q  w] : q
+[p  e] : p    [p  w] : q
+Var
+S3
+[p
+i
+^
+lf
+i
+] : ^
+e  [p  w] : p
+: letrec x
+i
+= lf
+i
+in e   : p p
+i
+fresh
+Letrec
+S3
+: e  [p  C
+k
+p
+j
+] : p
+: e
+k
+[p
+j
+/y
+kj
+]  [q  w] : q
+: case e of C
+i
+y
+ij
+e
+i
+: q
+Case
+S3
+Figure 4: Semantics S3
+Proof. By induction on the number of reductions of
+Launchbury expressions.
+Now we prove the equivalence between the two semantics
+. We consider only FUN expressions because it has been
+proved that the normalization does not change the meaning
+of an expression.
+Proposition 4. (Sestoft  S3, completeness of S3) For
+all e  FUN we have:
+{ } : e   : w
+
+
+
+{ } : e   [p  w ] : p
+.
+w = w
+
+
+Proof. By induction on the number of reductions of
+FUN expressions.
+Proposition 5. (S3  Sestoft, soundness of S3) For all
+e  FUN we have:
+{ } : e  [p  w] : p
+
+
+
+{ } : e   : w
+.
+w = w
+
+
+Proof. By induction on the number of reductions of
+FUN expressions.
+Once adapted the source language to the STG language,
+we are ready to derive an STG-like machine from semantics
+S3.
+A VERY SIMPLE STG MACHINE
+Following a similar approach to Sestoft MARK-1 machine
+[10], we first introduce a very simple STG machine, which
+we will call STG-1, in which explicit variable substitutions
+are done. A configuration in this machine is a triple (, e, S)
+where  represents the heap, e is the control expression and
+S is the stack. The heap binds pointers to lambda forms
+which, in turn, may reference other pointers. The stack
+stores three kinds of objects: arguments p
+i
+of pending applications
+, case alternatives alts of pending pattern matchings,
+and marks #p of pending updates.
+In Figure 5, the transitions of the machine are shown.
+They look very close to the lazy semantics S3 presented in
+Section 2. For instance, the single rule for letrec in Figure
+5 is a literal transcription of the Letrec
+S3
+rule of Figure
+4. The semantic rules for case and applications are split
+each one into two rules in the machine. The semantic rule
+for variable is also split into two in order to take care of
+updating the closure. So, in principle, an execution of the
+STG-1 machine could be regarded as the linearization of the
+semantic derivation tree by introducing an auxiliary stack.
+But sometimes appearances are misleading. The theorem
+below shows that in fact STG-1 builds less closures in the
+heap than the semantics and it may arrive to different (but
+semantically equivalent) normal forms. In order to prove
+the soundness and completeness of STG-1, we first enrich
+the semantics with a stack parameter S in the rules. The
+new rules for
+S
+(only those which modify S) are shown in
+Figure 6. It is trivial to show that the rules are equivalent to
+the ones in Figure 4 as the stack is just an observation of the
+derivations. It may not influence them. The following theorem
+establishes the correspondence between the (enriched)
+semantics and the machine.
+Proposition 6. Given , e and S, then  : e
+S
+[p
+w] : p iff (, e, S)
+
+( , p , S ), where
+1.
+2. if [p  C p
+in
+] then S = S , p = p and  [p
+C p
+in
+]
+3. if [p  x
+in
+.e ] then there exists m  0 s.t.  [p
+y
+im
+.x
+in
+.e ] and S = q
+im
+: S and e = e [q
+i
+/y
+i
+m
+]
+105
+Heap
+Control
+Stack
+rule
+
+letrec {x
+i
+= lf
+i
+} in e
+S
+letrec (
+1
+)
+=
+[p
+i
+lf
+i
+[p
+j
+/x
+j
+]]
+e[p
+i
+/x
+i
+]
+S
+
+case e of alts
+S
+case1
+=
+
+e
+alts : S
+[p  C
+k
+p
+i
+]
+p
+C
+j
+y
+ji
+e
+j
+: S
+case2
+=
+
+e
+k
+[p
+i
+/y
+ki
+]
+S
+
+e p
+in
+S
+app1
+=
+
+e
+p
+in
+: S
+[p  x
+in
+.e]
+p
+p
+in
+: S
+app2
+=
+
+e[p
+i
+/x
+i
+n
+]
+S
+[p  e ]
+p
+S
+var1
+=
+
+e
+#p : S
+[p  x
+ik
+.y
+im
+.e]
+p
+p
+ik
+: #q : S
+var2
+=
+[q  p p
+ik
+]
+p
+p
+ik
+: S
+[p  C
+k
+p
+i
+]
+p
+#q : S
+var3
+=
+[q  C
+k
+p
+i
+]
+p
+S
+(
+1
+)
+p
+i
+are distinct and fresh w.r.t. , letrec {x
+i
+= lf
+i
+} in e, and S
+Figure 5: The STG-1 Machine
+Proof. By induction on the number of reductions of
+FUN expressions.
+The proposition shows that the semantic rule App
+S3
+of
+Figure 4 is not literally transcribed in the machine. The
+machine does not create intermediate lambdas in the heap
+unless an update is needed. Rule app2 in Figure 5 applies a
+lambda always to all its arguments provided that they are in
+the stack. For this reason, a lambda with more parameters
+than that of the semantics may be arrived at as normal
+form of a functional expression. Also for this reason, an
+update mark may be interspersed with arguments in the
+stack when a lambda is reached (see rule var2 in Figure 5).
+A final implication is that the machine may stop with m
+pending arguments in the stack and a variable in the control
+expression pointing to a lambda with n &gt; m parameters.
+The semantics always ends a derivation with a variable as
+normal form and an empty stack.
+Again, following Sestoft and his MARK-2 machine, once
+we have proved the soundness and completeness of STG-1,
+we introduce STG-2 having environments instead of explicit
+variable substitutions. Also, we add trimmers to this machine
+so that environments kept in closures and in case alternatives
+only reference the free variables of the expression
+instead of all variables in scope. A configuration of STG-2
+is a quadruple (, e, E, S) where E is the environment of e,
+the alternatives are pairs (alts, E), and a closure is a pair
+(lf , E). Now expressions and lambda forms keep their original
+variables and the associated environment maps them to
+pointers in the heap. The notation E |
+t
+means the trimming
+of environment E to the trimmer t. A trimmer is just a collection
+of variable names. The resulting machine is shown
+in Figure 7.
+Proposition 7.
+Given a closed expression e
+0
+.
+({ }, e
+0
+, [ ])
+STG-1
+- (, q, p
+in
+) where either:
+· [q  C q
+im
+]  n = 0
+· or [q  x
+im
+.e]  m &gt; n  0
+if and only if ({ }, e
+0
+, { }, [ ])
+STG-2
+- (, x, E[x  q], p
+in
+)) and
+either:
+· [q  (C x
+im
+, {x
+i
+q
+im
+})]  n = 0
+· or [q  (x
+im
+.e , E )]  m &gt; n  0  e = E e .
+Proof. By induction on the number of reductions.
+AN IMPERATIVE STG MACHINE
+In this Section we `invent' an imperative STG machine,
+called ISTG, by defining a set of machine instructions and
+an operational semantics for them in terms of the state transition
+that each instruction produces. In fact, this machine
+tries to provide an intermediate level of reasoning between
+the STG-2 machine and the final C implementation. In
+the actual GHC implementation, `below' the operational description
+of [6] we find only a translation to C. By looking
+at the compiler and at the runtime system listings, one can
+grasp some details, but many others are lost. We think that
+the gap to be bridged is too high. Moreover, it is not possible
+to reason about the correctness of the implementation
+when so many details are introduced at once. The ISTG architecture
+has been inspired by the actual implementation of
+the STG machine done by GHC, and the ISTG instructions
+have been derived from the STG-2 machine by analyzing the
+elementary steps involved in every machine transition.
+An ISTG machine configuration consists of a 5-tuple (is, S,
+node, , cs), where is is a machine instruction sequence ended
+with the instruction ENTER or RETURNCON, S is the
+stack, node is a heap pointer pointing to the closure under
+execution (the one to which is belongs to),  is the heap and
+cs is a code store where the instruction sequences resulting
+from compiling the program expressions are kept.
+We will use the following notation: a for pointers to closures
+in , as and ws for lists of such pointers, and p for
+106
+: e
+p
+in
+:S
+[p  x
+in
+.y
+im
+.e ] : p
+: e p
+in
+
+S
+[q  y
+im
+.e [p
+i
+/x
+i
+n
+]] : q m, n &gt; 0, q fresh
+App
+S3
+: e
+p
+in
+:S
+[p  x
+im
+.e ] : p  : e [p
+i
+/x
+i
+m
+] p
+m+1
+. . . p
+n
+
+S
+[q  w] : q
+: e p
+in
+
+S
+: q
+n  m
+App
+S3
+: e
+#p:S
+[q  w] : q
+[p  e] : p
+S
+[p  w] : q
+Var
+S3
+: e
+alts:S
+[p  C
+k
+p
+j
+] : p
+: e
+k
+[p
+j
+/y
+kj
+]
+S
+[q  w] : q
+: case e of alts
+S
+: q
+Case
+S3
+Figure 6: The enriched semantics
+pointers to code fragments in cs. By cs[p  is] we denote
+that the code store cs maps pointer p to the instruction
+sequence is and, by cs[p  is
+i
+n
+], that cs maps p to a
+vectored set of instruction sequences is
+1
+, . . . , is
+n
+, each one
+corresponding to an alternative of a case expression with
+n constructors C
+1
+, . . . , C
+n
+. Also, S ! i will denote the i-th
+element of the stack S counting from the top and starting
+at 0. Likewise, node
+
+! i will denote the i-th free variable of
+the closure pointed to by node in , this time starting at 1.
+Stack S may store pointers a to closures in , pointers p
+to code sequences and code alternatives in cs, and update
+marks #a indicating that closure pointed to by a must be
+updated. A closure is a pair (p, ws) where p is a pointer
+to an instruction sequence is in cs, and ws is the closure
+environment, having a heap pointer for every free variable
+in the expression whose translation is is.
+These representation decisions are very near to the GHC
+implementation. In its runtime system all these elements
+(stack, heap, node register and code) are present [9]. Our
+closures are also a small simplification of theirs.
+In Figure 8, the ISTG machine instructions and its operational
+semantics are shown. The machine instructions
+BUILDENV, PUSHALTS and UPDTMARK roughly correspond
+to the three possible pushing actions of machine
+STG-2. The SLIDE instruction has no clear correspondence
+in the STG-2. As we will see in Section 5, it will be used
+to change the current environment when a new closure is
+entered. Instructions ALLOC and BUILDCLS will implement
+heap closure creation in the letrec rule of STG-2. Both
+BUILDENV and BUILDCLS make use of a list of pairs, each
+pair indicating whether the source variable is located in the
+stack or in the current closure. Of course, it is not intended
+this test to be done at runtime. An efficient translation of
+these `machine' instructions to an imperative language will
+generate the appropriate copy statement for each pair.
+Instructions ENTER and RETURNCON are typical of
+the actual STG machine as described in [6]. It is interesting
+to note that it has been possible to describe our previous
+STG machines without any reference to them. In our view,
+they belong to ISTG, i.e. to a lower level of abstraction. Finally
+, instruction ARGCHECK, which implements updates
+with lambda normal forms, is here at the same level of abstraction
+as RETURNCON, which implements updates with
+constructions normal forms. Predefined code is stored in cs
+for updating with a partial application and for blackholing
+a closure under evaluation. The corresponding code pointers
+are respectively called p
+n+1
+pap
+and p
+bh
+in Figure 8. The
+associated code is the following:
+p
+bh
+= [ ]
+p
+n+1
+pap
+= [BUILDENV [(NODE , 1), . . . , (NODE , n + 1) ],
+ENTER ]
+The code of a blackhole just blocks the machine as there
+is no instruction to execute. There is predefined code for
+partial applications with different values for n. The code
+just copies the closure into the stack and jumps to the first
+pointer that is assumed to be pointing to a -abstraction
+closure.
+The translation to C of the 9 instructions of the ISTG
+should appear straightforward for the reader. For instance,
+BUILDCLS and BUILDENV can be implemented by a sequence
+of assignments, copying values to/from the stack
+an the heap; PUSHALTS, UPDTMARK and ENTER do
+straightforward stack manipulation; SLIDE is more involved
+but can be easily translated to a sequence of loops moving
+information within the stack to collapse a number of stack
+fragments. The more complex ones are RETURNCON and
+ARGCHECK. Both contains a loop which updates the heap
+with normal forms (respectively, constructions and partial
+applications) as long as they encounter update marks in the
+stack. Finally, the installation of a new instruction sequence
+in the control made by ENTER and RETURNCON are implemented
+by a simple jump.
+FORMAL TRANSLATION FROM STG-2 TO ISTG
+In this Section, we provide first the translation schemes for
+the FUN expressions and lambda forms and then prove that
+this translation correctly implements the STG-2 machine on
+top of the ISTG machine. Before embarking into the details,
+we give some hints to intuitively understand the translation:
+· The ISTG stack will represent not only the STG-2
+stack, but also (part of) the current environment E
+and all the environments associated to pending case
+alternatives. So, care must be taken to distinguish between
+environments and other objects in the stack.
+· The rest of the current environment E is kept in the
+current closure. The translation knows where each free
+107
+Heap
+Control
+Environment
+Stack
+rule
+
+letrec {x
+i
+= lf
+i
+|
+t
+i
+} in e
+E
+S
+letrec (
+1
+)
+
+[p
+i
+(lf
+i
+, E |
+t
+i
+)]
+e
+E
+S
+
+case e of alts |
+t
+E
+S
+case1
+
+
+e
+E
+(alts, E |
+t
+) : S
+[p  (C
+k
+x
+i
+, {x
+i
+p
+i
+})]
+x
+E{x  p}
+(alts, E ) : S
+case2 (
+2
+)
+
+
+e
+k
+E  {y
+ki
+p
+i
+}
+S
+
+e x
+in
+E{x
+i
+p
+in
+}
+S
+app1
+
+
+e
+E
+p
+in
+: S
+[p  (x
+in
+.e, E )]
+x
+E{x  p}
+p
+in
+: S
+app2
+
+
+e
+E  {x
+i
+p
+in
+}
+S
+[p  (e, E )]
+x
+E{x  p}
+S
+var1
+
+
+e
+E
+#p : S
+[p  (x
+ik
+.y
+in
+.e, E )]
+x
+E{x  p}
+p
+ik
+: #q : S
+var2 (
+3
+)
+
+[q  (x x
+ik
+, E ])
+x
+E
+p
+ik
+: S
+[p  (C
+k
+x
+i
+, E )]
+x
+E{x  p}
+#q : S
+var3
+
+[q  (C
+k
+x
+i
+, E )]
+x
+E
+S
+(
+1
+)
+p
+i
+are distinct and fresh w.r.t. , letrec {x
+i
+= lf
+i
+} in e, and S. E = E  {x
+i
+p
+i
+}
+(
+2
+)
+Expression e
+k
+corresponds to alternative C
+k
+y
+ki
+e
+k
+in alts
+(
+3
+)
+E = {x  p, x
+i
+p
+ik
+}
+Figure 7: The STG-2 machine
+variable is located by maintaining two compile-time
+environments  and . The first one  corresponds to
+the environment kept in the stack, while the second one
+ corresponds to the free variables accessed through
+the node pointer.
+· The stack can be considered as divided into big blocks
+separated by code pointers p pointing to case alternatives
+. Each big block topped with such a pointer
+corresponds to the environment of the associated alternatives
+.
+· In turn, each big block can be considered as divided
+into small blocks, each one topped with a set of arguments
+of pending applications. The compile-time
+environment  is likewise divided into big and small
+blocks, so reflecting the stack structure.
+· When a variable is reached in the current instruction
+sequence, an ENTER instruction is executed. This
+will finish the current sequence and start a new one.
+The upper big block of the stack must be deleted (corresponding
+to changing the current environment) but
+arguments of pending applications must be kept. This
+stack restructuring is accomplished by a SLIDE operation
+with an appropriate argument.
+Definition 2. A stack environment  is a list [(
+k
+, m
+k
+, n
+k
+),
+. . . , (
+1
+, m
+1
+, n
+1
+)] of blocks. It describes the variables in the
+stack starting from the top. In a block (, m, n),  is an
+environment mapping exactly m- | n | program variables
+to disjoint numbers in the range 1..m- | n |. The empty
+environment, denoted
+
+is the list [({}, 0, 0)].
+A block (, m, n) corresponds to a small block in the above
+explanation. Blocks with n = -1, are topped with a code
+pointer pointing to alternatives. So, they provide a separation
+between big blocks. The upper big block consists of all
+the small blocks up to (and excluding) the first small block
+with n = -1. Blocks with n &gt; 0 have m - n free variables
+and are topped with n arguments of pending applications.
+The upper block is the only one with n = 0 meaning that it
+is not still closed and that it can be extended.
+Definition 3. A closure environment  with n variables is
+a mapping from these variables to disjoint numbers in the
+range 1..n.
+Definition 4. The offset of a variable x in  from the top
+of the stack, denoted  x, is given by
+x
+def
+= (
+k
+i=l
+m
+i
+) l
+x, being x  dom
+l
+If the initial closed expression to be translated has different
+names for bound variables, then the compile time environments
+ and  will never have duplicate names. It will be
+proved below that every free variable of an expression being
+compiled will necessarily be either in  or in , and never in
+both. This allows us to introduce the notation (, ) x to
+mean
+(, ) x
+def
+=
+(STACK ,  x)
+if x  dom
+(NODE ,  x)
+if x  dom
+The stack environment may suffer a number of operations:
+closing the current small block with a set of arguments, enlarging
+the current small block with new bindings, and closing
+the current big block with a pointer to case alternatives.
+These are formally defined as follows.
+Definition 5. The following operations with stack environments
+are defined:
+1. ((, m, 0) : ) + n
+def
+= ({}, 0, 0) : (, m + n, n) :
+108
+Instructions
+Stack
+Node
+Heap
+Code
+control
+[ENTER]
+a : S
+node
+[a  (p, ws)]
+cs[p  is]
+=
+is
+S
+a
+
+cs
+[RETURNCON C
+m
+k
+]
+p : S
+node
+
+cs[p  is
+i
+n
+]
+=
+is
+k
+S
+node
+
+cs
+[RETURNCON C
+m
+k
+]
+#a : S
+node
+[a  (p
+bh
+, as),
+node  (p, ws)]
+cs
+=
+[RETURNCON C
+m
+k
+]
+S
+node
+[a  (p, ws)]
+cs
+ARGCHECK m : is
+a
+im
+: S
+node
+
+cs
+=
+is
+a
+im
+: S
+node
+
+cs
+ARGCHECK m : is
+a
+in
+: #a : S
+node
+[a  (p
+bh
+, ws)]
+cs
+n &lt; m
+=
+ARGCHECK m : is
+a
+in
+: S
+node
+[a  (p
+n+1
+pap
+, node : a
+in
+)]
+cs
+heap
+ALLOC m : is
+S
+node
+
+cs
+(
+1
+)
+=
+is
+a
+m
+: S
+node
+
+cs
+BUILDCLS i p z
+in
+: is
+S
+node
+
+cs
+(
+2
+)
+=
+is
+S
+node
+[S!i  (p, a
+in
+)]
+cs
+stack
+BUILDENV z
+in
+: is
+S
+node
+
+cs
+(
+2
+)
+=
+is
+a
+in
+: S
+node
+
+cs
+PUSHALTS p : is
+S
+node
+
+cs
+=
+is
+p : S
+node
+
+cs
+UPDTMARK : is
+S
+node
+[node  (p, ws)]
+cs
+=
+is
+#node : S
+node
+[node  (p
+bh
+, ws)]
+cs
+SLIDE (n
+k
+, m
+k
+)
+l
+: is
+a
+kj n
+k
+: b
+kj
+m
+k
+l
+: S
+node
+
+cs
+=
+is
+a
+kj n
+k
+l
+: S
+node
+
+cs
+(
+1
+)
+a
+m
+is a pointer to a new closure with space for m free variables, and  is the resulting
+heap after the allocation
+(
+2
+)
+a
+i
+=
+S!i
+if z
+i
+= (STACK , i)
+node
+
+!i
+if z
+i
+= (NODE , i)
+Figure 8: The ISTG machine
+2. ((, m, 0) : )+({x
+i
+j
+i
+n
+}, n)
+def
+= ({x
+i
+m + j
+i
+n
+},
+m+n, 0) :
+3. ((, m, 0) : )
++
++
+def
+= ({}, 0, 0) : (, m + 1, -1) :
+5.1
+Translation schemes
+Functions trE and trA respectively translate a FUN expression
+and a case alternative to a sequence of ISTG machine
+instructions; function trAs translates a set of alternatives
+to a pointer to a vectored set of machine instruction
+sequences in the code store; and function trB translates a
+lambda form to a pointer to a machine instruction sequence
+in the code store. The translation schemes are shown in
+Figure 9.
+The notation . . . & cs[p  . . .] means that the corresponding
+translation scheme has a side effect which consists
+of creating a code sequence in the code store cs and pointing
+it by the code pointer p.
+Proposition 8. (static invariant) Given a closed expression
+e
+0
+with different bound variables and an initial call
+trE e
+0
+
+
+{}, in all internal calls of the form trE e  :
+1. The stack environment has the form  = (, m, 0) :  .
+Moreover, there is no other block ( , m , n) in  with
+n = 0. Consequently, all environment operations in
+the above translation are well defined.
+2. All free variables of e are defined either in  or in .
+Moreover, dom   dom  = .
+3. The last instruction generated for e is ENTER. Consequently
+, the main instruction sequence and all sequences
+corresponding to case alternatives and to non-constructor
+closures, end in an ENTER.
+Proof. (1) and (2) are proved by induction on the tree
+structure of calls to trE ; (3) is proved by structural induction
+on FUN expressions.
+In order to prove the correctness of the translation, we
+only need to consider ISTG machine configurations of the
+form (is, S
+I
+, node,
+I
+, cs) in which is is generated by a call
+to trE for some expression e and environments , . We call
+these stable configurations. We enrich then these configurations
+with three additional components: the environments
+109
+trE (e x
+in
+)
+= [BUILDENV (, ) x
+i
+n
+] ++
+trE e ( + n)
+trE (case e of alts |
+x
+in
+)
+= [BUILDENV zs, PUSHALTS p] ++ trE e
++
++
+( - xs)
+where p
+= trAs alts
+
+=  + ({xs
+j
+m - j + 1
+m
+}, m)
+xs
+= [x | x  x
+in
+x  dom ]
+zs
+= [(node,  x) | x  xs]
+m
+= | xs |
+trE (letrec x
+i
+= lf
+i
+|
+y
+ij mi
+n
+in e)   = [ALLOC m
+n
+, . . . , ALLOC m
+1
+] ++
+[BUILDCLS (i - 1) p
+i
+zs
+i
+n
+] ++
+trE e
+where
+=  + ({x
+i
+n - i + 1
+n
+}, n)
+p
+i
+= trB (lf
+i
+|
+y
+ij mi
+),
+i  {1..n}
+zs
+i
+= ( , ) y
+ij
+m
+i
+,
+i  {1..n}
+trE x
+= [BUILDENV [(, ) x],
+SLIDE ((1, 0) : ms),
+ENTER]
+where ms
+= map (\( , m, n)  (n, m - n)) (takeWhile nn )
+nn ( , m, -1) = False
+nn
+= True
+trAs (alt
+i
+n
+)
+= p & cs[p  trA alt
+i
+
+n
+]
+trA (C x
+in
+e)
+= trE e  {x
+i
+i
+n
+}
+trB (C
+n
+k
+x
+in
+|
+x
+in
+)
+= p & cs[p  [RETURNCON C
+n
+k
+]]
+trB (x
+il
+.e |
+y
+j n
+)
+= p & cs[p  [ARGCHECK l] ++ trE e  ]
+where
+= [({x
+i
+l - i + 1
+l
+}, l, 0)]
+
+= {y
+j
+j
+n
+}
+trB (e |
+y
+j n
+)
+= p & cs[p  [UPDTMARK ] ++ trE e
+
+]
+where
+= {y
+j
+j
+n
+}
+Figure 9: Translation schemes from STG-2 to ISTG
+and  used to generate is, and an environment stack S
+env
+containing a sequence of stack environments. The environments
+in S
+env
+are in one to one correspondence with case
+pointers stored in S
+I
+. Initially S
+env
+is empty. Each time
+an instruction PUSHALTS is executed (see trE definition
+for case), the environment  the corresponding alternatives
+are compiled with, is pushed onto stack S
+env
+. Each
+time a RETURNCON pops a case pointer, stack S
+env
+is
+also pop-ed. So, enriched ISTG configurations have the form
+(is, , , S
+I
+, S
+env
+, node,
+I
+, cs).
+Definition 6. A STG-2 environment E is equivalent to an
+ISTG environment defined by , , S
+I
+,
+I
+and node, denoted
+E  (, S
+I
+, ,
+I
+, node) if dom E  dom   dom  and
+x  dom E
+E x = S
+I
+! ( x)
+if x  dom
+E x = node
+
+I
+! ( x)
+if x  dom
+Definition 7. A STG-2 stack S is equivalent to a triple
+(, S
+I
+, S
+env
+) of an ISTG enriched configuration, denoted S
+(, S
+I
+, S
+env
+), if
+1. Whenever  = (, m, 0) :  , then S
+I
+= a
+im
+: S
+I
+and
+S  ( , S
+I
+, S
+env
+)
+2. Whenever  = (, m, n) :  , n &gt; 0, then S = a
+in
+: S ,
+S
+I
+= a
+in
+: b
+j
+m-n
+: S
+I
+and S  ( , S
+I
+, S
+env
+)
+3. Whenever  = (, m, -1) :  , then S = (alts, E) : S ,
+S
+I
+= p
+alts
+: S
+I
+, S
+env
+=
+alts
+: S
+env
+, p
+alts
+= trAs alts
+alts
+,
+E  (
+alts
+, S
+I
+, , , ) and S  (
+alts
+, S
+I
+, S
+env
+)
+4. Whenever S = #a : S and S
+I
+= #a : S
+I
+, then S
+(, S
+I
+, S
+env
+)
+5. Additionally, [ ]  ({}, [ ], [ ])
+110
+Definition 8. A STG-2 heap  is equivalent to an ISTG
+pair (
+I
+, cs), denoted   (
+I
+, cs), if for all p we have [p
+(lf |
+x
+in
+, E)] if and only if
+I
+[p  (q, ws)], cs[q  is], is =
+trB (lf |
+x
+in
+) and ws = E x
+i
+n
+.
+Definition 9. A STG-2 configuration is equivalent to an
+ISTG enriched stable configuration, denoted (, e, E, S) 
+(is, , , S
+I
+, S
+env
+, node,
+I
+, cs) if
+1.   (
+I
+, cs)
+2. is = trE e
+3. E  (, S
+I
+, ,
+I
+, node)
+4. S  (, S
+I
+, S
+env
+)
+Proposition 9. (dynamic invariant) Given a closed expression
+e
+0
+with different bound variables and initial STG-2
+and ISTG configurations, respectively ({}, e
+0
+, {}, [ ]) and
+(trE e
+0
+
+
+{},
+
+, {}, [ ], [ ], , {}, cs), where cs is the code
+store generated by the whole translation of e
+0
+, then both machines
+evolve through equivalent configurations.
+Proof. By induction on the number of transitions of
+both machines. Only transitions between ISTG stable configurations
+are considered.
+Corollary 10. The translation given in Section 5.1 is
+correct.
+DIFFERENCES WITH THE ACTUAL STG MACHINE
+There are some differences between the machine translation
+presented in Section 5 and the actual code generated
+by GHC. Some are just omissions, other are non-substantial
+differences and some other are deeper ones.
+In the first group it is the treatment of basic values, very
+elaborated in GHC (see for example [3]) and completely ig-nored
+here. We have preferred to concentrate our study in
+the functional kernel of the machine but, of course, a formal
+reasoning about this aspect is a clear continuation of our
+work.
+In the second group it is the optimization of update implementation
+. In GHC, updates can be done either by indirection
+or by closure creation, depending on whether there
+is enough space or not in the old closure to do update in
+place. This implies to keep closure size information somewhere
+. GHC keeps it in the so called info table, a static part
+shared by all closures created from the same bind. This
+table forces an additional indirection to access the closure
+code. Our model has simplified these aspects. We understand
+also that stack restructuring, as the one performed by
+our SLIDE instruction, is not implemented in this way by
+GHC. Apparently, stubbing of non used stack positions is
+done instead. An efficiency study could show which implementation
+is better. The cost of our SLIDE instruction is
+in O(n), being n the number of arguments to be preserved
+in the stack when the current environment is discarded.
+Perhaps the deeper difference between our derived machine
+and the actual STG is our insistence in that FUN applications
+should have the form e x
+in
+instead of x x
+in
+as it is
+the case in the STG language. This decision is not justified
+in the GHC papers and perhaps could have a noticeable negative
+impact in performance. In a lazy language, the functional
+part of an application should be eagerly evaluated,
+but GHC does it lazily. This implies constructing a number
+of closures that will be immediately entered (and perhaps
+updated afterwards), with a corresponding additional cost
+both in space and time. Our translation avoids creating and
+entering these closures. If the counter-argument were having
+the possibility of sharing functional expressions, this is
+always available in FUN since a variable is a particular case
+of an expression. What we claim is that the normalization
+process in the Core-to-STG translation should not introduce
+unneeded sharing.
+CONCLUSIONS
+We have presented a stepwise derivation of a (well known)
+abstract machine starting from Sestoft's operational semantics
+, going through several intermediate machines and arriving
+at an imperative machine very close to a conventional imperative
+language. This strategy of adding a small amount
+of detail in each step has allowed us both to provide insight
+on fundamental decisions underlying the STG design
+and, perhaps more importantly, to be able to show the correctness
+of each refinement with respect to the previous one
+and, consequently, the correctness of the whole derivation.
+To our knowledge, this is the first time that formal translation
+schemes and a formal proof of correctness of the STG
+to C translation has been done.
+Our previous work [2] followed a different path: it showed
+the soundness and completeness of a STG-like machine called
+STG-1S (laying somewhere between machines STG-2 and
+ISTG of this paper) with respect to Sestoft's semantics.
+The technique used was also different: a bisimulation between
+the STG-1S machine and Sestoft's MARK-2 machine
+was proved. We got the inspiration for the strategy followed
+here from Mountjoy [5] and in Section 2 we have explained
+the differences between his and our work. The previous machines
+of all these works, including STG-1 and STG-2 of this
+paper, are very abstract in the sense that they deal directly
+with functional expressions. The new machine ISTG introduced
+here is a really low level machine dealing with raw
+imperative instructions and pointers. Two contributions of
+this paper have been to bridge this big gap by means of
+the translations schemes and the proof of correctness of this
+translation.
+Our experience is that formal reasoning about even well
+known products always reveals new details, give new insight,
+makes good decisions more solid and provides trust in the
+behavior of our programs.
+REFERENCES
+[1] A. at URL: http://www.haskell.org/ghc/.
+[2] A. Encina and R. Pe~
+na. Proving the Correctness of
+the STG Machine. In Implementation of Functional
+Languages, IFL'01. Selected Papers. LNCS 2312,
+pages 88­104. Springer-Verlag, 2002.
+[3] S. P. Jones and J. Launchbury. Unboxed values as first
+class citizens in a non-strict functional language.
+Conference on Functional Programming Languages
+and Computer Architecture FPCA'91, LNCS 523,
+September 1991.
+[4] J. Launchbury. A Natural Semantics for Lazy
+Evaluation. In Proc. Conference on Principles of
+Programming Languages, POPL'93. ACM, 1993.
+[5] J. Mountjoy. The Spineless Tagless G-machine,
+Naturally. In Third International Conference on
+Functional Programming, ICFP'98, Baltimore. ACM
+Press, 1998.
+111
+[6] S. L. Peyton Jones. Implementing Lazy Functional
+Languages on Stock Hardware: the Spineless Tagless
+G-machine, Version 2.5. Journal of Functional
+Programming, 2(2):127­202, April 1992.
+[7] S. L. Peyton Jones, C. V. Hall, K. Hammond, W. D.
+Partain, and P. L. Wadler. The Glasgow Haskell
+Compiler: A Technical Overview. In Joint Framework
+for Inf. Technology, Keele, pages 249­257, 1993.
+[8] S. L. Peyton Jones and J. Hughes, editors. Report on
+the Programming Language Haskell 98. URL
+http://www.haskell.org, February 1999.
+[9] S. L. Peyton Jones, S. Marlow, and A. Reid. The STG
+Runtime System (revised).
+http://www.haskell.org/ghc/docs, 1999.
+[10] P. Sestoft. Deriving a Lazy Abstract Machine. Journal
+of Functional Programming, 7(3):231­264, May 1997.
+112
+
