@@ -48,7 +48,7 @@ We also have evaluation codes for other baseline models. We will organize and up
 | TextRank     | 24.39        | 16.43         | 13.94        |
 | SingleRank   | 24.69        | 18.23         | 21.56        |
 | TopicRank    | 22.76        | 17.10         | 20.37        |
-| PositionRan  | 25.19        | 18.23         | 24.95        |
+| PositionRank | 25.19        | 18.23         | 24.95        |
 | Multipartite | 23.05        | 17.39         | 21.86        |
 | RVA          | 21.91        | 19.59         | 20.32        |
 | EmbedRank d2v| 27.20        | 20.21         | 21.74        |
