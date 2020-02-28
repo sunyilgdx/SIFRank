@@ -1,6 +1,11 @@
 # SIFRank
 The code of our paper [SIFRank: A New Baseline for Unsupervised Keyphrase Extraction Based on Pre-trained Language Model](https://ieeexplore.ieee.org/document/8954611)
 
+## Versions Notes
+* 2020/02/21——``Initial version`` 
+Provided the most basic functions.
+* 2020/02/28——``Second version``
+Added new algorithm ``DS``(document segmentation) and ``EA``(embeddings alignment) to ``speed up`` SIFRank and SIFRank+.
 ## Environment
 ```
 Python 3.6
