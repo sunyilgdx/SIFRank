@@ -5,7 +5,7 @@ The code of our paper [SIFRank: A New Baseline for Unsupervised Keyphrase Extrac
 * 2020/02/21——``Initial version`` 
 Provided the most basic functions.
 * 2020/02/28——``Second version``
-Added new algorithm ``DS``(document segmentation) and ``EA``(embeddings alignment) to ``speed up`` SIFRank and SIFRank+.
+Added new algorithms ``DS``(document segmentation) and ``EA``(embeddings alignment) to ``speed up`` SIFRank and SIFRank+.
 ## Environment
 ```
 Python 3.6
