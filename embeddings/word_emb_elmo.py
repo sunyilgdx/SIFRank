@@ -24,7 +24,7 @@ class WordEmbeddings():
         :return: ndarray with shape (len(sents), dimension of embeddings)
         """
 
-        elmo_embedding, elmo_mask = self.elmo.batch_to_embeddings([sents_tokened])
+        elmo_embedding, elmo_mask = self.elmo.batch_to_embeddings(sents_tokened)
         if(self.cuda_device>-1):
             return elmo_embedding.cpu(), elmo_mask.cpu()
         else:

@@ -161,7 +161,7 @@ def get_position_score(keyphrase_candidate_list, position_bias):
     return position_score
 
 def SIFRank(text, SIF, en_model, method="average", N=15,
-            sent_emb_method="elmo", elmo_layers_weight=[0.0, 1.0, 0.0]):
+            sent_emb_method="elmo", elmo_layers_weight=[0.0, 1.0, 0.0], if_DS=True, if_EA=True):
     """
     :param text_obj:
     :param sent_embeddings:
@@ -171,10 +171,12 @@ def SIFRank(text, SIF, en_model, method="average", N=15,
     :param N: the top-N number of keyphrases
     :param sent_emb_method: 'elmo', 'glove'
     :param elmo_layers_weight: the weights of different layers of ELMo
+    :param if_DS: if take document segmentation(DS)
+    :param if_EA: if take  embeddings alignment(EA)
     :return:
     """
     text_obj = input_representation.InputTextObj(en_model, text)
-    sent_embeddings, candidate_embeddings_list = SIF.get_tokenized_sent_embeddings(text_obj)
+    sent_embeddings, candidate_embeddings_list = SIF.get_tokenized_sent_embeddings(text_obj,if_DS=if_DS,if_EA=if_EA)
     dist_list = []
     for i, emb in enumerate(candidate_embeddings_list):
         dist = get_dist_cosine(sent_embeddings, emb, sent_emb_method, elmo_layers_weight=elmo_layers_weight)
@@ -185,7 +187,7 @@ def SIFRank(text, SIF, en_model, method="average", N=15,
     return dist_sorted[0:N]
 
 def SIFRank_plus(text, SIF, en_model, method="average", N=15,
-            sent_emb_method="elmo", elmo_layers_weight=[0.0, 1.0, 0.0], position_bias = 3.4):
+            sent_emb_method="elmo", elmo_layers_weight=[0.0, 1.0, 0.0], if_DS=True, if_EA=True, position_bias = 3.4):
     """
     :param text_obj:
     :param sent_embeddings:
@@ -198,7 +200,7 @@ def SIFRank_plus(text, SIF, en_model, method="average", N=15,
     :return:
     """
     text_obj = input_representation.InputTextObj(en_model, text)
-    sent_embeddings, candidate_embeddings_list = SIF.get_tokenized_sent_embeddings(text_obj)
+    sent_embeddings, candidate_embeddings_list = SIF.get_tokenized_sent_embeddings(text_obj,if_DS=if_DS,if_EA=if_EA)
     position_score = get_position_score(text_obj.keyphrase_candidate, position_bias)
     dist_list = []
     for i, emb in enumerate(candidate_embeddings_list):

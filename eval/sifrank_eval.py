@@ -42,7 +42,7 @@ database1 = "Inspec"
 database2 = "Duc2001"
 database3 = "Semeval2017"
 
-database = database2
+database = database1
 
 if(database == "Inspec"):
     data, labels = fileIO.get_inspec_data()
@@ -78,8 +78,8 @@ try:
 
         print(key)
 
-        # dist_sorted = SIFRank(data, SIF, en_model, elmo_layers_weight=elmo_layers_weight)
-        dist_sorted = SIFRank_plus(data, SIF, en_model, elmo_layers_weight=elmo_layers_weight)
+        dist_sorted = SIFRank(data, SIF, en_model, elmo_layers_weight=elmo_layers_weight,if_DS=True,if_EA=True)
+        # dist_sorted = SIFRank_plus(data, SIF, en_model, elmo_layers_weight=elmo_layers_weight)
 
         j = 0
         for temp in dist_sorted[0:15]:

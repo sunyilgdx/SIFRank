@@ -37,29 +37,30 @@ class SentEmbeddings():
         self.database=database
         self.embeddings_type=embeddings_type
 
-    def get_tokenized_sent_embeddings(self, text_obj):
+    def get_tokenized_sent_embeddings(self, text_obj, if_DS=False, if_EA=False):
         """
         Based on part of speech return a list of candidate phrases
         :param text_obj: Input text Representation see @InputTextObj
+        :param if_DS: if take document segmentation(DS)
+        :param if_EA: if take  embeddings alignment(EA)
         """
         # choose the type of word embeddings:elmo or elmo_transformer or glove
-        if(self.embeddings_type=="elmo"):
-            elmo_embeddings, elmo_mask = self.word_embeddor.get_tokenized_words_embeddings(text_obj.tokens)
-        elif(self.embeddings_type=="elmo_transformer"):
-            elmo_embeddings= self.word_embeddor.get_tokenized_words_embeddings(text_obj.tokens)
-        elif (self.embeddings_type == "glove"):
-            elmo_embeddings = self.word_embeddor.get_tokenized_words_embeddings(text_obj.tokens)
-        # elif (self.embeddings_type == "elmo_sectioned"):
-        #     # can't use in this version
-        #     sents_tokened_sectioned = get_sent_sectioned(text_obj.sents_tokened)
-        #     elmo_embeddings, mask = self.word_embeddor.get_tokenized_words_embeddings(sents_tokened_sectioned)
-        #
-        #     elmo_embeddings = context_embeddings_alignment(elmo_embeddings,sents_tokened_sectioned,text_obj.tokens_tagged)
-        #     new_elmo_embeddings = elmo_embeddings[0:1,:,0:len(sents_tokened_sectioned[0]),:]
-        #     for i in range(1, len(sents_tokened_sectioned)):
-        #         emb = elmo_embeddings[i:i+1,:,0:len(sents_tokened_sectioned[i]),:]
-        #         new_elmo_embeddings = torch.cat((new_elmo_embeddings, emb), 2)
-        #     elmo_embeddings = new_elmo_embeddings
+        if(self.embeddings_type=="elmo" and if_DS==False):
+            elmo_embeddings, elmo_mask = self.word_embeddor.get_tokenized_words_embeddings([text_obj.tokens])
+        elif(self.embeddings_type=="elmo" and if_DS==True and if_EA==False):
+            tokens_segmented = get_sent_segmented(text_obj.tokens)
+            elmo_embeddings, elmo_mask = self.word_embeddor.get_tokenized_words_embeddings(tokens_segmented)
+            elmo_embeddings = splice_embeddings(elmo_embeddings,tokens_segmented)
+        elif (self.embeddings_type == "elmo" and if_DS == True and if_EA == True):
+            tokens_segmented = get_sent_segmented(text_obj.tokens)
+            elmo_embeddings, elmo_mask = self.word_embeddor.get_tokenized_words_embeddings(tokens_segmented)
+            elmo_embeddings = context_embeddings_alignment(elmo_embeddings, tokens_segmented)
+            elmo_embeddings = splice_embeddings(elmo_embeddings, tokens_segmented)
+
+        # elif(self.embeddings_type=="elmo_transformer"):
+        #     elmo_embeddings= self.word_embeddor.get_tokenized_words_embeddings([text_obj.tokens])
+        # elif (self.embeddings_type == "glove"):
+        #     elmo_embeddings = self.word_embeddor.get_tokenized_words_embeddings([text_obj.tokens])
 
         else:
             elmo_embeddings, elmo_mask = self.word_embeddor.get_tokenized_words_embeddings(text_obj.tokens)
@@ -79,25 +80,27 @@ class SentEmbeddings():
 
         return sent_embeddings,candidate_embeddings_list
 
-def context_embeddings_alignment(elmo_embeddings, sents_tokened_sectioned, sents_tokened_tagged):
+def context_embeddings_alignment(elmo_embeddings, tokens_segmented):
 
-    considered_tags_ = {'NN', 'NNS', 'NNP', 'NNPS', 'JJ', 'VBG'}
-    token_tag_map_list = []
+    """
+    Embeddings Alignment
+    :param elmo_embeddings: The embeddings from elmo
+    :param tokens_segmented: The list of tokens list
+     <class 'list'>: [['Twenty', 'years', ...,'practices', '.'],['The', 'out-of-print',..., 'libraries']]
+    :return:
+    """
     token_emb_map = {}
     n = 0
-    for i in range(0, len(sents_tokened_sectioned)):
+    for i in range(0, len(tokens_segmented)):
 
-        token_tag_map = {}
-        for j, token in enumerate(sents_tokened_sectioned[i]):
+        for j, token in enumerate(tokens_segmented[i]):
 
             emb = elmo_embeddings[i, 1, j, :]
             if token not in token_emb_map:
                 token_emb_map[token] = [emb]
             else:
                 token_emb_map[token].append(emb)
-            token_tag_map[token] = sents_tokened_tagged[0][n][1]
             n += 1
-        token_tag_map_list.append(token_tag_map)
 
     anchor_emb_map = {}
     for token, emb_list in token_emb_map.items():
@@ -107,10 +110,8 @@ def context_embeddings_alignment(elmo_embeddings, sents_tokened_sectioned, sents
         average_emb /= float(len(emb_list))
         anchor_emb_map[token] = average_emb
 
-
-
     for i in range(0, elmo_embeddings.shape[0]):
-        for j, token in enumerate(sents_tokened_sectioned[i]):
+        for j, token in enumerate(tokens_segmented[i]):
             emb = anchor_emb_map[token]
             elmo_embeddings[i, 2, j, :] = emb
 
@@ -126,23 +127,29 @@ def mat_division(vector_a, vector_b):
     #     return
     return torch.from_numpy(numpy.dot(A.I,B))
 
-def get_sent_sectioned(sents_tokened):
-    max_seq_len = 16
+def get_sent_segmented(tokens):
+    min_seq_len = 16
     sents_sectioned = []
-    for sent_tokened in sents_tokened:
-        if(len(sent_tokened)<=max_seq_len):
-            sents_sectioned.append(sent_tokened)
-        else:
-            # position_list= []
-            position = 0
-            for i,token in enumerate(sent_tokened):
-                if(token =='.'):
-                    if(i - position>=max_seq_len):
-                        sents_sectioned.append(sent_tokened[position:i+1])
-                        position = i+1
-            if(len(sent_tokened[position:])>0):
-                sents_sectioned.append(sent_tokened[position:])
+    if (len(tokens) <= min_seq_len):
+        sents_sectioned.append(tokens)
+    else:
+        position = 0
+        for i, token in enumerate(tokens):
+            if (token == '.'):
+                if (i - position >= min_seq_len):
+                    sents_sectioned.append(tokens[position:i + 1])
+                    position = i + 1
+        if (len(tokens[position:]) > 0):
+            sents_sectioned.append(tokens[position:])
+
     return sents_sectioned
+
+def splice_embeddings(elmo_embeddings,tokens_segmented):
+    new_elmo_embeddings = elmo_embeddings[0:1, :, 0:len(tokens_segmented[0]), :]
+    for i in range(1, len(tokens_segmented)):
+        emb = elmo_embeddings[i:i + 1, :, 0:len(tokens_segmented[i]), :]
+        new_elmo_embeddings = torch.cat((new_elmo_embeddings, emb), 2)
+    return new_elmo_embeddings
 
 def get_effective_words_num(tokened_sents):
     i=0
