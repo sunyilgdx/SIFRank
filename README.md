@@ -12,6 +12,7 @@ Python 3.6
 nltk 3.4.3
 StanfordCoreNLP 3.9.1.1
 torch 1.1.0
+allennlp 0.8.4
 ```
 ## Download
 * ELMo ``elmo_2x4096_512_2048cnn_2xhighway_options.json`` and ``elmo_2x4096_512_2048cnn_2xhighway_weights.hdf5`` from [here](https://allennlp.org/elmo) , and save it to the ``auxiliary_data/`` directory
