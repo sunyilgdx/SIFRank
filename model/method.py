@@ -202,6 +202,7 @@ def SIFRank_plus(text, SIF, en_model, method="average", N=15,
     text_obj = input_representation.InputTextObj(en_model, text)
     sent_embeddings, candidate_embeddings_list = SIF.get_tokenized_sent_embeddings(text_obj,if_DS=if_DS,if_EA=if_EA)
     position_score = get_position_score(text_obj.keyphrase_candidate, position_bias)
+    average_score = sum(position_score.values()) / (float)(len(position_score))
     dist_list = []
     for i, emb in enumerate(candidate_embeddings_list):
         dist = get_dist_cosine(sent_embeddings, emb, sent_emb_method, elmo_layers_weight=elmo_layers_weight)
@@ -210,7 +211,7 @@ def SIFRank_plus(text, SIF, en_model, method="average", N=15,
     dist_final = get_final_dist(dist_all, method='average')
     for np,dist in dist_final.items():
         if np in position_score:
-            dist_final[np] = dist*position_score[np]
+            dist_final[np] = dist*position_score[np]/average_score
     dist_sorted = sorted(dist_final.items(), key=lambda x: x[1], reverse=True)
     return dist_sorted[0:N]
 
