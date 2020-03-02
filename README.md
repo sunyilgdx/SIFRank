@@ -1,12 +1,18 @@
 # SIFRank
 The code of our paper [SIFRank: A New Baseline for Unsupervised Keyphrase Extraction Based on Pre-trained Language Model](https://ieeexplore.ieee.org/document/8954611)
 
+## Versions Notes
+* 2020/02/21——``Initial version`` 
+Provided the most basic functions.
+* 2020/02/28——``Second version``
+Added new algorithms ``DS``(document segmentation) and ``EA``(embeddings alignment) to ``speed up`` SIFRank and SIFRank+.
 ## Environment
 ```
 Python 3.6
 nltk 3.4.3
 StanfordCoreNLP 3.9.1.1
 torch 1.1.0
+allennlp 0.8.4
 ```
 ## Download
 * ELMo ``elmo_2x4096_512_2048cnn_2xhighway_options.json`` and ``elmo_2x4096_512_2048cnn_2xhighway_weights.hdf5`` from [here](https://allennlp.org/elmo) , and save it to the ``auxiliary_data/`` directory
